@@ -70,9 +70,6 @@ internal fun SettingsHome(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        if (query.isBlank()) item(key = "learn") {
-            com.androidharness.app.ui.learn.LearnEntryCard(onClick = { onOpen(SettingsPage.LEARN, null) }, modifier = Modifier.settingsEntrance(0))
-        }
         item(key = "search") {
             OutlinedTextField(
                 value = query,
@@ -122,6 +119,11 @@ internal fun SettingsHome(
             item(key = "group:$group:${entries.first().page}") {
                 SettingsHomeGroup(group, entries, SettingsTone.entries[groupIndex % 3], onOpen, Modifier.settingsEntrance(groupIndex + 1))
             }
+        }
+        if (query.isBlank()) item(key = "learn-last") {
+            // The guide sits at the end of the About group, after the reference pages.
+            com.androidharness.app.ui.learn.LearnEntryCard(onClick = { onOpen(SettingsPage.LEARN, null) },
+                modifier = Modifier.settingsEntrance(groups.size + 1))
         }
         item(key = "end") { Spacer(Modifier.height(12.dp)) }
     }
