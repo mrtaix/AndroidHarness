@@ -598,6 +598,14 @@
     <string name="settings_google_account_title">บัญชี Google (Gemini)</string>
     <string name="settings_google_sign_in">ลงชื่อเข้าใช้ด้วย Google</string>
     <string name="settings_google_sign_out">ออกจากระบบ</string>
+    <string name="settings_google_usage_action">โควตาและแพ็กเกจ</string>
+    <string name="settings_google_usage_title">การใช้งาน Google Gemini</string>
+    <string name="settings_google_usage_loading">กำลังโหลด…</string>
+    <string name="settings_google_usage_plan">แพ็กเกจ</string>
+    <string name="settings_google_usage_credits">เครดิต</string>
+    <string name="settings_google_usage_resets">รีเซ็ต</string>
+    <string name="settings_google_usage_prices">ราคาโมเดล</string>
+    <string name="settings_google_usage_per_million"> / 1 ล้านโทเคน</string>
     <string name="settings_chat_text_size">ขนาดข้อความ</string>
     <string name="settings_chat_text_size_desc">ปรับขนาดคำตอบ การคิด และผลลัพธ์ของเครื่องมือในทุกแชท</string>
     <string name="settings_chat_compact_cards">การ์ดกระชับ</string>

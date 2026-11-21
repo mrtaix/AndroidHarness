@@ -598,6 +598,14 @@
     <string name="settings_google_account_title">Google অ্যাকাউন্ট (Gemini)</string>
     <string name="settings_google_sign_in">Google দিয়ে সাইন ইন করুন</string>
     <string name="settings_google_sign_out">সাইন আউট</string>
+    <string name="settings_google_usage_action">কোটা ও প্ল্যান</string>
+    <string name="settings_google_usage_title">Google Gemini ব্যবহার</string>
+    <string name="settings_google_usage_loading">লোড হচ্ছে…</string>
+    <string name="settings_google_usage_plan">প্ল্যান</string>
+    <string name="settings_google_usage_credits">ক্রেডিট</string>
+    <string name="settings_google_usage_resets">রিসেট</string>
+    <string name="settings_google_usage_prices">মডেল মূল্য</string>
+    <string name="settings_google_usage_per_million"> / ১০ লাখ টোকেন</string>
     <string name="settings_chat_text_size">লেখার আকার</string>
     <string name="settings_chat_text_size_desc">প্রতিটি চ্যাটে উত্তর, চিন্তা ও টুল আউটপুটের আকার বদলায়।</string>
     <string name="settings_chat_compact_cards">সংক্ষিপ্ত কার্ড</string>

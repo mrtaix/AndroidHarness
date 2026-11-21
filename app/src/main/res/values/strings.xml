@@ -635,6 +635,14 @@
     <string name="settings_google_account_title">Google account (Gemini)</string>
     <string name="settings_google_sign_in">Sign in with Google</string>
     <string name="settings_google_sign_out">Sign out</string>
+    <string name="settings_google_usage_action">Quota &amp; plan</string>
+    <string name="settings_google_usage_title">Google Gemini usage</string>
+    <string name="settings_google_usage_loading">Loading…</string>
+    <string name="settings_google_usage_plan">Plan</string>
+    <string name="settings_google_usage_credits">Credits</string>
+    <string name="settings_google_usage_resets">Resets</string>
+    <string name="settings_google_usage_prices">Model prices</string>
+    <string name="settings_google_usage_per_million"> / 1M tokens</string>
     <string name="settings_chat_text_size">Text size</string>
     <string name="settings_chat_text_size_desc">Scales answers, thinking and tool output in every chat.</string>
     <string name="settings_chat_compact_cards">Compact cards</string>

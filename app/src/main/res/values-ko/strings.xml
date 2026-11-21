@@ -598,6 +598,14 @@
     <string name="settings_google_account_title">Google 계정(Gemini)</string>
     <string name="settings_google_sign_in">Google로 로그인</string>
     <string name="settings_google_sign_out">로그아웃</string>
+    <string name="settings_google_usage_action">할당량 및 요금제</string>
+    <string name="settings_google_usage_title">Google Gemini 사용량</string>
+    <string name="settings_google_usage_loading">불러오는 중…</string>
+    <string name="settings_google_usage_plan">요금제</string>
+    <string name="settings_google_usage_credits">크레딧</string>
+    <string name="settings_google_usage_resets">재설정</string>
+    <string name="settings_google_usage_prices">모델 가격</string>
+    <string name="settings_google_usage_per_million"> / 100만 토큰</string>
     <string name="settings_chat_text_size">텍스트 크기</string>
     <string name="settings_chat_text_size_desc">모든 채팅에서 답변, 사고, 도구 출력의 크기를 조정합니다.</string>
     <string name="settings_chat_compact_cards">간결한 카드</string>

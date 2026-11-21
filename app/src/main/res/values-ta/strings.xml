@@ -598,6 +598,14 @@
     <string name="settings_google_account_title">Google கணக்கு (Gemini)</string>
     <string name="settings_google_sign_in">Google மூலம் உள்நுழைய</string>
     <string name="settings_google_sign_out">வெளியேறு</string>
+    <string name="settings_google_usage_action">ஒதுக்கீடு மற்றும் திட்டம்</string>
+    <string name="settings_google_usage_title">Google Gemini பயன்பாடு</string>
+    <string name="settings_google_usage_loading">ஏற்றுகிறது…</string>
+    <string name="settings_google_usage_plan">திட்டம்</string>
+    <string name="settings_google_usage_credits">கிரெடிட்கள்</string>
+    <string name="settings_google_usage_resets">மீட்டமை</string>
+    <string name="settings_google_usage_prices">மாதிரி விலைகள்</string>
+    <string name="settings_google_usage_per_million"> / 10 லட்ச டோக்கன்</string>
     <string name="settings_chat_text_size">உரை அளவு</string>
     <string name="settings_chat_text_size_desc">ஒவ்வொரு அரட்டையிலும் பதில்கள், சிந்தனை மற்றும் கருவி வெளியீட்டின் அளவை மாற்றுகிறது.</string>
     <string name="settings_chat_compact_cards">சுருக்க அட்டைகள்</string>

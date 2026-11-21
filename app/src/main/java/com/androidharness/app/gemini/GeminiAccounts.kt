@@ -40,6 +40,13 @@ import java.util.concurrent.TimeUnit
 data class GeminiAccount(val providerId: String, val email: String, val connected: Boolean, val expiresAt: Long,
     val models: List<String> = emptyList())
 
+/** One quota window the account can still draw on. */
+data class GeminiQuota(val group: String, val bucket: String, val remaining: Double, val resetsAt: String?)
+
+/** Plan, credits and quota buckets reported by Antigravity. */
+data class GeminiUsage(val plan: String? = null, val credits: String? = null,
+    val quotas: List<GeminiQuota> = emptyList(), val error: String? = null)
+
 data class GeminiAccountState(
     val accounts: List<GeminiAccount> = emptyList(),
     val signingIn: Boolean = false,
@@ -194,6 +201,48 @@ class GeminiAccounts(
         val models = call("${GeminiProtocol.API}/models", null)
         val codeAssist = call("${GeminiProtocol.CODE_ASSIST}/v1internal:loadCodeAssist", JsonObject(emptyMap()))
         "Gemini API: $models · Antigravity: $codeAssist"
+    }
+
+    /** Plan, credits and quota buckets for one signed-in account. */
+    suspend fun usage(providerId: String): GeminiUsage = withContext(Dispatchers.IO) {
+        runCatching {
+            val token = accessToken(providerId)
+            fun post(path: String, body: JsonObject): JsonObject {
+                val request = Request.Builder().url("${GeminiProtocol.CODE_ASSIST}/v1internal:$path")
+                    .header("Authorization", "Bearer $token")
+                    .header("User-Agent", GeminiProtocol.USER_AGENT)
+                    .post(body.toString().toRequestBody("application/json".toMediaType())).build()
+                http.newCall(request).execute().use { response ->
+                    val text = response.body?.string().orEmpty()
+                    if (!response.isSuccessful) error("HTTP ${response.code}: ${text.take(400)}")
+                    return json.parseToJsonElement(text).jsonObject
+                }
+            }
+            val tier = post("loadCodeAssist", buildJsonObject {
+                put("metadata", buildJsonObject { put("ideType", "ANTIGRAVITY") })
+            })
+            fun tierLabel(obj: JsonObject?): String? {
+                val id = obj?.get("id")?.jsonPrimitive?.contentOrNull ?: return null
+                val name = obj["name"]?.jsonPrimitive?.contentOrNull
+                return if (name.isNullOrBlank()) id else "$name ($id)"
+            }
+            val plan = tierLabel(tier["paidTier"] as? JsonObject) ?: tierLabel(tier["currentTier"] as? JsonObject)
+            val credits = (tier["paidTier"] as? JsonObject)?.get("availableCredits")?.toString()
+                ?.takeUnless { it == "null" || it == "[]" }
+            val summary = runCatching { post("retrieveUserQuotaSummary", JsonObject(emptyMap())) }.getOrNull()
+            val quotas = summary?.get("groups")?.let { it as? kotlinx.serialization.json.JsonArray }.orEmpty().flatMap { groupEl ->
+                val group = groupEl as? JsonObject ?: return@flatMap emptyList<GeminiQuota>()
+                val label = group["displayName"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                (group["buckets"] as? kotlinx.serialization.json.JsonArray).orEmpty().mapNotNull { bucketEl ->
+                    val bucket = bucketEl as? JsonObject ?: return@mapNotNull null
+                    val id = bucket["bucketId"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+                    GeminiQuota(label, id,
+                        bucket["remainingFraction"]?.jsonPrimitive?.contentOrNull?.toDoubleOrNull() ?: return@mapNotNull null,
+                        bucket["resetTime"]?.jsonPrimitive?.contentOrNull)
+                }
+            }.orEmpty()
+            GeminiUsage(plan = plan, credits = credits, quotas = quotas)
+        }.getOrElse { GeminiUsage(error = it.message ?: "Could not load quota.") }
     }
 
     /** Antigravity project for the account, discovered once and remembered. */

@@ -16,6 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -23,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.androidharness.app.R
 import com.androidharness.app.gemini.GeminiAccount
 import com.androidharness.app.gemini.GeminiAccountState
+import com.androidharness.app.gemini.GeminiUsage
 import com.androidharness.app.ui.common.TextButton
 
 /** Google sign-in for Gemini, next to the ChatGPT connection. */
@@ -33,8 +39,11 @@ internal fun GeminiAccountsCard(
     onSignIn: () -> Unit,
     onCancelSignIn: () -> Unit,
     onSignOut: (GeminiAccount) -> Unit,
+    onUsage: suspend (GeminiAccount) -> GeminiUsage,
 ) {
     val scheme = MaterialTheme.colorScheme
+    var showing by remember { mutableStateOf<GeminiAccount?>(null) }
+    var usage by remember { mutableStateOf<GeminiUsage?>(null) }
     Surface(color = scheme.surfaceContainerLow, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.settings_google_account_title), style = MaterialTheme.typography.titleSmall)
@@ -42,7 +51,12 @@ internal fun GeminiAccountsCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Rounded.AccountCircle, null, Modifier.size(20.dp), tint = scheme.primary)
                     Text(account.email, Modifier.weight(1f).padding(start = 8.dp), style = MaterialTheme.typography.bodyMedium)
-                    TextButton(onClick = { onSignOut(account) }) { Text(stringResource(R.string.settings_google_sign_out)) }
+                    TextButton(onClick = { showing = account; usage = null }) {
+                        Text(stringResource(R.string.settings_google_usage_action))
+                    }
+                    TextButton(onClick = { onSignOut(account) }) {
+                        Text(stringResource(R.string.settings_google_sign_out))
+                    }
                 }
             }
             if (state.accounts.isNotEmpty()) HorizontalDivider(color = scheme.outlineVariant.copy(alpha = 0.5f))
@@ -62,5 +76,9 @@ internal fun GeminiAccountsCard(
                 Text(it, style = MaterialTheme.typography.labelSmall, color = scheme.error)
             }
         }
+    }
+    showing?.let { account ->
+        LaunchedEffect(account) { usage = onUsage(account) }
+        GeminiUsageDialog(usage, account.models) { showing = null }
     }
 }

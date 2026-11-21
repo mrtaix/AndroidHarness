@@ -598,6 +598,14 @@
     <string name="settings_google_account_title">Akaun Google (Gemini)</string>
     <string name="settings_google_sign_in">Log masuk dengan Google</string>
     <string name="settings_google_sign_out">Log keluar</string>
+    <string name="settings_google_usage_action">Kuota &amp; pelan</string>
+    <string name="settings_google_usage_title">Penggunaan Google Gemini</string>
+    <string name="settings_google_usage_loading">Memuatkan…</string>
+    <string name="settings_google_usage_plan">Pelan</string>
+    <string name="settings_google_usage_credits">Kredit</string>
+    <string name="settings_google_usage_resets">Set semula</string>
+    <string name="settings_google_usage_prices">Harga model</string>
+    <string name="settings_google_usage_per_million"> / 1J token</string>
     <string name="settings_chat_text_size">Saiz teks</string>
     <string name="settings_chat_text_size_desc">Menukar saiz jawapan, pemikiran dan output alat dalam setiap sembang.</string>
     <string name="settings_chat_compact_cards">Kad padat</string>

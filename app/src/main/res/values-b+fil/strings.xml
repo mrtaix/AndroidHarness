@@ -598,6 +598,14 @@
     <string name="settings_google_account_title">Google account (Gemini)</string>
     <string name="settings_google_sign_in">Mag-sign in gamit ang Google</string>
     <string name="settings_google_sign_out">Mag-sign out</string>
+    <string name="settings_google_usage_action">Quota at plano</string>
+    <string name="settings_google_usage_title">Paggamit ng Google Gemini</string>
+    <string name="settings_google_usage_loading">Naglo-load…</string>
+    <string name="settings_google_usage_plan">Plano</string>
+    <string name="settings_google_usage_credits">Mga credit</string>
+    <string name="settings_google_usage_resets">Pag-reset</string>
+    <string name="settings_google_usage_prices">Presyo ng modelo</string>
+    <string name="settings_google_usage_per_million"> / 1M token</string>
     <string name="settings_chat_text_size">Laki ng teksto</string>
     <string name="settings_chat_text_size_desc">Sinasukat ang mga sagot, pag-iisip at output ng tool sa bawat chat.</string>
     <string name="settings_chat_compact_cards">Siksik na card</string>

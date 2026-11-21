@@ -598,6 +598,14 @@
     <string name="settings_google_account_title">Google-Konto (Gemini)</string>
     <string name="settings_google_sign_in">Mit Google anmelden</string>
     <string name="settings_google_sign_out">Abmelden</string>
+    <string name="settings_google_usage_action">Kontingent &amp; Tarif</string>
+    <string name="settings_google_usage_title">Google Gemini-Nutzung</string>
+    <string name="settings_google_usage_loading">Wird geladen…</string>
+    <string name="settings_google_usage_plan">Tarif</string>
+    <string name="settings_google_usage_credits">Guthaben</string>
+    <string name="settings_google_usage_resets">Zurücksetzung</string>
+    <string name="settings_google_usage_prices">Modellpreise</string>
+    <string name="settings_google_usage_per_million"> / 1 Mio. Tokens</string>
     <string name="settings_chat_text_size">Textgröße</string>
     <string name="settings_chat_text_size_desc">Skaliert Antworten, Denken und Tool-Ausgaben in jedem Chat.</string>
     <string name="settings_chat_compact_cards">Kompakte Karten</string>

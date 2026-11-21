@@ -598,6 +598,14 @@
     <string name="settings_google_account_title">Google खाता (Gemini)</string>
     <string name="settings_google_sign_in">Google से साइन इन करें</string>
     <string name="settings_google_sign_out">साइन आउट</string>
+    <string name="settings_google_usage_action">कोटा और प्लान</string>
+    <string name="settings_google_usage_title">Google Gemini उपयोग</string>
+    <string name="settings_google_usage_loading">लोड हो रहा है…</string>
+    <string name="settings_google_usage_plan">प्लान</string>
+    <string name="settings_google_usage_credits">क्रेडिट</string>
+    <string name="settings_google_usage_resets">रीसेट</string>
+    <string name="settings_google_usage_prices">मॉडल कीमतें</string>
+    <string name="settings_google_usage_per_million"> / 1M टोकन</string>
     <string name="settings_chat_text_size">पाठ आकार</string>
     <string name="settings_chat_text_size_desc">हर चैट में उत्तर, सोच और टूल आउटपुट का आकार बदलता है।</string>
     <string name="settings_chat_compact_cards">संक्षिप्त कार्ड</string>

@@ -42,6 +42,7 @@ internal fun ConnectedAccountsSection(container: AppContainer) {
         onSignIn = { container.gemini.startSignIn { openOAuthBrowser(context, Uri.parse(it)) } },
         onCancelSignIn = container.gemini::cancelSignIn,
         onSignOut = { container.gemini.signOut(it.providerId) },
+        onUsage = { account -> container.gemini.usage(account.providerId) },
     )
     ChatGptAccountsPanel(state, settings.activeProviderId, settings.activeModel, selecting,
         error = selectionError ?: state.error,
