@@ -95,9 +95,10 @@ object ModelCatalog {
                 } catch (e: Exception) { Result.Failed(e.message ?: "Could not refresh ChatGPT models.") }
             }
             if (com.androidharness.app.gemini.GeminiProtocol.isProvider(config.id)) {
-                return@withContext Result.Models(com.androidharness.app.gemini.GeminiProtocol.ACCOUNT_MODELS.map {
-                    ModelEntry(it, note = "Google account")
-                }, 0)
+                return@withContext try {
+                    Result.Models(com.androidharness.app.gemini.GeminiProtocol.ACCOUNT_MODELS.map { ModelEntry(it, note = "Google account") }, 0)
+                } catch (e: kotlinx.coroutines.CancellationException) { throw e
+                } catch (e: Exception) { Result.Failed(e.message ?: "Could not refresh Gemini models.") }
             }
             if (com.androidharness.app.local.LocalModelCatalog.isLocal(config.id)) {
                 return@withContext Result.Models(listOf(ModelEntry(config.model, note = "On-device · tools and vision depend on model and projector")), 0)

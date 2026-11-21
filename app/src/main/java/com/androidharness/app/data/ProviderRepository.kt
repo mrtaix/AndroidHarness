@@ -57,7 +57,7 @@ class ProviderRepository(
             google.accounts.filter { it.connected }.map { account ->
                 ProviderConfig(account.providerId, "Gemini · ${account.email}", ProviderType.GEMINI,
                     com.androidharness.app.gemini.GeminiProtocol.CODE_ASSIST,
-                    com.androidharness.app.gemini.GeminiProtocol.ACCOUNT_MODELS.first())
+                    account.models.firstOrNull() ?: com.androidharness.app.gemini.GeminiProtocol.ACCOUNT_MODELS.first())
             } +
             listOf(HarnessProvider.config.copy(model = HarnessProvider.sanitize(saved.firstOrNull { it.id == HarnessProvider.ID }?.model, harnessCustom))) + saved.filterNot { it.id == HarnessProvider.ID || com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(it.id) || com.androidharness.app.gemini.GeminiProtocol.isProvider(it.id) || com.androidharness.app.local.LocalModelCatalog.isLocal(it.id) || it.baseUrl.startsWith("local://") } + localModels.configs(installed)
     }.combine(settings.settings) { available, saved ->
@@ -115,7 +115,7 @@ class ProviderRepository(
         catalogMap.keys.filter { com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(it) || com.androidharness.app.gemini.GeminiProtocol.isProvider(it) }.forEach { catalogMap.remove(it) }
         accounts.accounts.filter { it.connected }.forEach { catalogMap[it.providerId] = it.models }
         google.accounts.filter { it.connected }.forEach { catalogMap[it.providerId] =
-            com.androidharness.app.gemini.GeminiProtocol.ACCOUNT_MODELS.map { model -> ModelEntry(model, note = "Google account") } }
+            it.models.map { model -> ModelEntry(model, note = "Google account") } }
         catalogMap
     }
 
@@ -126,6 +126,9 @@ class ProviderRepository(
         catalogRefreshLocks.getOrPut(providerId) { Mutex() }.withLock {
             val provider = current().firstOrNull { it.id == providerId } ?: return@withLock "Provider unavailable"
             if (com.androidharness.app.local.LocalModelCatalog.isLocal(providerId)) return@withLock null
+            if (com.androidharness.app.gemini.GeminiProtocol.isProvider(providerId)) {
+                return@withLock runCatching { gemini.models(providerId) }.exceptionOrNull()?.message
+            }
             val connection = provider.copy(name = "", model = "", enabled = true)
             val now = System.nanoTime()
             if (automatic && automaticCatalogChecks[connection]?.let { now - it < 300_000_000_000L } == true)

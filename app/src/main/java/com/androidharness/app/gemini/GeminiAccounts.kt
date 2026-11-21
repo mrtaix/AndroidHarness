@@ -37,7 +37,8 @@ import java.net.SocketTimeoutException
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-data class GeminiAccount(val providerId: String, val email: String, val connected: Boolean, val expiresAt: Long)
+data class GeminiAccount(val providerId: String, val email: String, val connected: Boolean, val expiresAt: Long,
+    val models: List<String> = emptyList())
 
 data class GeminiAccountState(
     val accounts: List<GeminiAccount> = emptyList(),
@@ -63,6 +64,11 @@ class GeminiAccounts(
     private val lock = Mutex()
     private var store = read()?.let { runCatching { json.decodeFromString<GeminiProtocol.Store>(it) }.getOrNull() }
         ?: GeminiProtocol.Store("urn:uuid:${UUID.randomUUID()}").also { persist(it) }
+
+    init {
+        // Older sign-ins carry the Gemini CLI scopes, which Antigravity rejects; one fresh sign-in is required.
+        if (store.version < 2) persist(store.copy(accounts = emptyList(), version = 2))
+    }
     private val mutableState = MutableStateFlow(GeminiAccountState())
     val state = mutableState.asStateFlow()
     private var signInJob: Job? = null
@@ -70,7 +76,12 @@ class GeminiAccounts(
 
     init {
         publish()
-        scope.launch { store.accounts.filter { it.connected }.forEach { runCatching { accessToken(GeminiProtocol.providerId(it.id)) } } }
+        scope.launch {
+            store.accounts.filter { it.connected }.forEach { account ->
+                runCatching { accessToken(GeminiProtocol.providerId(account.id)) }
+                runCatching { models(GeminiProtocol.providerId(account.id)) }
+            }
+        }
     }
 
     private fun persist(updated: GeminiProtocol.Store) {
@@ -82,7 +93,8 @@ class GeminiAccounts(
     private fun publish(error: String? = mutableState.value.error) {
         mutableState.update {
             it.copy(accounts = store.accounts.map { entry ->
-                GeminiAccount(GeminiProtocol.providerId(entry.id), entry.email.ifBlank { "Google account" }, entry.connected, entry.expiresAt)
+                GeminiAccount(GeminiProtocol.providerId(entry.id), entry.email.ifBlank { "Google account" }, entry.connected,
+                    entry.expiresAt, entry.models.ifEmpty { GeminiProtocol.ACCOUNT_MODELS })
             }, error = error)
         }
     }
@@ -115,8 +127,15 @@ class GeminiAccounts(
                         val account = GeminiProtocol.StoredAccount(id = UUID.randomUUID().toString(), email = email,
                             refreshToken = tokens.refreshToken.orEmpty(), accessToken = access,
                             expiresAt = System.currentTimeMillis() + tokens.expiresIn * 1000)
-                        lock.withLock { persist(store.copy(accounts = store.accounts + account)) }
-                        mutableState.update { it.copy(access = probe(access)) }
+                        lock.withLock {
+                            // One row per Google address: signing in again refreshes its scopes.
+                            val others = store.accounts.filterNot { it.email.equals(email, ignoreCase = true) && email.isNotBlank() }
+                            persist(store.copy(accounts = others + account))
+                        }
+                        val listed = runCatching { models(GeminiProtocol.providerId(account.id)) }.getOrNull().orEmpty()
+                        mutableState.update {
+                            it.copy(access = probe(access) + if (listed.isEmpty()) " · models: none" else " · models: ${listed.size}")
+                        }
                     }
                 }
             } catch (_: TimeoutCancellationException) {
@@ -173,53 +192,77 @@ class GeminiAccounts(
             http.newCall(request).execute().use { response -> "HTTP ${response.code}" }
         }.getOrElse { "network error" }
         val models = call("${GeminiProtocol.API}/models", null)
-        val codeAssist = call("${GeminiProtocol.CODE_ASSIST}:loadCodeAssist", JsonObject(emptyMap()))
-        "Gemini API: $models · Code Assist: $codeAssist"
+        val codeAssist = call("${GeminiProtocol.CODE_ASSIST}/v1internal:loadCodeAssist", JsonObject(emptyMap()))
+        "Gemini API: $models · Antigravity: $codeAssist"
     }
 
-    /** Code Assist project for the account, discovered once and then cached. */
+    /** Antigravity project for the account, discovered once and remembered. */
     suspend fun project(providerId: String): String = withContext(Dispatchers.IO) {
         projectCache[providerId]?.let { return@withContext it }
+        val id = GeminiProtocol.accountId(providerId)
+        val found = entry(id)
+        found.project.takeIf { it.isNotBlank() }?.let { projectCache[providerId] = it; return@withContext it }
         val token = accessToken(providerId)
-        val metadata = buildJsonObject {
-            put("ideType", "IDE_UNSPECIFIED")
-            put("platform", "PLATFORM_UNSPECIFIED")
-            put("pluginType", "GEMINI")
-            put("pluginVersion", "1.0.0")
-        }
-        fun post(path: String, body: JsonObject): JsonObject {
-            val request = Request.Builder().url("${GeminiProtocol.CODE_ASSIST}:$path")
+        fun post(host: String, path: String, body: JsonObject): JsonObject {
+            val request = Request.Builder().url("$host/v1internal:$path")
                 .header("Authorization", "Bearer $token")
+                .header("User-Agent", GeminiProtocol.USER_AGENT)
                 .post(body.toString().toRequestBody("application/json".toMediaType())).build()
             http.newCall(request).execute().use { response ->
                 val text = response.body?.string().orEmpty()
-                if (!response.isSuccessful) throw IOException("Code Assist $path failed: HTTP ${response.code} $text")
+                if (!response.isSuccessful) throw IOException("Antigravity $path failed: HTTP ${response.code} $text")
                 return json.parseToJsonElement(text).jsonObject
             }
         }
-        val loaded = post("loadCodeAssist", buildJsonObject { put("metadata", metadata) })
-        val direct = loaded["cloudaicompanionProject"]?.jsonPrimitive?.contentOrNull
-        val tier = loaded["currentTier"]?.jsonObject?.get("id")?.jsonPrimitive?.contentOrNull
-            ?: loaded["allowedTiers"]?.jsonArray?.firstOrNull()?.jsonObject?.get("id")?.jsonPrimitive?.contentOrNull
-        val project = direct?.takeIf { it.isNotBlank() } ?: run {
-            checkNotNull(tier) { "This Google account has no Code Assist tier available." }
-            val started = post("onboardUser", buildJsonObject {
-                put("tierId", tier)
-                put("metadata", metadata)
-            })
-            var operation = started
-            var waited = 0L
-            while (operation["done"]?.jsonPrimitive?.contentOrNull != "true" && waited < 30_000) {
-                kotlinx.coroutines.delay(1_000)
-                waited += 1_000
-                val name = operation["name"]?.jsonPrimitive?.contentOrNull ?: break
-                operation = post("onboardUser", buildJsonObject { put("name", name) })
-            }
-            operation["response"]?.jsonObject?.get("cloudaicompanionProject")?.jsonObject?.get("id")?.jsonPrimitive?.contentOrNull
-                ?: error("Google did not create a Code Assist project for this account.")
+        val loaded = runCatching {
+            post(GeminiProtocol.CODE_ASSIST, "loadCodeAssist",
+                buildJsonObject { put("metadata", buildJsonObject { put("ideType", "ANTIGRAVITY") }) })
+        }.getOrElse {
+            post(GeminiProtocol.CODE_ASSIST_FALLBACK, "loadCodeAssist",
+                buildJsonObject { put("metadata", buildJsonObject { put("ideType", "ANTIGRAVITY") }) })
         }
+        val server = loaded["cloudaicompanionProject"]?.let { element ->
+            (element as? JsonObject)?.get("id")?.jsonPrimitive?.contentOrNull ?: element.jsonPrimitive.contentOrNull
+        }
+        // Antigravity still answers when discovery names no project, so a missing
+        // project must not block the account; the CLI derives one the same way.
+        val project = server?.takeIf { it.isNotBlank() }
+            ?: GeminiProtocol.stableProject(found.email.ifBlank { id })
+        persist(store.copy(accounts = store.accounts.map { if (it.id == id) it.copy(project = project) else it }))
         projectCache[providerId] = project
         project
+    }
+
+    /** Runtime model ids for the account, refreshed at most every 30 minutes. */
+    suspend fun models(providerId: String): List<String> = withContext(Dispatchers.IO) {
+        val id = GeminiProtocol.accountId(providerId)
+        val found = entry(id)
+        if (found.models.isNotEmpty() && System.currentTimeMillis() - found.modelsAt < 30 * 60_000) return@withContext found.models
+        val token = accessToken(providerId)
+        val project = project(providerId)
+        val body = buildJsonObject { put("project", project) }
+        val request = Request.Builder().url("${GeminiProtocol.CODE_ASSIST}/v1internal:fetchAvailableModels")
+            .header("Authorization", "Bearer $token")
+            .header("User-Agent", GeminiProtocol.USER_AGENT)
+            .post(body.toString().toRequestBody("application/json".toMediaType())).build()
+        val text = http.newCall(request).execute().use { response ->
+            val raw = response.body?.string().orEmpty()
+            if (!response.isSuccessful) error("Antigravity models failed: HTTP ${response.code} $raw")
+            raw
+        }
+        val data = json.parseToJsonElement(text).jsonObject
+        val map = data["models"] as? JsonObject
+        val ids = map?.keys.orEmpty().filter { modelId ->
+            val info = map?.get(modelId)?.jsonObject
+            val disabled = info?.get("isInternal")?.jsonPrimitive?.contentOrNull == "true" ||
+                info?.get("disabled")?.jsonPrimitive?.contentOrNull == "true"
+            !disabled && modelId.isNotBlank() && !modelId.startsWith("MODEL_PLACEHOLDER")
+        }
+        val models = ids.ifEmpty { GeminiProtocol.ACCOUNT_MODELS }
+        persist(store.copy(accounts = store.accounts.map {
+            if (it.id == id) it.copy(models = models, modelsAt = System.currentTimeMillis()) else it
+        }))
+        models
     }
 
     private val projectCache = java.util.concurrent.ConcurrentHashMap<String, String>()

@@ -51,12 +51,16 @@ class GeminiProvider(
             val wrapped = buildJsonObject {
                 put("model", config.model)
                 put("project", project)
-                put("user_prompt_id", java.util.UUID.randomUUID().toString())
                 put("request", body)
+                // The Antigravity envelope: the API rejects a bare Gemini body.
+                put("requestType", "agent")
+                put("userAgent", "antigravity")
+                put("requestId", "agent/${System.currentTimeMillis()}/${java.util.UUID.randomUUID()}/1")
             }
             return Request.Builder()
-                .url("${com.androidharness.app.gemini.GeminiProtocol.CODE_ASSIST}:streamGenerateContent?alt=sse")
+                .url("${com.androidharness.app.gemini.GeminiProtocol.CODE_ASSIST}/v1internal:streamGenerateContent?alt=sse")
                 .header("Authorization", "Bearer $token")
+                .header("User-Agent", com.androidharness.app.gemini.GeminiProtocol.USER_AGENT)
                 .post(wrapped.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
                 .apply { ProviderHeaders.apply(this, config, options.debugAttempt, options.debugKeySlot, options.debugGroup, options.cacheKey) }
                 .build()
