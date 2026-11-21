@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">आउटपुट</string>
     <string name="settings_chat_cards_preview">नमूना कार्ड</string>
     <string name="settings_chat_cards_empty">टूल कार्ड में कुछ नहीं दिखता।</string>
+    <string name="settings_chat_cards_one_line">एक-पंक्ति कार्ड</string>
+    <string name="settings_chat_cards_status">रूट बैज</string>
     <string name="settings_headers_show_preview">"हेडर का अनुरोध करें"</string>
     <string name="settings_headers_hide_preview">"अनुरोध शीर्षलेख छिपाएँ"</string>
     <string name="settings_fallback_provider_unavailable">"प्रदाता अनुपलब्ध है"</string>

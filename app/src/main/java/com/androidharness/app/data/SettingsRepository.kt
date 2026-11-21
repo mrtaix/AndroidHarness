@@ -72,6 +72,10 @@ data class AppSettings(
     val chatCardsShowArgs: Boolean = true,
     /** Tool cards: show the tool name label above the panel. */
     val chatCardsShowLabels: Boolean = true,
+    /** Tool cards: show the execution route badges such as "Shizuku · fallback". */
+    val chatCardsShowStatus: Boolean = true,
+    /** Tool cards: a single summary line, no command or output. */
+    val chatCardsOneLine: Boolean = false,
     /** Global client identity for provider requests; blank keeps the app's own User-Agent. */
     val providerIdentity: String = com.androidharness.app.llm.ProviderIdentity.DEFAULT,
     /** Rows sent when [providerIdentity] is the custom choice. */
@@ -387,6 +391,8 @@ class SettingsRepository(private val context: Context) {
         val CHAT_CARDS_OUTPUT = booleanPreferencesKey("chat_cards_output")
         val CHAT_CARDS_TIMING = booleanPreferencesKey("chat_cards_args")
         val CHAT_CARDS_LABELS = booleanPreferencesKey("chat_cards_labels")
+        val CHAT_CARDS_STATUS = booleanPreferencesKey("chat_cards_status")
+        val CHAT_CARDS_ONE_LINE = booleanPreferencesKey("chat_cards_one_line")
         val PROVIDER_IDENTITY = stringPreferencesKey("provider_identity")
         val PROVIDER_IDENTITY_HEADERS = stringPreferencesKey("provider_identity_headers")
         val MAX_OUTPUT = intPreferencesKey("max_output_tokens")
@@ -541,6 +547,8 @@ class SettingsRepository(private val context: Context) {
             chatCardsShowOutput = prefs[Keys.CHAT_CARDS_OUTPUT] ?: true,
             chatCardsShowArgs = prefs[Keys.CHAT_CARDS_TIMING] ?: true,
             chatCardsShowLabels = prefs[Keys.CHAT_CARDS_LABELS] ?: true,
+            chatCardsShowStatus = prefs[Keys.CHAT_CARDS_STATUS] ?: true,
+            chatCardsOneLine = prefs[Keys.CHAT_CARDS_ONE_LINE] ?: false,
             providerIdentity = prefs[Keys.PROVIDER_IDENTITY].orEmpty().takeIf { id ->
                 com.androidharness.app.llm.ProviderIdentity.presets.any { it.id == id }
             } ?: com.androidharness.app.llm.ProviderIdentity.DEFAULT,
@@ -691,6 +699,8 @@ class SettingsRepository(private val context: Context) {
             p[Keys.CHAT_CARDS_OUTPUT] = s.chatCardsShowOutput
             p[Keys.CHAT_CARDS_TIMING] = s.chatCardsShowArgs
             p[Keys.CHAT_CARDS_LABELS] = s.chatCardsShowLabels
+            p[Keys.CHAT_CARDS_STATUS] = s.chatCardsShowStatus
+            p[Keys.CHAT_CARDS_ONE_LINE] = s.chatCardsOneLine
             p[Keys.PROVIDER_IDENTITY] = s.providerIdentity
             p[Keys.PROVIDER_IDENTITY_HEADERS] = kotlinx.serialization.json.Json.encodeToString(s.providerIdentityHeaders)
             p[Keys.MAX_OUTPUT] = s.maxOutputTokens
@@ -1236,6 +1246,14 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setChatCardsShowLabels(show: Boolean) {
         context.settingsStore.edit { it[Keys.CHAT_CARDS_LABELS] = show }
+    }
+
+    suspend fun setChatCardsShowStatus(show: Boolean) {
+        context.settingsStore.edit { it[Keys.CHAT_CARDS_STATUS] = show }
+    }
+
+    suspend fun setChatCardsOneLine(oneLine: Boolean) {
+        context.settingsStore.edit { it[Keys.CHAT_CARDS_ONE_LINE] = oneLine }
     }
 
     suspend fun setResumePrompt(prompt: String) {

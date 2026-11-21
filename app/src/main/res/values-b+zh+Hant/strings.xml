@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">輸出</string>
     <string name="settings_chat_cards_preview">範例卡片</string>
     <string name="settings_chat_cards_empty">工具卡片不會顯示任何內容。</string>
+    <string name="settings_chat_cards_one_line">單行卡片</string>
+    <string name="settings_chat_cards_status">執行路徑標籤</string>
     <string name="settings_headers_show_preview">"請求頭"</string>
     <string name="settings_headers_hide_preview">"隱藏請求頭"</string>
     <string name="settings_fallback_provider_unavailable">"提供商不可用"</string>

@@ -217,7 +217,8 @@ fun ChatScreen(
         AppSettings(harnessCanvas = com.androidharness.app.ui.theme.HarnessCanvasMemory.settings ?: com.androidharness.app.data.HarnessCanvasSettings())
     })
     ChatAppearance(appearance.chatTextScale, appearance.chatCompactCards,
-        ChatCardOptions(appearance.chatCardsShowOutput, appearance.chatCardsShowArgs, appearance.chatCardsShowLabels)) {
+        ChatCardOptions(appearance.chatCardsShowOutput, appearance.chatCardsShowArgs, appearance.chatCardsShowLabels,
+            appearance.chatCardsShowStatus, appearance.chatCardsOneLine)) {
         val conversation by viewModel.state.collectAsStateWithLifecycle()
         com.androidharness.app.ui.theme.HarnessCanvasBackdrop(appearance.harnessCanvas, conversation.conversation.isChat, Modifier.fillMaxSize()) {
         ChatScreenContent(viewModel, onOpenDrawer, onOpenFile, onNewChat, onOpenTerminal,

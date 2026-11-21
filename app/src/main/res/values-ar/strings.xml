@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">المخرجات</string>
     <string name="settings_chat_cards_preview">بطاقة تجريبية</string>
     <string name="settings_chat_cards_empty">لا يظهر شيء في بطاقات الأدوات.</string>
+    <string name="settings_chat_cards_one_line">بطاقات بسطر واحد</string>
+    <string name="settings_chat_cards_status">شارات المسار</string>
     <string name="settings_headers_show_preview">"ترويسات الطلب"</string>
     <string name="settings_headers_hide_preview">"إخفاء ترويسات الطلب"</string>
     <string name="settings_fallback_provider_unavailable">"المزوّد غير متاح"</string>

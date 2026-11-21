@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">Вывод</string>
     <string name="settings_chat_cards_preview">Пример карточки</string>
     <string name="settings_chat_cards_empty">В карточках инструментов ничего не показывается.</string>
+    <string name="settings_chat_cards_one_line">Однострочные карточки</string>
+    <string name="settings_chat_cards_status">Значки маршрута</string>
     <string name="settings_headers_show_preview">"Заголовки запросов"</string>
     <string name="settings_headers_hide_preview">"Скрыть заголовки запросов"</string>
     <string name="settings_fallback_provider_unavailable">"Провайдер недоступен"</string>

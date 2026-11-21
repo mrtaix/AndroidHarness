@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">เอาต์พุต</string>
     <string name="settings_chat_cards_preview">การ์ดตัวอย่าง</string>
     <string name="settings_chat_cards_empty">ไม่แสดงสิ่งใดในการ์ดเครื่องมือ</string>
+    <string name="settings_chat_cards_one_line">การ์ดบรรทัดเดียว</string>
+    <string name="settings_chat_cards_status">ป้ายเส้นทาง</string>
     <string name="settings_headers_show_preview">"ขอส่วนหัว"</string>
     <string name="settings_headers_hide_preview">"ซ่อนส่วนหัวของคำขอ"</string>
     <string name="settings_fallback_provider_unavailable">"ผู้ให้บริการไม่พร้อมใช้งาน"</string>

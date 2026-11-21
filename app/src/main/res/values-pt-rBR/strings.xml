@@ -626,6 +626,8 @@
     <string name="settings_chat_cards_output">Saída</string>
     <string name="settings_chat_cards_preview">Cartão de exemplo</string>
     <string name="settings_chat_cards_empty">Nada é exibido nos cartões de ferramentas.</string>
+    <string name="settings_chat_cards_one_line">Cartões de uma linha</string>
+    <string name="settings_chat_cards_status">Etiquetas de rota</string>
     <string name="settings_headers_show_preview">"Cabeçalhos da requisição"</string>
     <string name="settings_headers_hide_preview">"Ocultar cabeçalhos da requisição"</string>
     <string name="settings_fallback_provider_unavailable">"Provedor indisponível"</string>

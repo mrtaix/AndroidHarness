@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">Sortie</string>
     <string name="settings_chat_cards_preview">Carte d\'exemple</string>
     <string name="settings_chat_cards_empty">Rien n\'est affiché dans les cartes d\'outils.</string>
+    <string name="settings_chat_cards_one_line">Cartes sur une ligne</string>
+    <string name="settings_chat_cards_status">Badges d\'exécution</string>
     <string name="settings_headers_show_preview">"En-têtes de requête"</string>
     <string name="settings_headers_hide_preview">"Masquer les en-têtes de requête"</string>
     <string name="settings_fallback_provider_unavailable">"Fournisseur indisponible"</string>

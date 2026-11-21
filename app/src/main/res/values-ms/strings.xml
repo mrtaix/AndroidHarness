@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">Output</string>
     <string name="settings_chat_cards_preview">Kad contoh</string>
     <string name="settings_chat_cards_empty">Tiada apa dipaparkan dalam kad alat.</string>
+    <string name="settings_chat_cards_one_line">Kad satu baris</string>
+    <string name="settings_chat_cards_status">Lencana laluan</string>
     <string name="settings_headers_show_preview">"Minta pengepala"</string>
     <string name="settings_headers_hide_preview">"Sembunyikan pengepala permintaan"</string>
     <string name="settings_fallback_provider_unavailable">"Pembekal tidak tersedia"</string>

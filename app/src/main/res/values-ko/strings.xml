@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">출력</string>
     <string name="settings_chat_cards_preview">예시 카드</string>
     <string name="settings_chat_cards_empty">도구 카드에 아무것도 표시되지 않습니다.</string>
+    <string name="settings_chat_cards_one_line">한 줄 카드</string>
+    <string name="settings_chat_cards_status">실행 경로 배지</string>
     <string name="settings_headers_show_preview">"요청 헤더"</string>
     <string name="settings_headers_hide_preview">"요청 헤더 숨기기"</string>
     <string name="settings_fallback_provider_unavailable">"제공업체를 이용할 수 없음"</string>

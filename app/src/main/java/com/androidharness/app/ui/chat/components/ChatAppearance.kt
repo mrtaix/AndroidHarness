@@ -19,7 +19,8 @@ import androidx.compose.ui.unit.sp
 internal val LocalChatCompact = staticCompositionLocalOf { false }
 
 /** Which parts of a tool card render, chosen in Settings > Chat options. */
-data class ChatCardOptions(val output: Boolean = true, val arguments: Boolean = true, val labels: Boolean = true)
+data class ChatCardOptions(val output: Boolean = true, val arguments: Boolean = true, val labels: Boolean = true,
+    val status: Boolean = true, val oneLine: Boolean = false)
 internal val LocalChatCards = staticCompositionLocalOf { ChatCardOptions() }
 
 /** Compact conversation typography that preserves the app's Material You palette. */

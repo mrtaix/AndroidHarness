@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">Output</string>
     <string name="settings_chat_cards_preview">Sample na card</string>
     <string name="settings_chat_cards_empty">Walang ipinapakita sa mga tool card.</string>
+    <string name="settings_chat_cards_one_line">Card na isang linya</string>
+    <string name="settings_chat_cards_status">Badge ng ruta</string>
     <string name="settings_headers_show_preview">"Humiling ng mga header"</string>
     <string name="settings_headers_hide_preview">"Itago ang mga header ng kahilingan"</string>
     <string name="settings_fallback_provider_unavailable">"Hindi available ang provider"</string>

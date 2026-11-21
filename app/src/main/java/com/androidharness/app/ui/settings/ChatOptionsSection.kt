@@ -50,6 +50,8 @@ internal fun ChatOptionsSection(
     onCardsOutput: (Boolean) -> Unit = {},
     onCardsArgs: (Boolean) -> Unit = {},
     onCardsLabels: (Boolean) -> Unit = {},
+    onCardsStatus: (Boolean) -> Unit = {},
+    onCardsOneLine: (Boolean) -> Unit = {},
     reminders: com.androidharness.app.reminders.ReminderManager? = null,
     onRemindersEnabled: (Boolean) -> Unit = {},
 ) {
@@ -148,7 +150,7 @@ internal fun ChatOptionsSection(
             }
             Switch(checked = settings.chatCompactCards, onCheckedChange = null)
         }
-        CardContentSettings(settings, onCardsOutput, onCardsArgs, onCardsLabels)
+        CardContentSettings(settings, onCardsOutput, onCardsArgs, onCardsLabels, onCardsStatus, onCardsOneLine)
     }
     if (reminders != null) ChatRemindersSection(settings.chatRemindersEnabled, reminders, onRemindersEnabled)
     SettingsAnchor(R.string.settings_image_frequency) {

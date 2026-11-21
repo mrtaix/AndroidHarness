@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">Çıktı</string>
     <string name="settings_chat_cards_preview">Örnek kart</string>
     <string name="settings_chat_cards_empty">Araç kartlarında hiçbir şey gösterilmez.</string>
+    <string name="settings_chat_cards_one_line">Tek satır kartlar</string>
+    <string name="settings_chat_cards_status">Yol rozetleri</string>
     <string name="settings_headers_show_preview">"Başlıkları iste"</string>
     <string name="settings_headers_hide_preview">"İstek başlıklarını gizle"</string>
     <string name="settings_fallback_provider_unavailable">"Sağlayıcı kullanılamıyor"</string>

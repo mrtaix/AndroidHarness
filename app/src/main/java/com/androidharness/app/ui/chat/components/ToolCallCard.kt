@@ -164,7 +164,7 @@ internal fun ToolCallCard(
         expanded = expanded,
         onToggle = { expanded = !expanded },
         always = if (receipts.isEmpty() && images == null) null else ({
-            if (receipts.isNotEmpty()) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (receipts.isNotEmpty() && cardOptions.status) Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 receipts.forEach { receipt ->
                     StatusPill(
                         receipt.label + if (receipt.fallbackReason != null) " · fallback" else "",
@@ -176,7 +176,7 @@ internal fun ToolCallCard(
         }),
     ) {
         when {
-            !cardOptions.arguments -> Unit
+            cardOptions.oneLine || !cardOptions.arguments -> Unit
             patchDiff != null -> Surface(color = scheme.surfaceContainerLowest, shape = RoundedCornerShape(16.dp)) {
                 Box(Modifier.padding(6.dp)) {
                     VisualDiffViewer(
@@ -190,7 +190,7 @@ internal fun ToolCallCard(
             command != null -> CodePanel(command, label = call.name.takeIf { cardOptions.labels }, prompt = "$")
             else -> CodePanel(pretty, label = call.name.takeIf { cardOptions.labels })
         }
-        if (cardOptions.output) result?.let {
+        if (cardOptions.output && !cardOptions.oneLine) result?.let {
             if (call.name in listOf("grep", "search_files", "web_search")) {
                 Surface(color = scheme.surfaceContainerLowest, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                     Box(Modifier.padding(horizontal = if (compact) 8.dp else 12.dp, vertical = if (compact) 6.dp else 10.dp)) {

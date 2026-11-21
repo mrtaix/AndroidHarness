@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">வெளியீடு</string>
     <string name="settings_chat_cards_preview">மாதிரி அட்டை</string>
     <string name="settings_chat_cards_empty">கருவி அட்டைகளில் எதுவும் காட்டப்படாது.</string>
+    <string name="settings_chat_cards_one_line">ஒரு வரி அட்டைகள்</string>
+    <string name="settings_chat_cards_status">பாதை பேட்ஜ்கள்</string>
     <string name="settings_headers_show_preview">"கோரிக்கை தலைப்புகள்"</string>
     <string name="settings_headers_hide_preview">"கோரிக்கை தலைப்புகளை மறை"</string>
     <string name="settings_fallback_provider_unavailable">"வழங்குநர் கிடைக்கவில்லை"</string>

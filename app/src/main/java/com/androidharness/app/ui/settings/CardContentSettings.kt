@@ -36,6 +36,8 @@ internal fun CardContentSettings(
     onOutput: (Boolean) -> Unit,
     onArgs: (Boolean) -> Unit,
     onLabels: (Boolean) -> Unit,
+    onStatus: (Boolean) -> Unit,
+    onOneLine: (Boolean) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
     Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -44,6 +46,8 @@ internal fun CardContentSettings(
         ToggleRow(R.string.settings_chat_cards_labels, settings.chatCardsShowLabels, onLabels)
         ToggleRow(R.string.settings_chat_cards_args, settings.chatCardsShowArgs, onArgs)
         ToggleRow(R.string.settings_chat_cards_output, settings.chatCardsShowOutput, onOutput)
+        ToggleRow(R.string.settings_chat_cards_status, settings.chatCardsShowStatus, onStatus)
+        ToggleRow(R.string.settings_chat_cards_one_line, settings.chatCardsOneLine, onOneLine)
         Text(stringResource(R.string.settings_chat_cards_preview), style = MaterialTheme.typography.labelSmall,
             color = scheme.onSurfaceVariant, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp))
         val pad = if (settings.chatCompactCards) 8.dp else 12.dp
@@ -59,13 +63,13 @@ internal fun CardContentSettings(
                         Text(" shell", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
                     }
                 }
-                if (settings.chatCardsShowArgs) {
+                if (settings.chatCardsShowArgs && !settings.chatCardsOneLine) {
                     Box(Modifier.fillMaxWidth().background(scheme.surfaceContainerLowest, RoundedCornerShape(12.dp)).padding(pad)) {
                         Text("\$ git status --short", fontFamily = FontFamily.Monospace,
                             fontSize = (12f * settings.chatTextScale).sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
-                if (settings.chatCardsShowOutput) {
+                if (settings.chatCardsShowOutput && !settings.chatCardsOneLine) {
                     Box(Modifier.fillMaxWidth().background(scheme.surfaceContainerLowest, RoundedCornerShape(12.dp)).padding(pad)) {
                         Text("M app/src/Main.kt", fontFamily = FontFamily.Monospace,
                             fontSize = (12f * settings.chatTextScale).sp, maxLines = 3, overflow = TextOverflow.Ellipsis)

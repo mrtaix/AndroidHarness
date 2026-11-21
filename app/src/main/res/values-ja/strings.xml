@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">出力</string>
     <string name="settings_chat_cards_preview">サンプルカード</string>
     <string name="settings_chat_cards_empty">ツールカードには何も表示されません。</string>
+    <string name="settings_chat_cards_one_line">1行カード</string>
+    <string name="settings_chat_cards_status">実行経路バッジ</string>
     <string name="settings_headers_show_preview">"リクエストヘッダー"</string>
     <string name="settings_headers_hide_preview">"リクエストヘッダーを非表示"</string>
     <string name="settings_fallback_provider_unavailable">"プロバイダー利用不可"</string>

@@ -641,6 +641,8 @@
     <string name="settings_chat_cards_output">输出</string>
     <string name="settings_chat_cards_preview">示例卡片</string>
     <string name="settings_chat_cards_empty">工具卡片中不显示任何内容。</string>
+    <string name="settings_chat_cards_one_line">单行卡片</string>
+    <string name="settings_chat_cards_status">执行路径标签</string>
     <string name="settings_headers_show_preview">请求头</string>
     <string name="settings_headers_hide_preview">隐藏请求头</string>
     <string name="settings_fallback_provider_unavailable">提供商不可用</string>

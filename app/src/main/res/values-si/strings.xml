@@ -616,6 +616,8 @@
     <string name="settings_chat_cards_output">ප්‍රතිදානය</string>
     <string name="settings_chat_cards_preview">නියැදි කාඩ්පත</string>
     <string name="settings_chat_cards_empty">මෙවලම් කාඩ්පත්වල කිසිවක් නොපෙන්වයි.</string>
+    <string name="settings_chat_cards_one_line">එක් පේළි කාඩ්පත්</string>
+    <string name="settings_chat_cards_status">මාර්ග ලාංඡන</string>
     <string name="settings_headers_show_preview">"ඉල්ලුම Headers"</string>
     <string name="settings_headers_hide_preview">"Title එක හැංගිලා ගන්න"</string>
     <string name="settings_fallback_provider_unavailable">"ලබා ගත නොහැකි සැපයුම්කරු"</string>
