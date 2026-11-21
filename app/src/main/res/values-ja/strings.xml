@@ -592,6 +592,9 @@
     <string name="settings_provider_disabled">"無効"</string>
     <string name="settings_provider_active">"アクティブ"</string>
     <string name="settings_headers_secure_note">"このプロバイダーにのみ送信されます。値は安全に保存されます。"</string>
+    <string name="settings_identity_title">クライアント識別情報</string>
+    <string name="settings_identity_summary">一部の API リレーは既知のコーディングツールしか受け付けません。プリセットは各プロバイダーへ送るリクエストヘッダーだけを変更します。</string>
+    <string name="settings_identity_custom_note">User-Agent などのカスタム行は各プロバイダー自身のヘッダーより先に追加されるため、プロバイダーの行が優先されます。</string>
     <string name="settings_headers_show_preview">"リクエストヘッダー"</string>
     <string name="settings_headers_hide_preview">"リクエストヘッダーを非表示"</string>
     <string name="settings_fallback_provider_unavailable">"プロバイダー利用不可"</string>

@@ -617,6 +617,9 @@
     <string name="settings_provider_disabled">已停用</string>
     <string name="settings_provider_active">使用中</string>
     <string name="settings_headers_secure_note">仅发送给此提供商。值会安全存储。</string>
+    <string name="settings_identity_title">客户端标识</string>
+    <string name="settings_identity_summary">部分 API 中转只接受已知的编程工具。预设只会更改发送给各服务商的请求标头。</string>
+    <string name="settings_identity_custom_note">User-Agent 等自定义行会加在各服务商自己的标头之前，因此服务商的行仍然优先。</string>
     <string name="settings_headers_show_preview">请求头</string>
     <string name="settings_headers_hide_preview">隐藏请求头</string>
     <string name="settings_fallback_provider_unavailable">提供商不可用</string>

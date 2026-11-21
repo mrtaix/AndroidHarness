@@ -592,6 +592,9 @@
     <string name="settings_provider_disabled">"Desactivado"</string>
     <string name="settings_provider_active">"Activo"</string>
     <string name="settings_headers_secure_note">"Solo se envía a este proveedor. Los valores se almacenan de forma segura."</string>
+    <string name="settings_identity_title">Identidad del cliente</string>
+    <string name="settings_identity_summary">Algunos relays de API solo aceptan herramientas de programación conocidas. Un preajuste cambia únicamente las cabeceras de solicitud que se envían a cada proveedor.</string>
+    <string name="settings_identity_custom_note">Las filas personalizadas como User-Agent se añaden antes de las cabeceras del proveedor, así que la fila del proveedor sigue prevaleciendo.</string>
     <string name="settings_headers_show_preview">"Encabezados de solicitud"</string>
     <string name="settings_headers_hide_preview">"Ocultar encabezados de solicitud"</string>
     <string name="settings_fallback_provider_unavailable">"Proveedor no disponible"</string>

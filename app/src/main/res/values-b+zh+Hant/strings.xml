@@ -592,6 +592,9 @@
     <string name="settings_provider_disabled">"已停用"</string>
     <string name="settings_provider_active">"使用中"</string>
     <string name="settings_headers_secure_note">"僅傳送給此提供商。值會安全儲存。"</string>
+    <string name="settings_identity_title">用戶端身分</string>
+    <string name="settings_identity_summary">部分 API 中繼只接受已知的程式設計工具。預設只會變更送往每個提供者的請求標頭。</string>
+    <string name="settings_identity_custom_note">User-Agent 等自訂列會在每個提供者自身的標頭之前加入，因此提供者的列仍然優先。</string>
     <string name="settings_headers_show_preview">"請求頭"</string>
     <string name="settings_headers_hide_preview">"隱藏請求頭"</string>
     <string name="settings_fallback_provider_unavailable">"提供商不可用"</string>

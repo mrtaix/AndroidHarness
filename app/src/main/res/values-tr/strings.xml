@@ -592,6 +592,9 @@
     <string name="settings_provider_disabled">"Devre dışı"</string>
     <string name="settings_provider_active">"Aktif"</string>
     <string name="settings_headers_secure_note">"Yalnızca bu sağlayıcıya gönderildi. Değerler güvenli bir şekilde saklanır."</string>
+    <string name="settings_identity_title">İstemci kimliği</string>
+    <string name="settings_identity_summary">Bazı API aktarıcıları yalnızca bilinen kodlama araçlarını kabul eder. Bir ön ayar yalnızca her sağlayıcıya gönderilen istek başlıklarını değiştirir.</string>
+    <string name="settings_identity_custom_note">User-Agent gibi özel satırlar her sağlayıcının kendi başlıklarından önce eklenir, bu yüzden sağlayıcı satırı yine geçerlidir.</string>
     <string name="settings_headers_show_preview">"Başlıkları iste"</string>
     <string name="settings_headers_hide_preview">"İstek başlıklarını gizle"</string>
     <string name="settings_fallback_provider_unavailable">"Sağlayıcı kullanılamıyor"</string>

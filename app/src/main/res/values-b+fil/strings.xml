@@ -592,6 +592,9 @@
     <string name="settings_provider_disabled">"Hindi pinagana"</string>
     <string name="settings_provider_active">"Aktibo"</string>
     <string name="settings_headers_secure_note">"Ipinadala lamang sa provider na ito. Ang mga halaga ay ligtas na iniimbak."</string>
+    <string name="settings_identity_title">Pagkakakilanlan ng client</string>
+    <string name="settings_identity_summary">Ang ilang API relay ay tumatanggap lamang ng kilalang coding tool. Binabago ng preset ang mga request header na ipinapadala sa bawat provider.</string>
+    <string name="settings_identity_custom_note">Idinadagdag ang mga custom na row tulad ng User-Agent bago ang sariling header ng bawat provider, kaya row ng provider pa rin ang mananaig.</string>
     <string name="settings_headers_show_preview">"Humiling ng mga header"</string>
     <string name="settings_headers_hide_preview">"Itago ang mga header ng kahilingan"</string>
     <string name="settings_fallback_provider_unavailable">"Hindi available ang provider"</string>

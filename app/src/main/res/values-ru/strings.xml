@@ -592,6 +592,9 @@
     <string name="settings_provider_disabled">"Отключено"</string>
     <string name="settings_provider_active">"Активна"</string>
     <string name="settings_headers_secure_note">"Отправляются только этому провайдеру. Значения хранятся в защищённом виде."</string>
+    <string name="settings_identity_title">Идентификация клиента</string>
+    <string name="settings_identity_summary">Некоторые API-шлюзы принимают только известные инструменты разработки. Профиль меняет лишь заголовки запросов, отправляемых каждому провайдеру.</string>
+    <string name="settings_identity_custom_note">Свои строки, например User-Agent, добавляются раньше заголовков провайдера, поэтому строка провайдера по-прежнему важнее.</string>
     <string name="settings_headers_show_preview">"Заголовки запросов"</string>
     <string name="settings_headers_hide_preview">"Скрыть заголовки запросов"</string>
     <string name="settings_fallback_provider_unavailable">"Провайдер недоступен"</string>

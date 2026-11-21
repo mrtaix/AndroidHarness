@@ -592,6 +592,9 @@
     <string name="settings_provider_disabled">"Deaktiviert"</string>
     <string name="settings_provider_active">"Aktiv"</string>
     <string name="settings_headers_secure_note">"Wird nur an diesen Anbieter gesendet. Werte werden sicher gespeichert."</string>
+    <string name="settings_identity_title">Client-Identität</string>
+    <string name="settings_identity_summary">Manche API-Relays akzeptieren nur bekannte Coding-Tools. Eine Voreinstellung ändert nur die Anfrage-Header an jeden Anbieter.</string>
+    <string name="settings_identity_custom_note">Eigene Zeilen wie User-Agent werden vor den Headern des Anbieters hinzugefügt, daher gewinnt die Anbieterzeile weiterhin.</string>
     <string name="settings_headers_show_preview">"Anfrage-Header"</string>
     <string name="settings_headers_hide_preview">"Anfrage-Header ausblenden"</string>
     <string name="settings_fallback_provider_unavailable">"Anbieter nicht verfügbar"</string>

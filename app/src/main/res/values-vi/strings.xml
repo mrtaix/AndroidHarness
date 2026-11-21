@@ -592,6 +592,9 @@
     <string name="settings_provider_disabled">"Đã tắt"</string>
     <string name="settings_provider_active">"Đang hoạt động"</string>
     <string name="settings_headers_secure_note">"Chỉ được gửi đến nhà cung cấp này. Các giá trị được lưu trữ an toàn."</string>
+    <string name="settings_identity_title">Danh tính ứng dụng khách</string>
+    <string name="settings_identity_summary">Một số relay API chỉ chấp nhận công cụ lập trình quen thuộc. Preset chỉ đổi header của yêu cầu gửi tới từng nhà cung cấp.</string>
+    <string name="settings_identity_custom_note">Dòng tùy chỉnh như User-Agent được thêm trước header riêng của từng nhà cung cấp, nên dòng của nhà cung cấp vẫn thắng.</string>
     <string name="settings_headers_show_preview">"Tiêu đề yêu cầu"</string>
     <string name="settings_headers_hide_preview">"Ẩn tiêu đề yêu cầu"</string>
     <string name="settings_fallback_provider_unavailable">"Nhà cung cấp không có sẵn"</string>

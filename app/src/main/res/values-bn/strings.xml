@@ -592,6 +592,9 @@
     <string name="settings_provider_disabled">"অক্ষম"</string>
     <string name="settings_provider_active">"সক্রিয়"</string>
     <string name="settings_headers_secure_note">"শুধুমাত্র এই প্রদানকারীর কাছে পাঠানো হয়েছে। মান নিরাপদে সংরক্ষণ করা হয়."</string>
+    <string name="settings_identity_title">ক্লায়েন্ট পরিচয়</string>
+    <string name="settings_identity_summary">কিছু API রিলে কেবল পরিচিত কোডিং টুল গ্রহণ করে। একটি প্রিসেট শুধু প্রতিটি প্রোভাইডারে পাঠানো রিকোয়েস্ট হেডার বদলায়।</string>
+    <string name="settings_identity_custom_note">User-Agent এর মতো কাস্টম সারি প্রতিটি প্রোভাইডারের নিজস্ব হেডারের আগে যোগ হয়, তাই প্রোভাইডারের সারিই প্রাধান্য পায়।</string>
     <string name="settings_headers_show_preview">"শিরোনাম অনুরোধ করুন"</string>
     <string name="settings_headers_hide_preview">"অনুরোধ শিরোনাম লুকান"</string>
     <string name="settings_fallback_provider_unavailable">"প্রদানকারী অনুপলব্ধ"</string>

@@ -592,6 +592,9 @@
     <string name="settings_provider_disabled">"از کار افتاده است"</string>
     <string name="settings_provider_active">"فعال"</string>
     <string name="settings_headers_secure_note">"فقط برای این ارائه دهنده ارسال شد. ارزش ها به صورت ایمن ذخیره می شوند."</string>
+    <string name="settings_identity_title">هویت کلاینت</string>
+    <string name="settings_identity_summary">برخی رله‌های API فقط ابزارهای برنامه‌نویسی شناخته‌شده را می‌پذیرند. یک پیش‌تنظیم تنها سرآیندهای درخواست ارسالی به هر ارائه‌دهنده را تغییر می‌دهد.</string>
+    <string name="settings_identity_custom_note">ردیف‌های سفارشی مانند User-Agent پیش از سرآیندهای خود ارائه‌دهنده افزوده می‌شوند، بنابراین ردیف ارائه‌دهنده همچنان اولویت دارد.</string>
     <string name="settings_headers_show_preview">"درخواست سرصفحه ها"</string>
     <string name="settings_headers_hide_preview">"هدر درخواست را مخفی کنید"</string>
     <string name="settings_fallback_provider_unavailable">"ارائه دهنده در دسترس نیست"</string>

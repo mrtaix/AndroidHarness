@@ -602,6 +602,9 @@
     <string name="settings_provider_disabled">"Desativado"</string>
     <string name="settings_provider_active">"Ativo"</string>
     <string name="settings_headers_secure_note">"Enviado apenas para este provedor. Os valores são armazenados com segurança."</string>
+    <string name="settings_identity_title">Identidade do cliente</string>
+    <string name="settings_identity_summary">Alguns relays de API aceitam apenas ferramentas de programação conhecidas. Uma predefinição altera só os cabeçalhos de requisição enviados a cada provedor.</string>
+    <string name="settings_identity_custom_note">Linhas personalizadas como User-Agent entram antes dos cabeçalhos do provedor, então a linha do provedor continua valendo.</string>
     <string name="settings_headers_show_preview">"Cabeçalhos da requisição"</string>
     <string name="settings_headers_hide_preview">"Ocultar cabeçalhos da requisição"</string>
     <string name="settings_fallback_provider_unavailable">"Provedor indisponível"</string>

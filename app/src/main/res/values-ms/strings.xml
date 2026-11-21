@@ -592,6 +592,9 @@
     <string name="settings_provider_disabled">"Dilumpuhkan"</string>
     <string name="settings_provider_active">"Aktif"</string>
     <string name="settings_headers_secure_note">"Hanya dihantar kepada pembekal ini. Nilai disimpan dengan selamat."</string>
+    <string name="settings_identity_title">Identiti klien</string>
+    <string name="settings_identity_summary">Sesetengah relai API hanya menerima alat pengekodan yang dikenali. Pratetap hanya menukar pengepala permintaan yang dihantar kepada setiap pembekal.</string>
+    <string name="settings_identity_custom_note">Baris tersuai seperti User-Agent ditambah sebelum pengepala pembekal sendiri, jadi baris pembekal masih diutamakan.</string>
     <string name="settings_headers_show_preview">"Minta pengepala"</string>
     <string name="settings_headers_hide_preview">"Sembunyikan pengepala permintaan"</string>
     <string name="settings_fallback_provider_unavailable">"Pembekal tidak tersedia"</string>
