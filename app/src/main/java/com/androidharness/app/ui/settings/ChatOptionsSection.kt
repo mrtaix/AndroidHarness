@@ -131,7 +131,8 @@ internal fun ChatOptionsSection(
             }
             Slider(
                 value = scale,
-                onValueChange = { scale = it; onTextScale(it) },
+                onValueChange = { scale = it },
+                onValueChangeFinished = { onTextScale(scale) },
                 valueRange = 0.7f..1.4f,
                 modifier = Modifier.fillMaxWidth(),
             )

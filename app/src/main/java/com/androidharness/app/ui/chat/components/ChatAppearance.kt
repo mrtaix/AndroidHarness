@@ -55,18 +55,22 @@ internal fun ChatAppearance(scale: Float = 1f, compact: Boolean = false, cards: 
         }
     }
     val type = MaterialTheme.typography
-    fun androidx.compose.ui.text.TextStyle.scaled(size: Float = fontSize.value, line: Float = lineHeight.value) =
-        copy(fontSize = (size * scale).sp, lineHeight = (line * scale).sp)
-    MaterialTheme(
-        colorScheme = base,
-        typography = type.copy(
+    val scaledType = androidx.compose.runtime.remember(type, scale) {
+        fun androidx.compose.ui.text.TextStyle.scaled(size: Float = fontSize.value, line: Float = lineHeight.value) =
+            copy(fontSize = (size * scale).sp, lineHeight = (line * scale).sp)
+        type.copy(
             bodyLarge = type.bodyLarge.copy(fontFamily = FontFamily.SansSerif, fontSize = 14.sp, lineHeight = 22.sp, letterSpacing = 0.sp).scaled(),
             bodyMedium = type.bodyMedium.copy(fontFamily = FontFamily.SansSerif, fontSize = 14.sp, lineHeight = 22.sp, letterSpacing = 0.sp).scaled(),
             bodySmall = type.bodySmall.scaled(12f, 17f),
             titleSmall = type.titleSmall.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, letterSpacing = 0.sp).scaled(),
             labelMedium = type.labelMedium.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, letterSpacing = 0.sp).scaled(),
             labelSmall = type.labelSmall.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, letterSpacing = 0.sp).scaled(),
-        ),
+        )
+    }
+    val cards = androidx.compose.runtime.remember(cards) { cards }
+    MaterialTheme(
+        colorScheme = base,
+        typography = scaledType,
         content = { CompositionLocalProvider(LocalChatCompact provides compact, LocalChatCards provides cards, content = content) },
     )
 }

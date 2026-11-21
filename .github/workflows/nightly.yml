@@ -59,6 +59,11 @@ jobs:
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
+      # Minified build: no debuggable JIT, no Compose debug checks, so the
+      # transcript stays smooth. Signed with the release config (debug key here).
+      - name: Build release APK (minified)
+        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
       - name: Stamp APK with date + commit
         id: apk
         run: |
@@ -66,6 +71,7 @@ jobs:
           SHA=$(git rev-parse --short HEAD)
           NAME="AndroidHarness-${STAMP}-${SHA}-debug.apk"
           mkdir dist && cp app/build/outputs/apk/debug/app-debug.apk "dist/${NAME}"
+          cp app/build/outputs/apk/release/app-release.apk "dist/${NAME%-debug.apk}-release.apk"
           cp app/build/outputs/gpuRuntime/debug/*.gz dist/
           echo "name=${NAME}" >> "$GITHUB_OUTPUT"
 
