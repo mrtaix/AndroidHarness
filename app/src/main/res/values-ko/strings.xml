@@ -598,6 +598,10 @@
     <string name="settings_google_account_title">Google 계정(Gemini)</string>
     <string name="settings_google_sign_in">Google로 로그인</string>
     <string name="settings_google_sign_out">로그아웃</string>
+    <string name="settings_chat_text_size">텍스트 크기</string>
+    <string name="settings_chat_text_size_desc">모든 채팅에서 답변, 사고, 도구 출력의 크기를 조정합니다.</string>
+    <string name="settings_chat_compact_cards">간결한 카드</string>
+    <string name="settings_chat_compact_cards_desc">도구 호출과 결과 카드의 여백을 줄입니다.</string>
     <string name="settings_headers_show_preview">"요청 헤더"</string>
     <string name="settings_headers_hide_preview">"요청 헤더 숨기기"</string>
     <string name="settings_fallback_provider_unavailable">"제공업체를 이용할 수 없음"</string>

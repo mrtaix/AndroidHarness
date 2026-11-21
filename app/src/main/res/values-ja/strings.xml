@@ -598,6 +598,10 @@
     <string name="settings_google_account_title">Google アカウント（Gemini）</string>
     <string name="settings_google_sign_in">Google でログイン</string>
     <string name="settings_google_sign_out">ログアウト</string>
+    <string name="settings_chat_text_size">文字サイズ</string>
+    <string name="settings_chat_text_size_desc">各チャットの回答・思考・ツール出力の大きさを変えます。</string>
+    <string name="settings_chat_compact_cards">コンパクトカード</string>
+    <string name="settings_chat_compact_cards_desc">ツール呼び出しと結果カードの余白を詰めます。</string>
     <string name="settings_headers_show_preview">"リクエストヘッダー"</string>
     <string name="settings_headers_hide_preview">"リクエストヘッダーを非表示"</string>
     <string name="settings_fallback_provider_unavailable">"プロバイダー利用不可"</string>

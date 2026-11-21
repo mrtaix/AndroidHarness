@@ -598,6 +598,10 @@
     <string name="settings_google_account_title">Google ගිණුම (Gemini)</string>
     <string name="settings_google_sign_in">Google සමඟ පිවිසෙන්න</string>
     <string name="settings_google_sign_out">පිටවීම</string>
+    <string name="settings_chat_text_size">පෙළ ප්‍රමාණය</string>
+    <string name="settings_chat_text_size_desc">සෑම සංවාදයකම පිළිතුරු, සිතුවිලි සහ මෙවලම් ප්‍රතිදානයේ ප්‍රමාණය වෙනස් කරයි.</string>
+    <string name="settings_chat_compact_cards">කුඩා කාඩ්පත්</string>
+    <string name="settings_chat_compact_cards_desc">මෙවලම් ඇමතුම් සහ ප්‍රතිඵල කාඩ්පත් වටා අඩු පරතරය.</string>
     <string name="settings_headers_show_preview">"ඉල්ලුම Headers"</string>
     <string name="settings_headers_hide_preview">"Title එක හැංගිලා ගන්න"</string>
     <string name="settings_fallback_provider_unavailable">"ලබා ගත නොහැකි සැපයුම්කරු"</string>

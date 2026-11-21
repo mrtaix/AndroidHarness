@@ -598,6 +598,10 @@
     <string name="settings_google_account_title">Akun Google (Gemini)</string>
     <string name="settings_google_sign_in">Masuk dengan Google</string>
     <string name="settings_google_sign_out">Keluar</string>
+    <string name="settings_chat_text_size">Ukuran teks</string>
+    <string name="settings_chat_text_size_desc">Mengubah ukuran jawaban, pemikiran, dan keluaran alat di setiap obrolan.</string>
+    <string name="settings_chat_compact_cards">Kartu ringkas</string>
+    <string name="settings_chat_compact_cards_desc">Padding lebih rapat di sekitar panggilan alat dan kartu hasil.</string>
     <string name="settings_headers_show_preview">"Header permintaan"</string>
     <string name="settings_headers_hide_preview">"Sembunyikan header permintaan"</string>
     <string name="settings_fallback_provider_unavailable">"Penyedia tidak tersedia"</string>

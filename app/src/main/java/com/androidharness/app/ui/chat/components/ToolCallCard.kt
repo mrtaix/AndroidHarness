@@ -95,6 +95,7 @@ internal fun ToolCallCard(
     browserTarget: String? = null,
     packageProgress: com.androidharness.app.data.env.PackageInstallStatus? = null,
 ) {
+    val compact = LocalChatCompact.current
     val uiContext = androidx.compose.ui.platform.LocalContext.current
     if (call.name == "pkg_install" || call.name == com.androidharness.app.tools.AndroidSdkInstallTool.NAME) {
         PackageInstallCard(call, result, running, awaitingApproval, packageProgress)
@@ -190,7 +191,7 @@ internal fun ToolCallCard(
         result?.let {
             if (call.name in listOf("grep", "search_files", "web_search")) {
                 Surface(color = scheme.surfaceContainerLowest, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
-                    Box(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                    Box(Modifier.padding(horizontal = if (compact) 8.dp else 12.dp, vertical = if (compact) 6.dp else 10.dp)) {
                         ClickableOutput(it.text.take(4000), onOpenFile)
                     }
                 }
@@ -233,6 +234,7 @@ internal fun ToolGroupCard(
     browserTargets: Map<String, String> = emptyMap(),
     packageProgress: Map<String, com.androidharness.app.data.env.PackageInstallStatus> = emptyMap(),
 ) {
+    val compact = LocalChatCompact.current
     val uiContext = androidx.compose.ui.platform.LocalContext.current
     var expanded by rememberSaveable(calls.joinToString(",") { it.id }) { mutableStateOf(false) }
     val scheme = MaterialTheme.colorScheme
@@ -279,7 +281,7 @@ internal fun ToolGroupCard(
                 ExpandChevron(expanded, if (expanded) uiContext.getString(R.string.ui_collapse) else uiContext.getString(R.string.ui_expand))
             },
         )
-        OutcomeStrip(outcomes, Modifier.padding(start = 60.dp, end = 16.dp, bottom = 14.dp))
+        OutcomeStrip(outcomes, Modifier.padding(start = 60.dp, end = 16.dp, bottom = if (compact) 6.dp else 14.dp))
         calls.filter { it.name != "read_image" && !com.androidharness.app.browser.BrowserToolActivity.isBrowserTool(it.name) }
             .flatMap { results[it.id]?.images.orEmpty() }
             .takeIf { it.isNotEmpty() }?.let { imgs ->

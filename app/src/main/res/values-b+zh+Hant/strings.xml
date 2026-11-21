@@ -598,6 +598,10 @@
     <string name="settings_google_account_title">Google 帳戶（Gemini）</string>
     <string name="settings_google_sign_in">使用 Google 登入</string>
     <string name="settings_google_sign_out">登出</string>
+    <string name="settings_chat_text_size">文字大小</string>
+    <string name="settings_chat_text_size_desc">調整每段對話中回答、思考與工具輸出的字級。</string>
+    <string name="settings_chat_compact_cards">精簡卡片</string>
+    <string name="settings_chat_compact_cards_desc">縮小工具呼叫與結果卡片的内距。</string>
     <string name="settings_headers_show_preview">"請求頭"</string>
     <string name="settings_headers_hide_preview">"隱藏請求頭"</string>
     <string name="settings_fallback_provider_unavailable">"提供商不可用"</string>

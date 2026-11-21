@@ -598,6 +598,10 @@
     <string name="settings_google_account_title">Google account (Gemini)</string>
     <string name="settings_google_sign_in">Mag-sign in gamit ang Google</string>
     <string name="settings_google_sign_out">Mag-sign out</string>
+    <string name="settings_chat_text_size">Laki ng teksto</string>
+    <string name="settings_chat_text_size_desc">Sinasukat ang mga sagot, pag-iisip at output ng tool sa bawat chat.</string>
+    <string name="settings_chat_compact_cards">Siksik na card</string>
+    <string name="settings_chat_compact_cards_desc">Masikip na padding sa mga tool call at result card.</string>
     <string name="settings_headers_show_preview">"Humiling ng mga header"</string>
     <string name="settings_headers_hide_preview">"Itago ang mga header ng kahilingan"</string>
     <string name="settings_fallback_provider_unavailable">"Hindi available ang provider"</string>

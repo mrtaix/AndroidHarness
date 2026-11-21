@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import com.androidharness.app.R
 import com.androidharness.app.data.AppSettings
 import com.androidharness.app.data.ChatStartMode
@@ -44,6 +45,8 @@ internal fun ChatOptionsSection(
     agentCount: Int = 0,
     onManageAgents: () -> Unit = {},
     onSearchCodeChats: (Boolean) -> Unit = {},
+    onTextScale: (Float) -> Unit = {},
+    onCompactCards: (Boolean) -> Unit = {},
     reminders: com.androidharness.app.reminders.ReminderManager? = null,
     onRemindersEnabled: (Boolean) -> Unit = {},
 ) {
@@ -113,6 +116,33 @@ internal fun ChatOptionsSection(
                 Text(stringResource(R.string.chat_keep_thinking_collapsed_desc), style = MaterialTheme.typography.bodySmall)
             }
             Switch(checked = settings.chatKeepThinkingCollapsed, onCheckedChange = null)
+        }
+    }
+    if (settings.chatTextScale > 0f) {
+        var scale by remember(settings.chatTextScale) { mutableFloatStateOf(settings.chatTextScale) }
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.settings_chat_text_size), style = MaterialTheme.typography.bodyLarge)
+                Text("${(scale * 100).roundToInt()}%", style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Slider(
+                value = scale,
+                onValueChange = { scale = it; onTextScale(it) },
+                valueRange = 0.7f..1.4f,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(stringResource(R.string.settings_chat_text_size_desc), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Row(Modifier.fillMaxWidth().toggleable(value = settings.chatCompactCards, role = Role.Switch,
+            onValueChange = onCompactCards).padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_chat_compact_cards), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.settings_chat_compact_cards_desc), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Switch(checked = settings.chatCompactCards, onCheckedChange = null)
         }
     }
     if (reminders != null) ChatRemindersSection(settings.chatRemindersEnabled, reminders, onRemindersEnabled)

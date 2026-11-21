@@ -635,6 +635,10 @@
     <string name="settings_google_account_title">Google account (Gemini)</string>
     <string name="settings_google_sign_in">Sign in with Google</string>
     <string name="settings_google_sign_out">Sign out</string>
+    <string name="settings_chat_text_size">Text size</string>
+    <string name="settings_chat_text_size_desc">Scales answers, thinking and tool output in every chat.</string>
+    <string name="settings_chat_compact_cards">Compact cards</string>
+    <string name="settings_chat_compact_cards_desc">Tighter padding around tool calls and result cards.</string>
     <string name="settings_headers_show_preview">Request headers</string>
     <string name="settings_headers_hide_preview">Hide request headers</string>
     <string name="settings_fallback_provider_unavailable">Provider unavailable</string>

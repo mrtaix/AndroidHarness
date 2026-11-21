@@ -4,7 +4,9 @@ import androidx.compose.material3.MaterialTheme
 import android.app.Activity
 import android.content.ContextWrapper
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.graphics.toArgb
@@ -13,9 +15,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+/** Tighter transcript padding, chosen in Settings > Chat options. */
+internal val LocalChatCompact = staticCompositionLocalOf { false }
+
 /** Compact conversation typography that preserves the app's Material You palette. */
 @Composable
-internal fun ChatAppearance(content: @Composable () -> Unit) {
+internal fun ChatAppearance(scale: Float = 1f, compact: Boolean = false, content: @Composable () -> Unit) {
     val base = MaterialTheme.colorScheme
     val dark = base.surface.luminance() < 0.5f
     val background = base.surface
@@ -46,15 +51,18 @@ internal fun ChatAppearance(content: @Composable () -> Unit) {
         }
     }
     val type = MaterialTheme.typography
+    fun androidx.compose.ui.text.TextStyle.scaled(size: Float = fontSize.value, line: Float = lineHeight.value) =
+        copy(fontSize = (size * scale).sp, lineHeight = (line * scale).sp)
     MaterialTheme(
         colorScheme = base,
         typography = type.copy(
-            bodyLarge = type.bodyLarge.copy(fontFamily = FontFamily.SansSerif, fontSize = 14.sp, lineHeight = 22.sp, letterSpacing = 0.sp),
-            bodyMedium = type.bodyMedium.copy(fontFamily = FontFamily.SansSerif, fontSize = 14.sp, lineHeight = 22.sp, letterSpacing = 0.sp),
-            titleSmall = type.titleSmall.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, letterSpacing = 0.sp),
-            labelMedium = type.labelMedium.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, letterSpacing = 0.sp),
-            labelSmall = type.labelSmall.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, letterSpacing = 0.sp),
+            bodyLarge = type.bodyLarge.copy(fontFamily = FontFamily.SansSerif, fontSize = 14.sp, lineHeight = 22.sp, letterSpacing = 0.sp).scaled(),
+            bodyMedium = type.bodyMedium.copy(fontFamily = FontFamily.SansSerif, fontSize = 14.sp, lineHeight = 22.sp, letterSpacing = 0.sp).scaled(),
+            bodySmall = type.bodySmall.scaled(12f, 17f),
+            titleSmall = type.titleSmall.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, letterSpacing = 0.sp).scaled(),
+            labelMedium = type.labelMedium.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, letterSpacing = 0.sp).scaled(),
+            labelSmall = type.labelSmall.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, letterSpacing = 0.sp).scaled(),
         ),
-        content = content,
+        content = { CompositionLocalProvider(LocalChatCompact provides compact, content = content) },
     )
 }

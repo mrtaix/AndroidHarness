@@ -598,6 +598,10 @@
     <string name="settings_google_account_title">บัญชี Google (Gemini)</string>
     <string name="settings_google_sign_in">ลงชื่อเข้าใช้ด้วย Google</string>
     <string name="settings_google_sign_out">ออกจากระบบ</string>
+    <string name="settings_chat_text_size">ขนาดข้อความ</string>
+    <string name="settings_chat_text_size_desc">ปรับขนาดคำตอบ การคิด และผลลัพธ์ของเครื่องมือในทุกแชท</string>
+    <string name="settings_chat_compact_cards">การ์ดกระชับ</string>
+    <string name="settings_chat_compact_cards_desc">ระยะห่างรอบการเรียกเครื่องมือและการ์ดผลลัพธ์น้อยลง</string>
     <string name="settings_headers_show_preview">"ขอส่วนหัว"</string>
     <string name="settings_headers_hide_preview">"ซ่อนส่วนหัวของคำขอ"</string>
     <string name="settings_fallback_provider_unavailable">"ผู้ให้บริการไม่พร้อมใช้งาน"</string>

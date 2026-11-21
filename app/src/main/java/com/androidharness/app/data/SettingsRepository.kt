@@ -62,6 +62,10 @@ data class AppSettings(
     val autoCompactTokens: Int = 0,
     /** Sent when a paused or interrupted task resumes. Blank uses the built-in prompt; a chat can override it. */
     val resumePrompt: String = "",
+    /** Chat reading scale, 0.7-1.4; 0.9 is the default because the stock size reads large on phones. */
+    val chatTextScale: Float = 0.9f,
+    /** Tighter tool-call and card padding, for more transcript on screen. */
+    val chatCompactCards: Boolean = false,
     /** Global client identity for provider requests; blank keeps the app's own User-Agent. */
     val providerIdentity: String = com.androidharness.app.llm.ProviderIdentity.DEFAULT,
     /** Rows sent when [providerIdentity] is the custom choice. */
@@ -372,6 +376,8 @@ class SettingsRepository(private val context: Context) {
         val MAX_CONTEXT = intPreferencesKey("max_context_tokens")
         val AUTO_COMPACT = intPreferencesKey("auto_compact_tokens")
         val RESUME_PROMPT = stringPreferencesKey("resume_prompt")
+        val CHAT_TEXT_SCALE = floatPreferencesKey("chat_text_scale")
+        val CHAT_COMPACT_CARDS = booleanPreferencesKey("chat_compact_cards")
         val PROVIDER_IDENTITY = stringPreferencesKey("provider_identity")
         val PROVIDER_IDENTITY_HEADERS = stringPreferencesKey("provider_identity_headers")
         val MAX_OUTPUT = intPreferencesKey("max_output_tokens")
@@ -521,6 +527,8 @@ class SettingsRepository(private val context: Context) {
             maxContextTokens = prefs[Keys.MAX_CONTEXT] ?: AppSettings.DEFAULT_MAX_CONTEXT,
             autoCompactTokens = prefs[Keys.AUTO_COMPACT] ?: 0,
             resumePrompt = prefs[Keys.RESUME_PROMPT].orEmpty(),
+            chatTextScale = (prefs[Keys.CHAT_TEXT_SCALE] ?: 0.9f).takeIf { it.isFinite() }?.coerceIn(0.7f, 1.4f) ?: 0.9f,
+            chatCompactCards = prefs[Keys.CHAT_COMPACT_CARDS] ?: false,
             providerIdentity = prefs[Keys.PROVIDER_IDENTITY].orEmpty().takeIf { id ->
                 com.androidharness.app.llm.ProviderIdentity.presets.any { it.id == id }
             } ?: com.androidharness.app.llm.ProviderIdentity.DEFAULT,
@@ -666,6 +674,8 @@ class SettingsRepository(private val context: Context) {
             p[Keys.MAX_CONTEXT] = s.maxContextTokens
             p[Keys.AUTO_COMPACT] = s.autoCompactTokens
             p[Keys.RESUME_PROMPT] = s.resumePrompt
+            p[Keys.CHAT_TEXT_SCALE] = s.chatTextScale
+            p[Keys.CHAT_COMPACT_CARDS] = s.chatCompactCards
             p[Keys.PROVIDER_IDENTITY] = s.providerIdentity
             p[Keys.PROVIDER_IDENTITY_HEADERS] = kotlinx.serialization.json.Json.encodeToString(s.providerIdentityHeaders)
             p[Keys.MAX_OUTPUT] = s.maxOutputTokens
@@ -1189,6 +1199,16 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAutoCompactTokens(tokens: Int) {
         require(tokens == 0 || tokens >= 1_024)
         context.settingsStore.edit { it[Keys.AUTO_COMPACT] = tokens }
+    }
+
+    /** Chat reading scale; applied to every transcript type size. */
+    suspend fun setChatTextScale(scale: Float) {
+        require(scale.isFinite()) { "Enter a valid text size." }
+        context.settingsStore.edit { it[Keys.CHAT_TEXT_SCALE] = scale.coerceIn(0.7f, 1.4f) }
+    }
+
+    suspend fun setChatCompactCards(compact: Boolean) {
+        context.settingsStore.edit { it[Keys.CHAT_COMPACT_CARDS] = compact }
     }
 
     suspend fun setResumePrompt(prompt: String) {
