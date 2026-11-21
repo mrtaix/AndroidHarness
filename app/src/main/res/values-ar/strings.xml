@@ -595,6 +595,9 @@
     <string name="settings_identity_title">هوية العميل</string>
     <string name="settings_identity_summary">تقبل بعض وسائط API أدوات البرمجة المعروفة فقط. يغيّر الإعداد المسبق رؤوس الطلبات المرسلة إلى كل مزوّد فقط.</string>
     <string name="settings_identity_custom_note">تُضاف الصفوف المخصصة مثل User-Agent قبل رؤوس كل مزوّد، لذا يبقى صف المزوّد هو المسيطر.</string>
+    <string name="settings_google_account_title">حساب Google (Gemini)</string>
+    <string name="settings_google_sign_in">تسجيل الدخول باستخدام Google</string>
+    <string name="settings_google_sign_out">تسجيل الخروج</string>
     <string name="settings_headers_show_preview">"ترويسات الطلب"</string>
     <string name="settings_headers_hide_preview">"إخفاء ترويسات الطلب"</string>
     <string name="settings_fallback_provider_unavailable">"المزوّد غير متاح"</string>

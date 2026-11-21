@@ -595,6 +595,9 @@
     <string name="settings_identity_title">Client-Identität</string>
     <string name="settings_identity_summary">Manche API-Relays akzeptieren nur bekannte Coding-Tools. Eine Voreinstellung ändert nur die Anfrage-Header an jeden Anbieter.</string>
     <string name="settings_identity_custom_note">Eigene Zeilen wie User-Agent werden vor den Headern des Anbieters hinzugefügt, daher gewinnt die Anbieterzeile weiterhin.</string>
+    <string name="settings_google_account_title">Google-Konto (Gemini)</string>
+    <string name="settings_google_sign_in">Mit Google anmelden</string>
+    <string name="settings_google_sign_out">Abmelden</string>
     <string name="settings_headers_show_preview">"Anfrage-Header"</string>
     <string name="settings_headers_hide_preview">"Anfrage-Header ausblenden"</string>
     <string name="settings_fallback_provider_unavailable">"Anbieter nicht verfügbar"</string>

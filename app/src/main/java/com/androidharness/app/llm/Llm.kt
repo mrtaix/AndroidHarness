@@ -221,9 +221,14 @@ object ProviderFactory {
     @Volatile var localProvider: LlmProvider? = null
     @Volatile var chatGptProvider: LlmProvider? = null
 
+    /** Current Google access token and Code Assist project for a `gemini:` provider. */
+    @Volatile var geminiToken: (suspend (String) -> String)? = null
+    @Volatile var geminiProject: (suspend (String) -> String)? = null
+
     fun create(config: ProviderConfig): LlmProvider = when {
         com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(config.id) ->
             checkNotNull(chatGptProvider) { "ChatGPT connection is not initialized." }
+        com.androidharness.app.gemini.GeminiProtocol.isProvider(config.id) -> create(ProviderType.GEMINI)
         com.androidharness.app.local.LocalModelCatalog.isLocal(config.id) || config.baseUrl.startsWith("local://") ->
             checkNotNull(localProvider) { "Local inference is not initialized." }
         config.id == HarnessProvider.ID -> HarnessProvider.create()

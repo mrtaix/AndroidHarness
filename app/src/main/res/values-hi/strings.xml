@@ -595,6 +595,9 @@
     <string name="settings_identity_title">क्लाइंट पहचान</string>
     <string name="settings_identity_summary">कुछ API रिले केवल ज्ञात कोडिंग टूल स्वीकार करते हैं। एक प्रीसेट केवल हर प्रदाता को भेजे जाने वाले अनुरोध हेडर बदलता है।</string>
     <string name="settings_identity_custom_note">User-Agent जैसी कस्टम पंक्तियाँ हर प्रदाता के अपने हेडर से पहले जोड़ी जाती हैं, इसलिए प्रदाता की पंक्ति ही प्राथमिक रहती है।</string>
+    <string name="settings_google_account_title">Google खाता (Gemini)</string>
+    <string name="settings_google_sign_in">Google से साइन इन करें</string>
+    <string name="settings_google_sign_out">साइन आउट</string>
     <string name="settings_headers_show_preview">"हेडर का अनुरोध करें"</string>
     <string name="settings_headers_hide_preview">"अनुरोध शीर्षलेख छिपाएँ"</string>
     <string name="settings_fallback_provider_unavailable">"प्रदाता अनुपलब्ध है"</string>

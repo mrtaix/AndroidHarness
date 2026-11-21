@@ -183,10 +183,13 @@ class AppContainer(val appContext: Context) {
             }
                 .forEach { runManager.stopAndJoin(it) }
         })
-    val providers: ProviderRepository = ProviderRepository(appContext, keys, localModels, chatGpt, settings)
+    val gemini = com.androidharness.app.gemini.GeminiAccounts(keys::geminiCredentials, keys::putGeminiCredentials)
+    val providers: ProviderRepository = ProviderRepository(appContext, keys, localModels, chatGpt, gemini, settings)
 
     init {
         com.androidharness.app.llm.RotatingKeyProvider.pools = providers::controls
+        ProviderFactory.geminiToken = { id -> gemini.accessToken(id) }
+        ProviderFactory.geminiProject = { id -> gemini.project(id) }
         ProviderFactory.chatGptProvider = com.androidharness.app.chatgpt.ChatGptProvider(chatGpt::accessToken,
             modelEntry = { id, model -> chatGpt.state.value.accounts.firstOrNull { it.providerId == id }?.models?.firstOrNull { it.id == model } })
         com.androidharness.app.llm.ModelCatalog.chatGptModels = { chatGpt.refreshModels(it) }

@@ -595,6 +595,9 @@
     <string name="settings_identity_title">Identitas klien</string>
     <string name="settings_identity_summary">Beberapa relay API hanya menerima alat coding yang dikenal. Preset hanya mengubah header permintaan yang dikirim ke setiap penyedia.</string>
     <string name="settings_identity_custom_note">Baris kustom seperti User-Agent ditambahkan sebelum header milik penyedia, jadi baris penyedia tetap menang.</string>
+    <string name="settings_google_account_title">Akun Google (Gemini)</string>
+    <string name="settings_google_sign_in">Masuk dengan Google</string>
+    <string name="settings_google_sign_out">Keluar</string>
     <string name="settings_headers_show_preview">"Header permintaan"</string>
     <string name="settings_headers_hide_preview">"Sembunyikan header permintaan"</string>
     <string name="settings_fallback_provider_unavailable">"Penyedia tidak tersedia"</string>

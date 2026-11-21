@@ -595,6 +595,9 @@
     <string name="settings_identity_title">ตัวตนของไคลเอนต์</string>
     <string name="settings_identity_summary">รีเลย์ API บางแห่งรับเฉพาะเครื่องมือเขียนโค้ดที่รู้จัก พรีเซ็ตจะเปลี่ยนเฉพาะเฮดเดอร์คำขอที่ส่งไปยังผู้ให้บริการแต่ละราย</string>
     <string name="settings_identity_custom_note">แถวกำหนดเองเช่น User-Agent จะถูกเพิ่มก่อนเฮดเดอร์ของผู้ให้บริการ แถวของผู้ให้บริการจึงยังมีผลเหนือกว่า</string>
+    <string name="settings_google_account_title">บัญชี Google (Gemini)</string>
+    <string name="settings_google_sign_in">ลงชื่อเข้าใช้ด้วย Google</string>
+    <string name="settings_google_sign_out">ออกจากระบบ</string>
     <string name="settings_headers_show_preview">"ขอส่วนหัว"</string>
     <string name="settings_headers_hide_preview">"ซ่อนส่วนหัวของคำขอ"</string>
     <string name="settings_fallback_provider_unavailable">"ผู้ให้บริการไม่พร้อมใช้งาน"</string>

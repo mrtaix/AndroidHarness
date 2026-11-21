@@ -595,6 +595,9 @@
     <string name="settings_identity_title">用戶端身分</string>
     <string name="settings_identity_summary">部分 API 中繼只接受已知的程式設計工具。預設只會變更送往每個提供者的請求標頭。</string>
     <string name="settings_identity_custom_note">User-Agent 等自訂列會在每個提供者自身的標頭之前加入，因此提供者的列仍然優先。</string>
+    <string name="settings_google_account_title">Google 帳戶（Gemini）</string>
+    <string name="settings_google_sign_in">使用 Google 登入</string>
+    <string name="settings_google_sign_out">登出</string>
     <string name="settings_headers_show_preview">"請求頭"</string>
     <string name="settings_headers_hide_preview">"隱藏請求頭"</string>
     <string name="settings_fallback_provider_unavailable">"提供商不可用"</string>

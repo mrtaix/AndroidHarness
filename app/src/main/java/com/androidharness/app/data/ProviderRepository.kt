@@ -31,6 +31,7 @@ class ProviderRepository(
     private val keys: KeyStoreManager,
     private val localModels: com.androidharness.app.local.LocalModelManager,
     private val chatGpt: com.androidharness.app.chatgpt.ChatGptAccounts,
+    private val gemini: com.androidharness.app.gemini.GeminiAccounts,
     private val settings: SettingsRepository,
 ) {
     private val json = Json { ignoreUnknownKeys = true }
@@ -39,7 +40,7 @@ class ProviderRepository(
     private val catalogRefreshLocks = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
     private val automaticCatalogChecks = java.util.concurrent.ConcurrentHashMap<ProviderConfig, Long>()
 
-    val providers: Flow<List<ProviderConfig>> = kotlinx.coroutines.flow.combine(context.providerStore.data, localModels.installed, chatGpt.state) { prefs, installed, accounts ->
+    val providers: Flow<List<ProviderConfig>> = kotlinx.coroutines.flow.combine(context.providerStore.data, localModels.installed, chatGpt.state, gemini.state) { prefs, installed, accounts, google ->
         HarnessProvider.restoreModels(harnessModels(prefs))
         val saved = prefs[listKey]?.let { raw ->
             runCatching {
@@ -53,7 +54,12 @@ class ProviderRepository(
         }?.map { it.id }?.toSet().orEmpty()
         HarnessProvider.customModelIds = harnessCustom
         accounts.accounts.filter { it.connected && it.models.isNotEmpty() }.map { it.config() } +
-            listOf(HarnessProvider.config.copy(model = HarnessProvider.sanitize(saved.firstOrNull { it.id == HarnessProvider.ID }?.model, harnessCustom))) + saved.filterNot { it.id == HarnessProvider.ID || com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(it.id) || com.androidharness.app.local.LocalModelCatalog.isLocal(it.id) || it.baseUrl.startsWith("local://") } + localModels.configs(installed)
+            google.accounts.filter { it.connected }.map { account ->
+                ProviderConfig(account.providerId, "Gemini · ${account.email}", ProviderType.GEMINI,
+                    com.androidharness.app.gemini.GeminiProtocol.CODE_ASSIST,
+                    com.androidharness.app.gemini.GeminiProtocol.ACCOUNT_MODELS.first())
+            } +
+            listOf(HarnessProvider.config.copy(model = HarnessProvider.sanitize(saved.firstOrNull { it.id == HarnessProvider.ID }?.model, harnessCustom))) + saved.filterNot { it.id == HarnessProvider.ID || com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(it.id) || com.androidharness.app.gemini.GeminiProtocol.isProvider(it.id) || com.androidharness.app.local.LocalModelCatalog.isLocal(it.id) || it.baseUrl.startsWith("local://") } + localModels.configs(installed)
     }.combine(settings.settings) { available, saved ->
         ProviderListPreferences.apply(available.map { config ->
             if (com.androidharness.app.llm.ProviderHeaders.editable(config)) config.copy(headers = keys.providerHeaders(config.id)) else config
@@ -70,7 +76,7 @@ class ProviderRepository(
      * every model a provider offers without refetching on each open. Custom
      * models added by the user merge at the top of each list.
      */
-    val catalogs: Flow<Map<String, List<ModelEntry>>> = kotlinx.coroutines.flow.combine(context.providerStore.data, localModels.installed, chatGpt.state) { prefs, installed, accounts ->
+    val catalogs: Flow<Map<String, List<ModelEntry>>> = kotlinx.coroutines.flow.combine(context.providerStore.data, localModels.installed, chatGpt.state, gemini.state) { prefs, installed, accounts, google ->
         val catalogMap = prefs.asMap().asSequence()
             .filter { it.key.name.startsWith(CATALOG_PREFIX) }
             .mapNotNull { (key, value) ->
@@ -106,8 +112,10 @@ class ProviderRepository(
         localModels.configs(installed).forEach { config ->
             catalogMap[config.id] = listOf(ModelEntry(config.model, reasoning = false, note = "On-device text chat"))
         }
-        catalogMap.keys.filter { com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(it) }.forEach { catalogMap.remove(it) }
+        catalogMap.keys.filter { com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(it) || com.androidharness.app.gemini.GeminiProtocol.isProvider(it) }.forEach { catalogMap.remove(it) }
         accounts.accounts.filter { it.connected }.forEach { catalogMap[it.providerId] = it.models }
+        google.accounts.filter { it.connected }.forEach { catalogMap[it.providerId] =
+            com.androidharness.app.gemini.GeminiProtocol.ACCOUNT_MODELS.map { model -> ModelEntry(model, note = "Google account") } }
         catalogMap
     }
 
@@ -331,6 +339,8 @@ class ProviderRepository(
     fun apiKey(providerId: String): String? = when {
         com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(providerId) ->
             if (chatGpt.state.value.accounts.any { it.providerId == providerId && it.connected }) "managed-oauth" else null
+        com.androidharness.app.gemini.GeminiProtocol.isProvider(providerId) ->
+            if (gemini.state.value.accounts.any { it.providerId == providerId && it.connected }) "managed-oauth" else null
         com.androidharness.app.local.LocalModelCatalog.isLocal(providerId) -> "local"
         providerId == HarnessProvider.ID -> HarnessProvider.KEYLESS
         else -> keys.getKey(providerId)

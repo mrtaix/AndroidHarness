@@ -595,6 +595,9 @@
     <string name="settings_identity_title">கிளையண்ட் அடையாளம்</string>
     <string name="settings_identity_summary">சில API ரிலேக்கள் அறியப்பட்ட கோடிங் கருவிகளை மட்டுமே ஏற்கின்றன. ஒரு முன்னமைவு ஒவ்வொரு வழங்குநருக்கும் அனுப்பப்படும் கோரிக்கை தலைப்புகளை மட்டும் மாற்றுகிறது.</string>
     <string name="settings_identity_custom_note">User-Agent போன்ற தனிப்பயன் வரிசைகள் ஒவ்வொரு வழங்குநரின் தலைப்புகளுக்கு முன் சேர்க்கப்படுவதால் வழங்குநரின் வரிசையே வெல்லும்.</string>
+    <string name="settings_google_account_title">Google கணக்கு (Gemini)</string>
+    <string name="settings_google_sign_in">Google மூலம் உள்நுழைய</string>
+    <string name="settings_google_sign_out">வெளியேறு</string>
     <string name="settings_headers_show_preview">"கோரிக்கை தலைப்புகள்"</string>
     <string name="settings_headers_hide_preview">"கோரிக்கை தலைப்புகளை மறை"</string>
     <string name="settings_fallback_provider_unavailable">"வழங்குநர் கிடைக்கவில்லை"</string>

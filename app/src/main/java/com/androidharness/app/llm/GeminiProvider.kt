@@ -39,16 +39,28 @@ class GeminiProvider(
     ): Flow<StreamEvent> {
         val thinking = options.resolveThinking(config)
         val body = buildRequestBody(config, systemPrompt, messages, tools, options, thinking)
+        val account = com.androidharness.app.gemini.GeminiProtocol.isProvider(config.id)
 
-        val url = config.baseUrl.trimEnd('/') +
-            "/models/${config.model}:streamGenerateContent?alt=sse"
-        val request = Request.Builder()
-            .url(url)
-            .header("x-goog-api-key", apiKey)
-            .post(body.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
-            .apply { ProviderHeaders.apply(this, config, options.debugAttempt, options.debugKeySlot, options.debugGroup, options.cacheKey) }
-            .build()
-
+        suspend fun accountRequest(): Request {
+            val token = checkNotNull(ProviderFactory.geminiToken?.invoke(config.id)) {
+                "Sign in to Google in Settings > Connected accounts."
+            }
+            val project = checkNotNull(ProviderFactory.geminiProject?.invoke(config.id)) {
+                "Google did not return a Code Assist project for this account."
+            }
+            val wrapped = buildJsonObject {
+                put("model", config.model)
+                put("project", project)
+                put("user_prompt_id", java.util.UUID.randomUUID().toString())
+                put("request", body)
+            }
+            return Request.Builder()
+                .url("${com.androidharness.app.gemini.GeminiProtocol.CODE_ASSIST}:streamGenerateContent?alt=sse")
+                .header("Authorization", "Bearer $token")
+                .post(wrapped.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
+                .apply { ProviderHeaders.apply(this, config, options.debugAttempt, options.debugKeySlot, options.debugGroup, options.cacheKey) }
+                .build()
+        }
 
         // usageMetadata arrives on every chunk with CUMULATIVE counts; keep the
         // latest and emit exactly one Usage event when the stream ends so
@@ -65,8 +77,14 @@ class GeminiProvider(
             var callCounter = 0
             val nativeParts = mutableListOf<JsonObject>()
             emit(StreamEvent.ThinkingConfigured(thinking.detail))
+            val request = if (account) accountRequest() else Request.Builder()
+                .url(config.baseUrl.trimEnd('/') + "/models/${config.model}:streamGenerateContent?alt=sse")
+                .header("x-goog-api-key", apiKey)
+                .post(body.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
+                .apply { ProviderHeaders.apply(this, config, options.debugAttempt, options.debugKeySlot, options.debugGroup, options.cacheKey) }
+                .build()
             ProviderFactory.sseJson(request, ProviderHeaders.client(config, client)).collect { el ->
-                val chunk = el as? JsonObject ?: return@collect
+                val chunk = (el as? JsonObject)?.let { if (account) it["response"] as? JsonObject ?: it else it } ?: return@collect
 
                 chunk["error"]?.jsonObjectOrAbsent()?.get("message")?.jsonPrimitive?.contentOrNull
                     ?.let {

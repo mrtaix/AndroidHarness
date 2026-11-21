@@ -595,6 +595,9 @@
     <string name="settings_identity_title">Identité du client</string>
     <string name="settings_identity_summary">Certains relais API n\'acceptent que des outils de développement connus. Un préréglage modifie uniquement les en-têtes de requête envoyés à chaque fournisseur.</string>
     <string name="settings_identity_custom_note">Les lignes personnalisées comme User-Agent sont ajoutées avant les en-têtes du fournisseur : la ligne du fournisseur reste prioritaire.</string>
+    <string name="settings_google_account_title">Compte Google (Gemini)</string>
+    <string name="settings_google_sign_in">Se connecter avec Google</string>
+    <string name="settings_google_sign_out">Se déconnecter</string>
     <string name="settings_headers_show_preview">"En-têtes de requête"</string>
     <string name="settings_headers_hide_preview">"Masquer les en-têtes de requête"</string>
     <string name="settings_fallback_provider_unavailable">"Fournisseur indisponible"</string>

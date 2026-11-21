@@ -19,6 +19,7 @@ import com.androidharness.app.ui.common.TextButton
 internal fun ConnectedAccountsSection(container: AppContainer) {
     val uiContext = androidx.compose.ui.platform.LocalContext.current
     val state by container.chatGpt.state.collectAsStateWithLifecycle()
+    val google by container.gemini.state.collectAsStateWithLifecycle()
     val settings by container.settings.settings.collectAsStateWithLifecycle(initialValue = AppSettings())
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -37,6 +38,11 @@ internal fun ConnectedAccountsSection(container: AppContainer) {
             }
         }
     } }
+    GeminiAccountsCard(google, null,
+        onSignIn = { container.gemini.startSignIn { openOAuthBrowser(context, Uri.parse(it)) } },
+        onCancelSignIn = container.gemini::cancelSignIn,
+        onSignOut = { container.gemini.signOut(it.providerId) },
+    )
     ChatGptAccountsPanel(state, settings.activeProviderId, settings.activeModel, selecting,
         error = selectionError ?: state.error,
         onAdd = { container.chatGpt.startSignIn { openOAuthBrowser(context, Uri.parse(it)) } },

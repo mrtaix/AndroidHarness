@@ -595,6 +595,9 @@
     <string name="settings_identity_title">ග්‍රාහක අනන්‍යතාව</string>
     <string name="settings_identity_summary">සමහර API රිලේ සේවා පිළිගන්නේ දන්නා කේතන මෙවලම් පමණි. පෙරසිටුවීමක් එක් එක් සපයන්නාට යවන ඉල්ලීම් ශීර්ෂ පමණක් වෙනස් කරයි.</string>
     <string name="settings_identity_custom_note">User-Agent වැනි අභිරුචි පේළි එක් එක් සපයන්නාගේ ශීර්ෂවලට පෙර එකතු වන බැවින් සපයන්නාගේ පේළියම ජය ගනී.</string>
+    <string name="settings_google_account_title">Google ගිණුම (Gemini)</string>
+    <string name="settings_google_sign_in">Google සමඟ පිවිසෙන්න</string>
+    <string name="settings_google_sign_out">පිටවීම</string>
     <string name="settings_headers_show_preview">"ඉල්ලුම Headers"</string>
     <string name="settings_headers_hide_preview">"Title එක හැංගිලා ගන්න"</string>
     <string name="settings_fallback_provider_unavailable">"ලබා ගත නොහැකි සැපයුම්කරු"</string>

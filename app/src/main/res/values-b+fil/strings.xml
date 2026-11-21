@@ -595,6 +595,9 @@
     <string name="settings_identity_title">Pagkakakilanlan ng client</string>
     <string name="settings_identity_summary">Ang ilang API relay ay tumatanggap lamang ng kilalang coding tool. Binabago ng preset ang mga request header na ipinapadala sa bawat provider.</string>
     <string name="settings_identity_custom_note">Idinadagdag ang mga custom na row tulad ng User-Agent bago ang sariling header ng bawat provider, kaya row ng provider pa rin ang mananaig.</string>
+    <string name="settings_google_account_title">Google account (Gemini)</string>
+    <string name="settings_google_sign_in">Mag-sign in gamit ang Google</string>
+    <string name="settings_google_sign_out">Mag-sign out</string>
     <string name="settings_headers_show_preview">"Humiling ng mga header"</string>
     <string name="settings_headers_hide_preview">"Itago ang mga header ng kahilingan"</string>
     <string name="settings_fallback_provider_unavailable">"Hindi available ang provider"</string>

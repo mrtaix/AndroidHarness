@@ -17,6 +17,12 @@ class KeyStoreManager(context: Context) {
         check(prefs.edit().putString("chatgpt_accounts", value).commit()) { "Could not securely save ChatGPT connection." }
     }
 
+    fun geminiCredentials(): String? = prefs.getString("gemini_accounts", null)
+
+    fun putGeminiCredentials(value: String) {
+        check(prefs.edit().putString("gemini_accounts", value).commit()) { "Could not securely save Google connection." }
+    }
+
     /**
      * The prefs file is wrapped by an AndroidKeyStore master key, so keystore
      * loss (credential reset, backup restore onto another install) makes it
