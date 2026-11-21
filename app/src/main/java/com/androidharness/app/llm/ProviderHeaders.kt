@@ -50,6 +50,8 @@ object ProviderHeaders {
         group: String? = null,
         sessionId: String? = null,
     ): Request.Builder {
+        // The global client identity goes first so a provider's own header row can still win.
+        ProviderIdentity.headers().forEach { builder.header(it.name, it.value) }
         if (editable(config)) normalized(config.headers).filter { it.enabled }.forEach { builder.header(it.name, it.value) }
         // The debug console reads these tags back; providers stay unaware of capture.
         builder.tag(

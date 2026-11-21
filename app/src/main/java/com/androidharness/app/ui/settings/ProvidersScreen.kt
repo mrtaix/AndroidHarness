@@ -105,6 +105,11 @@ fun ProvidersScreen(
                     }
                 }
                 item {
+                    ClientIdentitySection(settings) { id, headers ->
+                        scope.launch { container.settings.setProviderIdentity(id, headers) }
+                    }
+                }
+                item {
                     OutlinedTextField(value = query, onValueChange = { query = it },
                         label = { Text(stringResource(R.string.settings_providers_search_placeholder)) }, singleLine = true,
                         modifier = Modifier.fillMaxWidth())

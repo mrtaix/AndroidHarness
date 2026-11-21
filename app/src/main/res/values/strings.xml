@@ -629,6 +629,9 @@
     <string name="settings_provider_disabled">Disabled</string>
     <string name="settings_provider_active">Active</string>
     <string name="settings_headers_secure_note">Only sent to this provider. Values are stored securely.</string>
+    <string name="settings_identity_title">Client identity</string>
+    <string name="settings_identity_summary">Some API relays accept only known coding tools. A preset changes just the request headers sent to every provider.</string>
+    <string name="settings_identity_custom_note">Custom rows such as User-Agent are added before each provider\'s own headers, so the provider row still wins.</string>
     <string name="settings_headers_show_preview">Request headers</string>
     <string name="settings_headers_hide_preview">Hide request headers</string>
     <string name="settings_fallback_provider_unavailable">Provider unavailable</string>

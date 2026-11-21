@@ -12,6 +12,7 @@ import com.androidharness.app.agent.PermissionMode
 import com.androidharness.app.agent.ThinkingLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 val Context.settingsStore by preferencesDataStore(name = "settings")
 
@@ -61,6 +62,10 @@ data class AppSettings(
     val autoCompactTokens: Int = 0,
     /** Sent when a paused or interrupted task resumes. Blank uses the built-in prompt; a chat can override it. */
     val resumePrompt: String = "",
+    /** Global client identity for provider requests; blank keeps the app's own User-Agent. */
+    val providerIdentity: String = com.androidharness.app.llm.ProviderIdentity.DEFAULT,
+    /** Rows sent when [providerIdentity] is the custom choice. */
+    val providerIdentityHeaders: List<com.androidharness.app.llm.ProviderHeader> = emptyList(),
     val maxOutputTokens: Int = DEFAULT_MAX_OUTPUT,
     /** Tool-call iterations per run. 0 = unlimited. */
     val maxIterations: Int = DEFAULT_MAX_ITERATIONS,
@@ -284,6 +289,14 @@ class SettingsRepository(private val context: Context) {
     private fun decodeCustomLevels(raw: String?): Map<String, String> =
         raw?.let { kotlinx.serialization.json.Json.decodeFromString(it) } ?: emptyMap()
 
+    private fun decodeProviderIdentityHeaders(raw: String?): List<com.androidharness.app.llm.ProviderHeader> =
+        raw?.let {
+            runCatching {
+                kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+                    .decodeFromString<List<com.androidharness.app.llm.ProviderHeader>>(it)
+            }.getOrNull()
+        }?.takeIf { com.androidharness.app.llm.ProviderHeaders.error(it) == null }.orEmpty()
+
     private fun decodeVoiceSelections(raw: String?): Map<String, VoiceSelection> =
         raw?.let {
             runCatching {
@@ -359,6 +372,8 @@ class SettingsRepository(private val context: Context) {
         val MAX_CONTEXT = intPreferencesKey("max_context_tokens")
         val AUTO_COMPACT = intPreferencesKey("auto_compact_tokens")
         val RESUME_PROMPT = stringPreferencesKey("resume_prompt")
+        val PROVIDER_IDENTITY = stringPreferencesKey("provider_identity")
+        val PROVIDER_IDENTITY_HEADERS = stringPreferencesKey("provider_identity_headers")
         val MAX_OUTPUT = intPreferencesKey("max_output_tokens")
         val MAX_ITERATIONS = intPreferencesKey("max_iterations")
         val RUN_IN_BACKGROUND = booleanPreferencesKey("run_in_background")
@@ -506,6 +521,10 @@ class SettingsRepository(private val context: Context) {
             maxContextTokens = prefs[Keys.MAX_CONTEXT] ?: AppSettings.DEFAULT_MAX_CONTEXT,
             autoCompactTokens = prefs[Keys.AUTO_COMPACT] ?: 0,
             resumePrompt = prefs[Keys.RESUME_PROMPT].orEmpty(),
+            providerIdentity = prefs[Keys.PROVIDER_IDENTITY].orEmpty().takeIf { id ->
+                com.androidharness.app.llm.ProviderIdentity.presets.any { it.id == id }
+            } ?: com.androidharness.app.llm.ProviderIdentity.DEFAULT,
+            providerIdentityHeaders = decodeProviderIdentityHeaders(prefs[Keys.PROVIDER_IDENTITY_HEADERS]),
             maxOutputTokens = prefs[Keys.MAX_OUTPUT] ?: AppSettings.DEFAULT_MAX_OUTPUT,
             maxIterations = prefs[Keys.MAX_ITERATIONS] ?: AppSettings.DEFAULT_MAX_ITERATIONS,
             runInBackground = prefs[Keys.RUN_IN_BACKGROUND] ?: true,
@@ -614,6 +633,9 @@ class SettingsRepository(private val context: Context) {
             debugConsolePersist = prefs[Keys.DEBUG_CONSOLE_PERSIST] ?: false,
             debugConsoleConsent = prefs[Keys.DEBUG_CONSOLE_CONSENT] ?: false,
         )
+    }.onEach { parsed ->
+        // Request builders read this synchronously; the settings flow is the only writer.
+        com.androidharness.app.llm.ProviderIdentity.update(parsed.providerIdentity, parsed.providerIdentityHeaders)
     }
 
     suspend fun restorePortable(s: AppSettings) {
@@ -644,6 +666,8 @@ class SettingsRepository(private val context: Context) {
             p[Keys.MAX_CONTEXT] = s.maxContextTokens
             p[Keys.AUTO_COMPACT] = s.autoCompactTokens
             p[Keys.RESUME_PROMPT] = s.resumePrompt
+            p[Keys.PROVIDER_IDENTITY] = s.providerIdentity
+            p[Keys.PROVIDER_IDENTITY_HEADERS] = kotlinx.serialization.json.Json.encodeToString(s.providerIdentityHeaders)
             p[Keys.MAX_OUTPUT] = s.maxOutputTokens
             p[Keys.MAX_ITERATIONS] = s.maxIterations
             p[Keys.RUN_IN_BACKGROUND] = s.runInBackground
@@ -1171,6 +1195,16 @@ class SettingsRepository(private val context: Context) {
         val clean = prompt.trim()
         require(clean.length <= com.androidharness.app.agent.RunRecovery.MAX_PROMPT_CHARS)
         context.settingsStore.edit { if (clean.isEmpty()) it.remove(Keys.RESUME_PROMPT) else it[Keys.RESUME_PROMPT] = clean }
+    }
+
+    /** Global client identity for provider requests: a preset id plus the rows used by the custom choice. */
+    suspend fun setProviderIdentity(id: String, headers: List<com.androidharness.app.llm.ProviderHeader>) {
+        require(com.androidharness.app.llm.ProviderIdentity.error(id, headers) == null) { "Choose a valid client identity." }
+        val rows = com.androidharness.app.llm.ProviderHeaders.normalized(headers)
+        context.settingsStore.edit {
+            it[Keys.PROVIDER_IDENTITY] = id
+            it[Keys.PROVIDER_IDENTITY_HEADERS] = kotlinx.serialization.json.Json.encodeToString(rows)
+        }
     }
 
     suspend fun setMaxOutputTokens(tokens: Int) {

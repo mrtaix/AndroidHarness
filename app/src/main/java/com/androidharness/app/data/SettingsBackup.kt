@@ -167,6 +167,8 @@ object SettingsBackupValidation {
         val ids = file.providers.map { it.config.id }.toSet() + HarnessProvider.ID
         check(listOfNotNull(s.activeProviderId, s.planningProviderId, s.executionProviderId, s.subagentProviderId).all { it in ids }, SettingsBackupProblem.PROVIDER_REFERENCE)
         check(file.providerProxy.error() == null, SettingsBackupProblem.PROVIDER_CONTROLS)
+        check(com.androidharness.app.llm.ProviderIdentity.error(s.providerIdentity, s.providerIdentityHeaders) == null,
+            SettingsBackupProblem.PROVIDER_HEADERS)
         file.providers.forEach {
             check(it.keyPool?.error() == null && it.proxy.error() == null, SettingsBackupProblem.PROVIDER_CONTROLS)
             check(com.androidharness.app.llm.ProviderHeaders.error(it.headers) == null, SettingsBackupProblem.PROVIDER_HEADERS)
