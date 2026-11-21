@@ -12,12 +12,13 @@ class HistoryCompactorTest {
     private val history = listOf(ChatMessage(role = Role.USER, text = "goal " + "x".repeat(70_000)),
         ChatMessage(role = Role.ASSISTANT, toolCalls = listOf(ToolCallData("a", "shell", "{\"command\":\"pwd\"}"))),
         ChatMessage(role = Role.TOOL, toolCallId = "a", toolName = "shell", text = "/workspace/keep-me"))
-    private fun provider(reply: (List<ChatMessage>) -> Flow<StreamEvent>) = object : LlmProvider {
+    private val shortHistory = listOf(ChatMessage(role = Role.USER, text = "Preserve the goal"))
+    private fun provider(onRequest: (RequestOptions) -> Unit = {}, reply: (List<ChatMessage>) -> Flow<StreamEvent>) = object : LlmProvider {
         override fun streamChat(config: ProviderConfig, apiKey: String, systemPrompt: String,
             messages: List<ChatMessage>, tools: List<ToolSchema>, options: RequestOptions): Flow<StreamEvent> {
             assertTrue(tools.isEmpty()); assertEquals(ThinkingLevel.OFF, options.thinking)
             assertEquals(Role.USER, messages.single().role); assertTrue(messages.single().toolCalls.isEmpty())
-            assertTrue(messages.single().imageData.isEmpty()); return reply(messages)
+            assertTrue(messages.single().imageData.isEmpty()); onRequest(options); return reply(messages)
         }
     }
     private suspend fun compact(p: LlmProvider, history: List<ChatMessage> = this.history, timeout: Long = 1000) =
@@ -63,6 +64,48 @@ class HistoryCompactorTest {
             listOf(StreamEvent.TextDelta("partial"), StreamEvent.Done("MAX_TOKENS")),
             listOf(StreamEvent.TextDelta("partial")))) {
             assertTrue(runCatching { compact(provider { events.asFlow() }) }.isFailure)
+        }
+    }
+
+    @Test fun `output limit retries with more tokens and discards the partial summary`() = runBlocking {
+        for (reason in listOf("length", "MAX_TOKENS", "max_output_tokens")) {
+            val budgets = mutableListOf<Int>()
+            val inputs = mutableListOf<String>()
+            val usage = mutableListOf<Int>()
+            val model = provider({ budgets += it.maxOutputTokens }) { messages ->
+                inputs += messages.single().text
+                if (inputs.size == 1) flowOf(StreamEvent.TextDelta("truncated"),
+                    StreamEvent.Usage(20, 1500), StreamEvent.Done(reason))
+                else flowOf(StreamEvent.TextDelta("complete summary"), StreamEvent.Usage(20, 12), StreamEvent.Done("stop"))
+            }
+            val summary = HistoryCompactor.summarize(model, config, "key", shortHistory, 32_000, "sid",
+                event = { e, _ -> if (e is StreamEvent.Usage) usage += e.outputTokens }, stallTimeoutMs = 1000)
+            assertEquals("complete summary", summary)
+            assertEquals(listOf(1500, 3000), budgets)
+            assertEquals(inputs[0], inputs[1])
+            assertEquals(listOf(1500, 12), usage)
+        }
+    }
+
+    @Test fun `repeated truncation stops at the context based output ceiling`() = runBlocking {
+        val budgets = mutableListOf<Int>()
+        val failure = runCatching {
+            compact(provider({ budgets += it.maxOutputTokens }) {
+                flowOf(StreamEvent.TextDelta("truncated"), StreamEvent.Done("max_output_tokens"))
+            }, shortHistory)
+        }.exceptionOrNull()
+        assertEquals(listOf(1500, 3000, 4000), budgets)
+        assertTrue(failure?.message.orEmpty().contains("incomplete summary (max_output_tokens)"))
+    }
+
+    @Test fun `non token incomplete end reasons are not accepted or retried`() = runBlocking {
+        for (reason in listOf("content_filter", "incomplete")) {
+            var calls = 0
+            val failure = runCatching {
+                compact(provider { calls++; flowOf(StreamEvent.TextDelta("partial"), StreamEvent.Done(reason)) }, shortHistory)
+            }.exceptionOrNull()
+            assertTrue(failure?.message.orEmpty().contains("incomplete summary ($reason)"))
+            assertEquals(1, calls)
         }
     }
 

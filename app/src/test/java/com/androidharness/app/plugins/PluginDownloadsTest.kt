@@ -95,6 +95,23 @@ class PluginDownloadsTest {
         }
     }
 
+    @Test fun `github default search uses valid topic qualifiers and keyword searches are preserved`() = runBlocking {
+        Registry().use { registry ->
+            registry.handler = { exchange -> registry.reply(exchange, """{"items":[]}""".toByteArray()) }
+            val downloads = registry.downloads()
+            downloads.searchGitHub("")
+            assertEquals("/search/repositories", URI(registry.requests.last().first).path)
+            val defaultQuery = registry.requests.last().first.substringAfter("q=").substringBefore('&')
+            val decodedDefault = java.net.URLDecoder.decode(defaultQuery, Charsets.UTF_8.name())
+            assertTrue(decodedDefault.contains("in:topics"))
+            assertFalse(decodedDefault.contains("topic:"))
+            assertTrue(decodedDefault.contains(" OR "))
+            downloads.searchGitHub("compose plugin")
+            val keywordQuery = java.net.URLDecoder.decode(registry.requests.last().first.substringAfter("q=").substringBefore('&'), Charsets.UTF_8.name())
+            assertEquals("compose plugin in:name,description,topics", keywordQuery)
+        }
+    }
+
     @Test fun `github pins default and slash branch to immutable commits and passes account token`() = runBlocking {
         Registry().use { registry ->
             val sha = "a".repeat(40)

@@ -232,9 +232,10 @@ class PluginDownloads(
     /** GitHub repositories tagged as skills or plugins for coding agents. */
     suspend fun searchGitHub(query: String, page: Int = 0): List<PluginListing> {
         require(query.length <= 160)
-        val topics = "topic:claude-skills OR topic:agent-skills OR topic:claude-code-plugin OR topic:claude-code-skills OR topic:mcp-server"
+        // GitHub applies OR to search terms, not to topic: qualifiers.
+        val topicTerms = "claude-skills OR agent-skills OR claude-code-plugin OR claude-code-skills OR mcp-server"
         val url = githubApi.toHttpUrl().newBuilder().addPathSegments("search/repositories")
-            .addQueryParameter("q", if (query.isBlank()) "$topics stars:>50" else "${query.trim()} in:name,description,topics")
+            .addQueryParameter("q", if (query.isBlank()) "$topicTerms in:topics stars:>50" else "${query.trim()} in:name,description,topics")
             .addQueryParameter("sort", "stars").addQueryParameter("per_page", "30").addQueryParameter("page", (page + 1).toString()).build()
         val data = metadata(url.toString(), githubHeaders())
         return data["items"]?.jsonArray.orEmpty().mapNotNull { item ->
