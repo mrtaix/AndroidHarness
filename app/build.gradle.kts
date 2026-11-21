@@ -98,6 +98,9 @@ android {
             // APK installs without a release keystore. Swap to a dedicated
             // signing config before any public/Play distribution.
             signingConfig = signingConfigs.getByName("debug")
+            // A local release build must not collide with the installed app or its
+            // Play signature; the suffix keeps it side by side.
+            applicationIdSuffix = ".release"
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
