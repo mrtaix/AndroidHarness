@@ -42,7 +42,10 @@ class PluginDownloads(
                     try {
                         val result = response.use {
                             checked(it.request.url.toString())
-                            check(it.isSuccessful) { "Plugin source returned HTTP ${it.code}. Check the package, repository, version and access." }
+                            if (!it.isSuccessful) {
+                                throw IOException(sourceError(it.code, it.header("X-RateLimit-Remaining"),
+                                    runCatching { it.peekBody(8192).string() }.getOrDefault("")))
+                            }
                             read(it)
                         }
                         if (continuation.isActive) continuation.resume(result)
@@ -50,6 +53,25 @@ class PluginDownloads(
                 }
             })
         }
+    /** A refusal a person can act on: GitHub's anonymous quota, a rejected token, or a plain denial. */
+    internal fun sourceError(code: Int, remaining: String?, body: String): String {
+        val detail = runCatching {
+            val json = Json.parseToJsonElement(body.take(8192)).jsonObject
+            (json["message"] ?: json["error"]?.let { (it as? JsonObject)?.get("message") })
+                ?.jsonPrimitive?.contentOrNull
+        }.getOrNull()?.takeIf { it.isNotBlank() }
+        val limit = (code == 403 || code == 429) && remaining == "0" ||
+            detail?.contains("rate limit", ignoreCase = true) == true
+        if (limit) return "GitHub's request quota is used up (HTTP $code). Add a GitHub token in Settings > GitHub, then retry."
+        if (code == 401 || code == 403) {
+            return "The source refused this request (HTTP $code)" +
+                (detail?.let { ": $it" } ?: ". A GitHub token in Settings > GitHub often fixes this") +
+                ". Check repository access or reconnect GitHub."
+        }
+        return "Plugin source returned HTTP $code" + (detail?.let { ": $it" } ?: "") +
+            ". Check the package, repository, version and access."
+    }
+
     private suspend fun metadata(url: String, headers: Map<String, String> = emptyMap()): JsonObject = request(url, headers) { response ->
         val bytes = requireNotNull(response.body).byteStream().use { PluginArchives.readLimited(it, 256L * 1024 * 1024) }
         Json.parseToJsonElement(bytes.toString(Charsets.UTF_8)).jsonObject

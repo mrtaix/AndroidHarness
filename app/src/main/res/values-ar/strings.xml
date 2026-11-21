@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">يغيّر حجم الإجابات والتفكير ومخرجات الأدوات في كل محادثة.</string>
     <string name="settings_chat_compact_cards">بطاقات مضغوطة</string>
     <string name="settings_chat_compact_cards_desc">هوامش أضيق حول استدعاءات الأدوات وبطاقات النتائج.</string>
+    <string name="settings_chat_cards_title">محتويات البطاقة</string>
+    <string name="settings_chat_cards_labels">اسم الأداة</string>
+    <string name="settings_chat_cards_args">الأمر والوسائط</string>
+    <string name="settings_chat_cards_output">المخرجات</string>
+    <string name="settings_chat_cards_preview">بطاقة تجريبية</string>
+    <string name="settings_chat_cards_empty">لا يظهر شيء في بطاقات الأدوات.</string>
     <string name="settings_headers_show_preview">"ترويسات الطلب"</string>
     <string name="settings_headers_hide_preview">"إخفاء ترويسات الطلب"</string>
     <string name="settings_fallback_provider_unavailable">"المزوّد غير متاح"</string>

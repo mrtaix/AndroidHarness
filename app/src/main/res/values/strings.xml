@@ -639,6 +639,12 @@
     <string name="settings_chat_text_size_desc">Scales answers, thinking and tool output in every chat.</string>
     <string name="settings_chat_compact_cards">Compact cards</string>
     <string name="settings_chat_compact_cards_desc">Tighter padding around tool calls and result cards.</string>
+    <string name="settings_chat_cards_title">Card contents</string>
+    <string name="settings_chat_cards_labels">Tool name</string>
+    <string name="settings_chat_cards_args">Command and arguments</string>
+    <string name="settings_chat_cards_output">Output</string>
+    <string name="settings_chat_cards_preview">Sample card</string>
+    <string name="settings_chat_cards_empty">Nothing is shown in tool cards.</string>
     <string name="settings_headers_show_preview">Request headers</string>
     <string name="settings_headers_hide_preview">Hide request headers</string>
     <string name="settings_fallback_provider_unavailable">Provider unavailable</string>

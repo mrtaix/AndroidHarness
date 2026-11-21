@@ -627,6 +627,12 @@
     <string name="settings_chat_text_size_desc">调整每段对话中回答、思考和工具输出的字号。</string>
     <string name="settings_chat_compact_cards">紧凑卡片</string>
     <string name="settings_chat_compact_cards_desc">缩小工具调用与结果卡片的间距。</string>
+    <string name="settings_chat_cards_title">卡片内容</string>
+    <string name="settings_chat_cards_labels">工具名称</string>
+    <string name="settings_chat_cards_args">命令与参数</string>
+    <string name="settings_chat_cards_output">输出</string>
+    <string name="settings_chat_cards_preview">示例卡片</string>
+    <string name="settings_chat_cards_empty">工具卡片中不显示任何内容。</string>
     <string name="settings_headers_show_preview">请求头</string>
     <string name="settings_headers_hide_preview">隐藏请求头</string>
     <string name="settings_fallback_provider_unavailable">提供商不可用</string>

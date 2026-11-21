@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">Sinasukat ang mga sagot, pag-iisip at output ng tool sa bawat chat.</string>
     <string name="settings_chat_compact_cards">Siksik na card</string>
     <string name="settings_chat_compact_cards_desc">Masikip na padding sa mga tool call at result card.</string>
+    <string name="settings_chat_cards_title">Nilalaman ng card</string>
+    <string name="settings_chat_cards_labels">Pangalan ng tool</string>
+    <string name="settings_chat_cards_args">Command at argumento</string>
+    <string name="settings_chat_cards_output">Output</string>
+    <string name="settings_chat_cards_preview">Sample na card</string>
+    <string name="settings_chat_cards_empty">Walang ipinapakita sa mga tool card.</string>
     <string name="settings_headers_show_preview">"Humiling ng mga header"</string>
     <string name="settings_headers_hide_preview">"Itago ang mga header ng kahilingan"</string>
     <string name="settings_fallback_provider_unavailable">"Hindi available ang provider"</string>

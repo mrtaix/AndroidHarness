@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">ปรับขนาดคำตอบ การคิด และผลลัพธ์ของเครื่องมือในทุกแชท</string>
     <string name="settings_chat_compact_cards">การ์ดกระชับ</string>
     <string name="settings_chat_compact_cards_desc">ระยะห่างรอบการเรียกเครื่องมือและการ์ดผลลัพธ์น้อยลง</string>
+    <string name="settings_chat_cards_title">เนื้อหาการ์ด</string>
+    <string name="settings_chat_cards_labels">ชื่อเครื่องมือ</string>
+    <string name="settings_chat_cards_args">คำสั่งและอาร์กิวเมนต์</string>
+    <string name="settings_chat_cards_output">เอาต์พุต</string>
+    <string name="settings_chat_cards_preview">การ์ดตัวอย่าง</string>
+    <string name="settings_chat_cards_empty">ไม่แสดงสิ่งใดในการ์ดเครื่องมือ</string>
     <string name="settings_headers_show_preview">"ขอส่วนหัว"</string>
     <string name="settings_headers_hide_preview">"ซ่อนส่วนหัวของคำขอ"</string>
     <string name="settings_fallback_provider_unavailable">"ผู้ให้บริการไม่พร้อมใช้งาน"</string>

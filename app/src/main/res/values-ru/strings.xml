@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">Меняет размер ответов, размышлений и вывода инструментов в каждом чате.</string>
     <string name="settings_chat_compact_cards">Компактные карточки</string>
     <string name="settings_chat_compact_cards_desc">Меньше отступов вокруг вызовов инструментов и карточек результата.</string>
+    <string name="settings_chat_cards_title">Содержимое карточки</string>
+    <string name="settings_chat_cards_labels">Имя инструмента</string>
+    <string name="settings_chat_cards_args">Команда и аргументы</string>
+    <string name="settings_chat_cards_output">Вывод</string>
+    <string name="settings_chat_cards_preview">Пример карточки</string>
+    <string name="settings_chat_cards_empty">В карточках инструментов ничего не показывается.</string>
     <string name="settings_headers_show_preview">"Заголовки запросов"</string>
     <string name="settings_headers_hide_preview">"Скрыть заголовки запросов"</string>
     <string name="settings_fallback_provider_unavailable">"Провайдер недоступен"</string>

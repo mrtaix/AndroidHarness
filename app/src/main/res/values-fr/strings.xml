@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">Ajuste les réponses, le raisonnement et la sortie des outils dans chaque discussion.</string>
     <string name="settings_chat_compact_cards">Cartes compactes</string>
     <string name="settings_chat_compact_cards_desc">Marges plus serrées autour des appels d\'outils et des cartes de résultat.</string>
+    <string name="settings_chat_cards_title">Contenu des cartes</string>
+    <string name="settings_chat_cards_labels">Nom de l\'outil</string>
+    <string name="settings_chat_cards_args">Commande et arguments</string>
+    <string name="settings_chat_cards_output">Sortie</string>
+    <string name="settings_chat_cards_preview">Carte d\'exemple</string>
+    <string name="settings_chat_cards_empty">Rien n\'est affiché dans les cartes d\'outils.</string>
     <string name="settings_headers_show_preview">"En-têtes de requête"</string>
     <string name="settings_headers_hide_preview">"Masquer les en-têtes de requête"</string>
     <string name="settings_fallback_provider_unavailable">"Fournisseur indisponible"</string>

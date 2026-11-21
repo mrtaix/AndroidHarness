@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">Her sohbette yanıtları, düşünmeyi ve araç çıktısını ölçekler.</string>
     <string name="settings_chat_compact_cards">Kompakt kartlar</string>
     <string name="settings_chat_compact_cards_desc">Araç çağrıları ve sonuç kartları çevresinde daha dar boşluk.</string>
+    <string name="settings_chat_cards_title">Kart içeriği</string>
+    <string name="settings_chat_cards_labels">Araç adı</string>
+    <string name="settings_chat_cards_args">Komut ve bağımsız değişkenler</string>
+    <string name="settings_chat_cards_output">Çıktı</string>
+    <string name="settings_chat_cards_preview">Örnek kart</string>
+    <string name="settings_chat_cards_empty">Araç kartlarında hiçbir şey gösterilmez.</string>
     <string name="settings_headers_show_preview">"Başlıkları iste"</string>
     <string name="settings_headers_hide_preview">"İstek başlıklarını gizle"</string>
     <string name="settings_fallback_provider_unavailable">"Sağlayıcı kullanılamıyor"</string>

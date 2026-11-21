@@ -96,6 +96,7 @@ internal fun ToolCallCard(
     packageProgress: com.androidharness.app.data.env.PackageInstallStatus? = null,
 ) {
     val compact = LocalChatCompact.current
+    val cardOptions = LocalChatCards.current
     val uiContext = androidx.compose.ui.platform.LocalContext.current
     if (call.name == "pkg_install" || call.name == com.androidharness.app.tools.AndroidSdkInstallTool.NAME) {
         PackageInstallCard(call, result, running, awaitingApproval, packageProgress)
@@ -175,6 +176,7 @@ internal fun ToolCallCard(
         }),
     ) {
         when {
+            !cardOptions.arguments -> Unit
             patchDiff != null -> Surface(color = scheme.surfaceContainerLowest, shape = RoundedCornerShape(16.dp)) {
                 Box(Modifier.padding(6.dp)) {
                     VisualDiffViewer(
@@ -185,10 +187,10 @@ internal fun ToolCallCard(
                     )
                 }
             }
-            command != null -> CodePanel(command, label = call.name, prompt = "$")
-            else -> CodePanel(pretty, label = call.name)
+            command != null -> CodePanel(command, label = call.name.takeIf { cardOptions.labels }, prompt = "$")
+            else -> CodePanel(pretty, label = call.name.takeIf { cardOptions.labels })
         }
-        result?.let {
+        if (cardOptions.output) result?.let {
             if (call.name in listOf("grep", "search_files", "web_search")) {
                 Surface(color = scheme.surfaceContainerLowest, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                     Box(Modifier.padding(horizontal = if (compact) 8.dp else 12.dp, vertical = if (compact) 6.dp else 10.dp)) {
@@ -198,7 +200,7 @@ internal fun ToolCallCard(
             } else {
                 CodePanel(
                     it.text.take(4000).ifBlank { "∅" },
-                    label = uiContext.getString(if (it.isError) R.string.ui_failed_64 else R.string.ui_output_1407),
+                    label = uiContext.getString(if (it.isError) R.string.ui_failed_64 else R.string.ui_output_1407).takeIf { cardOptions.labels },
                     tone = if (it.isError) WorkState.Failed else null,
                 )
             }

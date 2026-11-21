@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">Menukar saiz jawapan, pemikiran dan output alat dalam setiap sembang.</string>
     <string name="settings_chat_compact_cards">Kad padat</string>
     <string name="settings_chat_compact_cards_desc">Lapik lebih rapat di sekeliling panggilan alat dan kad hasil.</string>
+    <string name="settings_chat_cards_title">Kandungan kad</string>
+    <string name="settings_chat_cards_labels">Nama alat</string>
+    <string name="settings_chat_cards_args">Perintah dan argumen</string>
+    <string name="settings_chat_cards_output">Output</string>
+    <string name="settings_chat_cards_preview">Kad contoh</string>
+    <string name="settings_chat_cards_empty">Tiada apa dipaparkan dalam kad alat.</string>
     <string name="settings_headers_show_preview">"Minta pengepala"</string>
     <string name="settings_headers_hide_preview">"Sembunyikan pengepala permintaan"</string>
     <string name="settings_fallback_provider_unavailable">"Pembekal tidak tersedia"</string>

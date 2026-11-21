@@ -18,9 +18,13 @@ import androidx.compose.ui.unit.sp
 /** Tighter transcript padding, chosen in Settings > Chat options. */
 internal val LocalChatCompact = staticCompositionLocalOf { false }
 
+/** Which parts of a tool card render, chosen in Settings > Chat options. */
+data class ChatCardOptions(val output: Boolean = true, val arguments: Boolean = true, val labels: Boolean = true)
+internal val LocalChatCards = staticCompositionLocalOf { ChatCardOptions() }
+
 /** Compact conversation typography that preserves the app's Material You palette. */
 @Composable
-internal fun ChatAppearance(scale: Float = 1f, compact: Boolean = false, content: @Composable () -> Unit) {
+internal fun ChatAppearance(scale: Float = 1f, compact: Boolean = false, cards: ChatCardOptions = ChatCardOptions(), content: @Composable () -> Unit) {
     val base = MaterialTheme.colorScheme
     val dark = base.surface.luminance() < 0.5f
     val background = base.surface
@@ -63,6 +67,6 @@ internal fun ChatAppearance(scale: Float = 1f, compact: Boolean = false, content
             labelMedium = type.labelMedium.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, letterSpacing = 0.sp).scaled(),
             labelSmall = type.labelSmall.copy(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, letterSpacing = 0.sp).scaled(),
         ),
-        content = { CompositionLocalProvider(LocalChatCompact provides compact, content = content) },
+        content = { CompositionLocalProvider(LocalChatCompact provides compact, LocalChatCards provides cards, content = content) },
     )
 }

@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">Đổi cỡ câu trả lời, phần suy nghĩ và kết quả công cụ trong mọi cuộc trò chuyện.</string>
     <string name="settings_chat_compact_cards">Thẻ gọn</string>
     <string name="settings_chat_compact_cards_desc">Giảm khoảng đệm quanh thẻ gọi công cụ và thẻ kết quả.</string>
+    <string name="settings_chat_cards_title">Nội dung thẻ</string>
+    <string name="settings_chat_cards_labels">Tên công cụ</string>
+    <string name="settings_chat_cards_args">Lệnh và tham số</string>
+    <string name="settings_chat_cards_output">Kết quả</string>
+    <string name="settings_chat_cards_preview">Thẻ mẫu</string>
+    <string name="settings_chat_cards_empty">Thẻ công cụ không hiển thị gì.</string>
     <string name="settings_headers_show_preview">"Tiêu đề yêu cầu"</string>
     <string name="settings_headers_hide_preview">"Ẩn tiêu đề yêu cầu"</string>
     <string name="settings_fallback_provider_unavailable">"Nhà cung cấp không có sẵn"</string>

@@ -66,6 +66,12 @@ data class AppSettings(
     val chatTextScale: Float = 0.9f,
     /** Tighter tool-call and card padding, for more transcript on screen. */
     val chatCompactCards: Boolean = false,
+    /** Tool cards: show the step's own output block. */
+    val chatCardsShowOutput: Boolean = true,
+    /** Tool cards: show the command or arguments panel. */
+    val chatCardsShowArgs: Boolean = true,
+    /** Tool cards: show the tool name label above the panel. */
+    val chatCardsShowLabels: Boolean = true,
     /** Global client identity for provider requests; blank keeps the app's own User-Agent. */
     val providerIdentity: String = com.androidharness.app.llm.ProviderIdentity.DEFAULT,
     /** Rows sent when [providerIdentity] is the custom choice. */
@@ -378,6 +384,9 @@ class SettingsRepository(private val context: Context) {
         val RESUME_PROMPT = stringPreferencesKey("resume_prompt")
         val CHAT_TEXT_SCALE = floatPreferencesKey("chat_text_scale")
         val CHAT_COMPACT_CARDS = booleanPreferencesKey("chat_compact_cards")
+        val CHAT_CARDS_OUTPUT = booleanPreferencesKey("chat_cards_output")
+        val CHAT_CARDS_TIMING = booleanPreferencesKey("chat_cards_args")
+        val CHAT_CARDS_LABELS = booleanPreferencesKey("chat_cards_labels")
         val PROVIDER_IDENTITY = stringPreferencesKey("provider_identity")
         val PROVIDER_IDENTITY_HEADERS = stringPreferencesKey("provider_identity_headers")
         val MAX_OUTPUT = intPreferencesKey("max_output_tokens")
@@ -529,6 +538,9 @@ class SettingsRepository(private val context: Context) {
             resumePrompt = prefs[Keys.RESUME_PROMPT].orEmpty(),
             chatTextScale = (prefs[Keys.CHAT_TEXT_SCALE] ?: 0.9f).takeIf { it.isFinite() }?.coerceIn(0.7f, 1.4f) ?: 0.9f,
             chatCompactCards = prefs[Keys.CHAT_COMPACT_CARDS] ?: false,
+            chatCardsShowOutput = prefs[Keys.CHAT_CARDS_OUTPUT] ?: true,
+            chatCardsShowArgs = prefs[Keys.CHAT_CARDS_TIMING] ?: true,
+            chatCardsShowLabels = prefs[Keys.CHAT_CARDS_LABELS] ?: true,
             providerIdentity = prefs[Keys.PROVIDER_IDENTITY].orEmpty().takeIf { id ->
                 com.androidharness.app.llm.ProviderIdentity.presets.any { it.id == id }
             } ?: com.androidharness.app.llm.ProviderIdentity.DEFAULT,
@@ -676,6 +688,9 @@ class SettingsRepository(private val context: Context) {
             p[Keys.RESUME_PROMPT] = s.resumePrompt
             p[Keys.CHAT_TEXT_SCALE] = s.chatTextScale
             p[Keys.CHAT_COMPACT_CARDS] = s.chatCompactCards
+            p[Keys.CHAT_CARDS_OUTPUT] = s.chatCardsShowOutput
+            p[Keys.CHAT_CARDS_TIMING] = s.chatCardsShowArgs
+            p[Keys.CHAT_CARDS_LABELS] = s.chatCardsShowLabels
             p[Keys.PROVIDER_IDENTITY] = s.providerIdentity
             p[Keys.PROVIDER_IDENTITY_HEADERS] = kotlinx.serialization.json.Json.encodeToString(s.providerIdentityHeaders)
             p[Keys.MAX_OUTPUT] = s.maxOutputTokens
@@ -1209,6 +1224,18 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setChatCompactCards(compact: Boolean) {
         context.settingsStore.edit { it[Keys.CHAT_COMPACT_CARDS] = compact }
+    }
+
+    suspend fun setChatCardsShowOutput(show: Boolean) {
+        context.settingsStore.edit { it[Keys.CHAT_CARDS_OUTPUT] = show }
+    }
+
+    suspend fun setChatCardsShowArgs(show: Boolean) {
+        context.settingsStore.edit { it[Keys.CHAT_CARDS_TIMING] = show }
+    }
+
+    suspend fun setChatCardsShowLabels(show: Boolean) {
+        context.settingsStore.edit { it[Keys.CHAT_CARDS_LABELS] = show }
     }
 
     suspend fun setResumePrompt(prompt: String) {

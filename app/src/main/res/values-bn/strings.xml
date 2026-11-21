@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">প্রতিটি চ্যাটে উত্তর, চিন্তা ও টুল আউটপুটের আকার বদলায়।</string>
     <string name="settings_chat_compact_cards">সংক্ষিপ্ত কার্ড</string>
     <string name="settings_chat_compact_cards_desc">টুল কল ও ফলাফল কার্ডের প্যাডিং কমায়।</string>
+    <string name="settings_chat_cards_title">কার্ডের বিষয়বস্তু</string>
+    <string name="settings_chat_cards_labels">টুলের নাম</string>
+    <string name="settings_chat_cards_args">কমান্ড ও আর্গুমেন্ট</string>
+    <string name="settings_chat_cards_output">আউটপুট</string>
+    <string name="settings_chat_cards_preview">নমুনা কার্ড</string>
+    <string name="settings_chat_cards_empty">টুল কার্ডে কিছু দেখানো হয় না।</string>
     <string name="settings_headers_show_preview">"শিরোনাম অনুরোধ করুন"</string>
     <string name="settings_headers_hide_preview">"অনুরোধ শিরোনাম লুকান"</string>
     <string name="settings_fallback_provider_unavailable">"প্রদানকারী অনুপলব্ধ"</string>

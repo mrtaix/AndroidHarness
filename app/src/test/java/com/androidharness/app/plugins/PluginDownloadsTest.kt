@@ -112,6 +112,24 @@ class PluginDownloadsTest {
         }
     }
 
+    @Test fun `refused sources explain quota and access instead of a bare status`() = runBlocking {
+        Registry().use { registry ->
+            fun refuse(code: Int, body: String, remaining: String? = null): (Exchange) -> Unit = { exchange ->
+                remaining?.let { exchange.responseHeaders["X-RateLimit-Remaining"] = it }
+                val bytes = body.toByteArray()
+                exchange.sendResponseHeaders(code, bytes.size.toLong())
+                exchange.responseBody.use { it.write(bytes) }
+            }
+            registry.handler = refuse(403, """{"message":"API rate limit exceeded for 1.2.3.4."}""", remaining = "0")
+            val limited = runCatching { registry.downloads().resolve(PluginOrigin("github", "team/repo")) }.exceptionOrNull()
+            assertTrue(limited?.message.orEmpty().contains("quota"))
+            assertTrue(limited?.message.orEmpty().contains("Settings"))
+            registry.handler = refuse(403, """{"message":"Resource not accessible by integration"}""")
+            val denied = runCatching { registry.downloads().resolve(PluginOrigin("github", "team/repo")) }.exceptionOrNull()
+            assertTrue(denied?.message.orEmpty().contains("Resource not accessible by integration"))
+        }
+    }
+
     @Test fun `github pins default and slash branch to immutable commits and passes account token`() = runBlocking {
         Registry().use { registry ->
             val sha = "a".repeat(40)

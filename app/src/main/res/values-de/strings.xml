@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">Skaliert Antworten, Denken und Tool-Ausgaben in jedem Chat.</string>
     <string name="settings_chat_compact_cards">Kompakte Karten</string>
     <string name="settings_chat_compact_cards_desc">Engere Abstände um Tool-Aufrufe und Ergebnis-Karten.</string>
+    <string name="settings_chat_cards_title">Karteninhalt</string>
+    <string name="settings_chat_cards_labels">Tool-Name</string>
+    <string name="settings_chat_cards_args">Befehl und Argumente</string>
+    <string name="settings_chat_cards_output">Ausgabe</string>
+    <string name="settings_chat_cards_preview">Beispielkarte</string>
+    <string name="settings_chat_cards_empty">In Tool-Karten wird nichts angezeigt.</string>
     <string name="settings_headers_show_preview">"Anfrage-Header"</string>
     <string name="settings_headers_hide_preview">"Anfrage-Header ausblenden"</string>
     <string name="settings_fallback_provider_unavailable">"Anbieter nicht verfügbar"</string>

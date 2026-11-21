@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">모든 채팅에서 답변, 사고, 도구 출력의 크기를 조정합니다.</string>
     <string name="settings_chat_compact_cards">간결한 카드</string>
     <string name="settings_chat_compact_cards_desc">도구 호출과 결과 카드의 여백을 줄입니다.</string>
+    <string name="settings_chat_cards_title">카드 내용</string>
+    <string name="settings_chat_cards_labels">도구 이름</string>
+    <string name="settings_chat_cards_args">명령 및 인수</string>
+    <string name="settings_chat_cards_output">출력</string>
+    <string name="settings_chat_cards_preview">예시 카드</string>
+    <string name="settings_chat_cards_empty">도구 카드에 아무것도 표시되지 않습니다.</string>
     <string name="settings_headers_show_preview">"요청 헤더"</string>
     <string name="settings_headers_hide_preview">"요청 헤더 숨기기"</string>
     <string name="settings_fallback_provider_unavailable">"제공업체를 이용할 수 없음"</string>

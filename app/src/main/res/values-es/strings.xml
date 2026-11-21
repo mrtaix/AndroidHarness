@@ -602,6 +602,12 @@
     <string name="settings_chat_text_size_desc">Escala respuestas, razonamiento y salida de herramientas en cada chat.</string>
     <string name="settings_chat_compact_cards">Tarjetas compactas</string>
     <string name="settings_chat_compact_cards_desc">Márgenes más ajustados en llamadas y tarjetas de resultado.</string>
+    <string name="settings_chat_cards_title">Contenido de la tarjeta</string>
+    <string name="settings_chat_cards_labels">Nombre de la herramienta</string>
+    <string name="settings_chat_cards_args">Comando y argumentos</string>
+    <string name="settings_chat_cards_output">Salida</string>
+    <string name="settings_chat_cards_preview">Tarjeta de ejemplo</string>
+    <string name="settings_chat_cards_empty">No se muestra nada en las tarjetas de herramientas.</string>
     <string name="settings_headers_show_preview">"Encabezados de solicitud"</string>
     <string name="settings_headers_hide_preview">"Ocultar encabezados de solicitud"</string>
     <string name="settings_fallback_provider_unavailable">"Proveedor no disponible"</string>

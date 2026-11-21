@@ -144,6 +144,7 @@ internal fun ChatOptionsSection(
             }
             Switch(checked = settings.chatCompactCards, onCheckedChange = null)
         }
+        CardContentSettings(settings, onCardsOutput, onCardsArgs, onCardsLabels)
     }
     if (reminders != null) ChatRemindersSection(settings.chatRemindersEnabled, reminders, onRemindersEnabled)
     SettingsAnchor(R.string.settings_image_frequency) {
