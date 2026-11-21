@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.androidharness.app.R
 import com.androidharness.app.ui.chat.components.ChatAppearance
+import com.androidharness.app.ui.chat.components.ChatCardOptions
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult

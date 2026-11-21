@@ -47,6 +47,9 @@ internal fun ChatOptionsSection(
     onSearchCodeChats: (Boolean) -> Unit = {},
     onTextScale: (Float) -> Unit = {},
     onCompactCards: (Boolean) -> Unit = {},
+    onCardsOutput: (Boolean) -> Unit = {},
+    onCardsArgs: (Boolean) -> Unit = {},
+    onCardsLabels: (Boolean) -> Unit = {},
     reminders: com.androidharness.app.reminders.ReminderManager? = null,
     onRemindersEnabled: (Boolean) -> Unit = {},
 ) {

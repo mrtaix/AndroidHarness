@@ -45,7 +45,7 @@ internal fun CardContentSettings(
         ToggleRow(R.string.settings_chat_cards_args, settings.chatCardsShowArgs, onArgs)
         ToggleRow(R.string.settings_chat_cards_output, settings.chatCardsShowOutput, onOutput)
         Text(stringResource(R.string.settings_chat_cards_preview), style = MaterialTheme.typography.labelSmall,
-            color = scheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 16.dp, top = 6.dp))
+            color = scheme.onSurfaceVariant, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp))
         val pad = if (settings.chatCompactCards) 8.dp else 12.dp
         Surface(
             color = scheme.surfaceContainerLow,
