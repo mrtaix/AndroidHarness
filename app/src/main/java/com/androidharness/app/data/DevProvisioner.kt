@@ -84,11 +84,11 @@ class DevProvisioner(
         "typescript" -> command("npm install -g typescript typescript-language-server", "TypeScript language server", 900_000)
         "debugpy" -> command("python -m pip install --user debugpy", "debugpy", 900_000)
         "ubuntu" -> {
-            // proot-distro ships as a package in the Linux environment; install it
-            // first so a fresh environment can still create the container.
-            val packageResult = installPackage("proot-distro")
-            if (!packageResult.first) packageResult
-            else command("proot-distro install ubuntu", "Ubuntu", 1_800_000)
+            // ProotManager already runs proot-distro through the shell router, which
+            // is the tier that has the tool; installing from the app prefix would
+            // report "command not found" (exit 127).
+            val output = ProotManager(router).install("ubuntu", File("."))
+            (output.startsWith("Installed") || output.contains("already installed", ignoreCase = true)) to output
         }
         else -> false to "Unknown payload \"$id\""
     }
@@ -145,19 +145,18 @@ class DevProvisioner(
         else Payload("debugpy", "Python debugger (debugpy)", Status.MISSING, "Not installed yet.", action = "Install")
     }
 
-    private fun distro(): Payload {
+    private suspend fun distro(): Payload {
         if (!linuxEnv.isReady) return Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING, "The Linux environment is not installed.")
+        // ProotManager runs through the shell router, so the check must use the
+        // same tier; the app's own prefix is a different install and may not have
+        // proot-distro at all.
         val text = runCatching {
-            val process = linuxEnv.shellProcessBuilder("proot-distro list").redirectErrorStream(true).start()
-            val output = process.inputStream.bufferedReader().readText()
-            process.waitFor(30, TimeUnit.SECONDS)
-            output
+            val result = router.run("proot-distro list", File("."), timeoutMs = 60_000, maxOutput = 8_000)
+            result.rawOutput + "\n" + result.rawStderr
         }.getOrDefault("")
         val names = ProotDistroList.parse(text)
         return when {
             names.isNotEmpty() -> Payload("ubuntu", "Ubuntu container (proot)", Status.READY, "Installed: " + names.joinToString(", "))
-            // proot-distro is a package too: the install button adds it first, then
-            // creates the container, so a fresh Linux environment still works.
             text.contains("command not found", ignoreCase = true) ->
                 Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING,
                     "proot-distro will be installed first (about 400 MB in total).", action = "Install")
