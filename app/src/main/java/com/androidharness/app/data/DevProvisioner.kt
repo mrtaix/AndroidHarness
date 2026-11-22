@@ -42,7 +42,7 @@ class DevProvisioner(
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state
 
-    fun refresh() {
+    suspend fun refresh() {
         if (_state.value.payloads.values.any { it.status == Status.INSTALLING }) {
             // Check if the install actually completed by verifying the container exists
             if (_state.value.payloads["ubuntu"]?.status == Status.INSTALLING) {

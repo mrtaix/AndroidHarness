@@ -28,7 +28,7 @@ import com.androidharness.app.data.DevProvisioner
 @Composable
 internal fun DevPayloadsSection(provisioner: DevProvisioner) {
     val state by provisioner.state.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) { provisioner.refresh() }
+    LaunchedEffect(Unit) { kotlinx.coroutines.launch(kotlinx.coroutines.Dispatchers.IO) { provisioner.refresh() } }
     SettingsHeader(stringResource(R.string.settings_features_title))
     SettingsPanel(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

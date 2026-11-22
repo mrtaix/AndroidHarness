@@ -50,23 +50,13 @@ class GeminiProvider(
             val project = checkNotNull(ProviderFactory.geminiProject?.invoke(config.id)) {
                 "Google did not return a Code Assist project for this account."
             }
-            // The wire envelope `agy` sends: a bare Gemini body is refused with #3501.
-            val contents = (body["contents"] as? kotlinx.serialization.json.JsonArray)?.size ?: 1
-            val step = maxOf(1, contents)
-            val conversation = java.util.UUID.randomUUID().toString()
-            val trajectory = java.util.UUID.randomUUID().toString()
-            val sessionId = ((System.currentTimeMillis() shl 16) or (kotlin.random.Random.nextLong(0, 65_536))).toString()
-            val labels = buildJsonObject {
-                put("last_step_index", (step - 1).toString())
-                put("request_id", "$trajectory-0")
-                put("trajectory_id", trajectory)
-                put("used_claude", "false")
-                put("used_claude_conservative", "false")
-                put("used_non_gemini_model", "false")
-            }
+            // The wire envelope `agy` sends (verified against opencodex/CLIProxyAPI):
+            // requestId is "agent-<uuid>" with a hyphen, and the only extra key in
+            // `request` is sessionId. Non-first-party keys such as `labels` and a
+            // slash-separated requestId were refused with 403 #3501 even though
+            // the account had a valid licence.
             val inner = JsonObject(body.toMutableMap().apply {
-                put("sessionId", kotlinx.serialization.json.JsonPrimitive(sessionId))
-                put("labels", labels)
+                put("sessionId", kotlinx.serialization.json.JsonPrimitive(java.util.UUID.randomUUID().toString()))
             })
             val wrapped = buildJsonObject {
                 put("model", config.model)
@@ -74,7 +64,7 @@ class GeminiProvider(
                 put("request", inner)
                 put("requestType", "agent")
                 put("userAgent", "antigravity")
-                put("requestId", "agent/$conversation/${System.currentTimeMillis()}/$trajectory/$step")
+                put("requestId", "agent-${java.util.UUID.randomUUID()}")
             }
             return Request.Builder()
                 .url("${com.androidharness.app.gemini.GeminiProtocol.CODE_ASSIST}/v1internal:streamGenerateContent?alt=sse")
