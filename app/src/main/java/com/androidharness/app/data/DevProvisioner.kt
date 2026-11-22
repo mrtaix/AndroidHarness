@@ -43,7 +43,29 @@ class DevProvisioner(
     val state: StateFlow<State> = _state
 
     fun refresh() {
-        if (_state.value.payloads.values.any { it.status == Status.INSTALLING }) return
+        if (_state.value.payloads.values.any { it.status == Status.INSTALLING }) {
+            // Check if the install actually completed by verifying the container exists
+            if (_state.value.payloads["ubuntu"]?.status == Status.INSTALLING) {
+                val text = runCatching {
+                    val result = router.run("proot-distro list", File("."), timeoutMs = 30_000, maxOutput = 8_000)
+                    result.rawOutput + "\n" + result.rawStderr
+                }.getOrDefault("")
+                val names = ProotDistroList.parse(text)
+                if (names.contains("ubuntu")) {
+                    // Install actually completed, reset to READY
+                    _state.update { state ->
+                        val payload = state.payloads["ubuntu"]
+                        if (payload != null && payload.status == Status.INSTALLING) {
+                            state.copy(payloads = state.payloads + ("ubuntu" to payload.copy(
+                                status = Status.READY,
+                                detail = "Installed: " + names.joinToString(", ")
+                            )))
+                        } else state
+                    }
+                }
+            }
+            return
+        }
         _state.update { it.copy(loading = true) }
         scope.launch {
             val payloads = LinkedHashMap<String, Payload>()
