@@ -5557,6 +5557,11 @@
           "kind": "settings",
           "target": "PROVIDER_DEBUG",
           "label": "Open request log"
+        },
+        {
+          "kind": "settings",
+          "target": "HTTP_CLIENT",
+          "label": "Send a test request"
         }
       ],
       "sources": [
