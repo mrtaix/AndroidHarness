@@ -170,7 +170,7 @@ class DapClient(
         })
     }
 
-    fun close() {
+    override fun close() {
         if (!started) return
         // Fire-and-forget: close() is called from cleanup and cannot suspend.
         runCatching {

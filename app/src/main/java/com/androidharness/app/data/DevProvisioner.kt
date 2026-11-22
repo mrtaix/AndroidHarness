@@ -78,8 +78,8 @@ class DevProvisioner(
     }
 
     private suspend fun perform(id: String): Pair<Boolean, String> = when (id) {
-        "clangd" -> package("clang")
-        "tmux" -> package("tmux")
+        "clangd" -> installPackage("clang")
+        "tmux" -> installPackage("tmux")
         "pyright" -> command("npm install -g pyright", "Pyright", 900_000)
         "typescript" -> command("npm install -g typescript typescript-language-server", "TypeScript language server", 900_000)
         "debugpy" -> command("python -m pip install --user debugpy", "debugpy", 900_000)
@@ -87,7 +87,7 @@ class DevProvisioner(
         else -> false to "Unknown payload \"$id\""
     }
 
-    private suspend fun package(name: String): Pair<Boolean, String> {
+    private suspend fun installPackage(name: String): Pair<Boolean, String> {
         var last = "Installing $name…"
         val result = linuxEnv.install(listOf(name), requester = "Developer tools") { status ->
             last = status.currentPackage ?: status.phase.name.lowercase()

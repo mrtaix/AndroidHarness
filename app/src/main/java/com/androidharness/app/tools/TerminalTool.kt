@@ -109,11 +109,11 @@ class TerminalTool(
         }
     }
 
-    private fun withSession(
+    private suspend fun withSession(
         manager: InteractiveTerminalManager,
         args: JsonObject,
         requireRunning: Boolean = false,
-        block: (com.androidharness.app.terminal.TerminalSession) -> ToolResult,
+        block: suspend (com.androidharness.app.terminal.TerminalSession) -> ToolResult,
     ): ToolResult {
         val key = args.string("session")?.takeIf { it.isNotBlank() }
             ?: return ToolResult(false, "Name the session, for example \"main\".")

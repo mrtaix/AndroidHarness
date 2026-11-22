@@ -82,7 +82,7 @@ internal fun HttpClientSection() {
                         if (colon > 0) builder.header(line.substring(0, colon).trim(), line.substring(colon + 1).trim())
                     }
                     client.newCall(builder.build()).execute().use { answer ->
-                        val bytes = answer.body?.bytes().orEmpty()
+                        val bytes = answer.body?.bytes() ?: ByteArray(0)
                         val readable = runCatching { String(bytes, Charsets.UTF_8) }.getOrDefault("")
                         buildString {
                             append(answer.code).append(' ').append(answer.message).append(" · ")

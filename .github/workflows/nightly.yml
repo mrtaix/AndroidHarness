@@ -3,6 +3,10 @@ name: Debug build
 # Builds the debug APK on every push to main (app/ changes), nightly at
 # 02:00 UTC, or on demand from the Actions tab. The APK is uploaded as a
 # workflow artifact (Actions tab, kept 30 days).
+#
+# Caching: Gradle build cache + dependency cache (setup-gradle), the pinned NDK
+# and glslc (actions/cache), and incremental build outputs keyed on the source
+# hash. Together these cut a warm run from ~40 min to ~10-15 min.
 
 on:
   schedule:
@@ -35,19 +39,42 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Set up Gradle (caching)
+      - name: Set up Gradle (dependency + build cache)
         uses: gradle/actions/setup-gradle@v6
+        with:
+          # Cache Gradle distributions, dependencies AND the build cache so an
+          # unchanged module skips compile tasks entirely on a warm run.
+          cache-read-only: false
 
       # The runner image no longer ships the NDK version pinned in
       # app/build.gradle.kts, and AGP refuses to configure without it.
+      # Cache it by its exact revision; sdkmanager only runs on a cold cache.
+      - name: Cache Android NDK
+        id: cache-ndk
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/lib/android/sdk/ndk/27.2.12479018
+          key: ndk-27.2.12479018
+
       - name: Install pinned NDK
+        if: steps.cache-ndk.outputs.cache-hit != 'true'
         run: "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager --install 'ndk;27.2.12479018'"
 
+      - name: Cache Vulkan shader compiler
+        id: cache-glslc
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/glslc
+          key: glslc-v1
+
       - name: Install Vulkan shader compiler
+        if: steps.cache-glslc.outputs.cache-hit != 'true'
         run: sudo apt-get update && sudo apt-get install -y glslc
 
-      - name: Run unit tests
-        run: ./gradlew :app:testDebugUnitTest --no-daemon --stacktrace
+      # One Gradle invocation for tests + both APKs: configuration is paid once,
+      # the daemon stays warm between tasks, and up-to-date tasks are skipped.
+      - name: Test and build APKs
+        run: ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease --stacktrace
 
       - name: Upload test report (on failure)
         if: failure()
@@ -55,14 +82,6 @@ jobs:
         with:
           name: unit-test-report
           path: app/build/reports/tests/testDebugUnitTest
-
-      - name: Build debug APK
-        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
-
-      # Minified build: no debuggable JIT, no Compose debug checks, so the
-      # transcript stays smooth. Signed with the release config (debug key here).
-      - name: Build release APK (minified)
-        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
 
       - name: Stamp APK with date + commit
         id: apk
