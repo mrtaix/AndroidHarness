@@ -1188,4 +1188,14 @@
     <string name="stream_writes_desc">"Bazı sunucular, birkaç NVIDIA modeli dahil, dosya yazımını ancak tamamlandığında gönderir. Bu modellerde ajan dosyayı yanıtının içine yazar, böylece yazılışını izleyebilirsin."</string>
     <string name="stream_writes_detected">"Şu ana dek algılanan modeller: %1$d"</string>
     <string name="stall_timeout_never">"Asla"</string>
+    <string name="settings_page_http_title">HTTP client</string>
+    <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="http_client_method">Method</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Headers, one per line (Name: value)</string>
+    <string name="http_client_body">Body</string>
+    <string name="http_client_send">Send</string>
+    <string name="http_client_sending">Sending…</string>
+    <string name="http_client_response">Response</string>
+    <string name="http_client_copy">Copy response</string>
 </resources>

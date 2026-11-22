@@ -129,6 +129,13 @@ internal enum class SettingsPage(
         "codegraph graph symbols callers callees impact affected index semantic code intelligence",
         onHome = false,
     ),
+    HTTP_CLIENT(
+        R.string.settings_page_http_title,
+        R.string.settings_page_http_desc,
+        R.string.settings_group_coding,
+        "http client request get post put patch delete rest api headers body response curl",
+        onHome = false,
+    ),
     CAVEMAN(
         R.string.settings_page_caveman_title,
         R.string.settings_page_caveman_desc,
@@ -312,7 +319,7 @@ internal fun settingsDisplayGroups(entries: List<SettingsSearchEntry>) =
 /** The Coding hub, in the order and groups it shows them. */
 internal val settingsCodingGroups = listOf(
     R.string.settings_coding_workflow to listOf(SettingsPage.AGENT, SettingsPage.SUBAGENT, SettingsPage.CHAT, SettingsPage.CONFIGURATION),
-    R.string.settings_coding_intelligence to listOf(SettingsPage.SKILLS, SettingsPage.PLUGINS, SettingsPage.CODE_INTELLIGENCE, SettingsPage.CAVEMAN),
+    R.string.settings_coding_intelligence to listOf(SettingsPage.SKILLS, SettingsPage.PLUGINS, SettingsPage.CODE_INTELLIGENCE, SettingsPage.HTTP_CLIENT, SettingsPage.CAVEMAN),
     R.string.settings_coding_execution to listOf(SettingsPage.WORKSPACE, SettingsPage.ENVIRONMENT),
 )
 

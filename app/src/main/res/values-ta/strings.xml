@@ -1188,4 +1188,14 @@
     <string name="stream_writes_desc">"சில சேவையகங்கள், பல NVIDIA மாடல்கள் உட்பட, கோப்பு எழுதுதல் முடிந்த பிறகே அதை அனுப்புகின்றன. அந்த மாடல்களுக்கு முகவர் கோப்பைத் தன் பதிலுக்குள் எழுதும், அதனால் அது எழுதப்படுவதைப் பார்க்கலாம்."</string>
     <string name="stream_writes_detected">"இதுவரை கண்டறியப்பட்ட மாடல்கள்: %1$d"</string>
     <string name="stall_timeout_never">"ஒருபோதும் இல்லை"</string>
+    <string name="settings_page_http_title">HTTP client</string>
+    <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="http_client_method">Method</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Headers, one per line (Name: value)</string>
+    <string name="http_client_body">Body</string>
+    <string name="http_client_send">Send</string>
+    <string name="http_client_sending">Sending…</string>
+    <string name="http_client_response">Response</string>
+    <string name="http_client_copy">Copy response</string>
 </resources>

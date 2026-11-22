@@ -1184,4 +1184,14 @@
     <string name="stream_writes_desc">"일부 서버(여러 NVIDIA 모델 포함)는 파일 쓰기가 끝난 뒤에야 전송합니다. 그런 모델에서는 에이전트가 파일을 응답 안에 작성하므로 작성되는 모습을 볼 수 있습니다."</string>
     <string name="stream_writes_detected">"지금까지 감지된 모델: %1$d개"</string>
     <string name="stall_timeout_never">"안 함"</string>
+    <string name="settings_page_http_title">HTTP client</string>
+    <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="http_client_method">Method</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Headers, one per line (Name: value)</string>
+    <string name="http_client_body">Body</string>
+    <string name="http_client_send">Send</string>
+    <string name="http_client_sending">Sending…</string>
+    <string name="http_client_response">Response</string>
+    <string name="http_client_copy">Copy response</string>
 </resources>

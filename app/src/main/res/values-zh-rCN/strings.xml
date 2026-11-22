@@ -1215,4 +1215,14 @@
     <string name="stream_writes_desc">有些服务器（包括多个 NVIDIA 模型）只在整个文件写入完成后才发送。对这些模型，智能体会把文件写进回复里，这样你可以看到它逐步写出。</string>
     <string name="stream_writes_detected">目前已检测到的模型：%1$d 个</string>
     <string name="stall_timeout_never">永不</string>
+    <string name="settings_page_http_title">HTTP client</string>
+    <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="http_client_method">Method</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Headers, one per line (Name: value)</string>
+    <string name="http_client_body">Body</string>
+    <string name="http_client_send">Send</string>
+    <string name="http_client_sending">Sending…</string>
+    <string name="http_client_response">Response</string>
+    <string name="http_client_copy">Copy response</string>
 </resources>

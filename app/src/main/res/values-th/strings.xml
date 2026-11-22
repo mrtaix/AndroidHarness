@@ -1184,4 +1184,14 @@
     <string name="stream_writes_desc">"เซิร์ฟเวอร์บางแห่ง รวมถึงโมเดล NVIDIA หลายตัว จะส่งการเขียนไฟล์ก็ต่อเมื่อเสร็จแล้ว สำหรับโมเดลเหล่านั้น เอเจนต์จะเขียนไฟล์ลงในคำตอบ เพื่อให้คุณดูการเขียนได้"</string>
     <string name="stream_writes_detected">"โมเดลที่ตรวจพบจนถึงตอนนี้: %1$d"</string>
     <string name="stall_timeout_never">"ไม่เลย"</string>
+    <string name="settings_page_http_title">HTTP client</string>
+    <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="http_client_method">Method</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Headers, one per line (Name: value)</string>
+    <string name="http_client_body">Body</string>
+    <string name="http_client_send">Send</string>
+    <string name="http_client_sending">Sending…</string>
+    <string name="http_client_response">Response</string>
+    <string name="http_client_copy">Copy response</string>
 </resources>

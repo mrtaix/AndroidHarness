@@ -292,6 +292,7 @@ internal fun settingsIcon(page: SettingsPage): ImageVector = when (page) {
     SettingsPage.AGENT -> Icons.Rounded.Tune
     SettingsPage.CHAT -> Icons.Rounded.ChatBubbleOutline
     SettingsPage.CODE_INTELLIGENCE -> Icons.Rounded.AccountTree
+    SettingsPage.HTTP_CLIENT -> Icons.Rounded.Code
     SettingsPage.CAVEMAN -> Icons.Rounded.ShortText
     SettingsPage.VOICE -> Icons.Rounded.Mic
     SettingsPage.LIVE_MODE -> Icons.Rounded.GraphicEq

@@ -1184,4 +1184,14 @@
     <string name="stream_writes_desc">"Một số máy chủ, gồm vài mô hình NVIDIA, chỉ gửi thao tác ghi tệp khi đã hoàn tất. Với các mô hình đó, tác nhân viết tệp vào câu trả lời để bạn xem nó được viết ra."</string>
     <string name="stream_writes_detected">"Số mô hình đã phát hiện: %1$d"</string>
     <string name="stall_timeout_never">"Không bao giờ"</string>
+    <string name="settings_page_http_title">Ứng dụng HTTP</string>
+    <string name="settings_page_http_desc">Gửi yêu cầu và xem phản hồi</string>
+    <string name="http_client_method">Phương thức</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Tiêu đề, mỗi dòng một cái (Tên: giá trị)</string>
+    <string name="http_client_body">Nội dung</string>
+    <string name="http_client_send">Gửi</string>
+    <string name="http_client_sending">Đang gửi…</string>
+    <string name="http_client_response">Phản hồi</string>
+    <string name="http_client_copy">Sao chép phản hồi</string>
 </resources>

@@ -104,6 +104,8 @@ class ToolRegistry(private val tools: List<Tool>) {
             appSettings: com.androidharness.app.data.SettingsRepository? = null,
             automations: AutomationToolHost? = null,
             plugins: com.androidharness.app.plugins.PluginManager? = null,
+            terminals: (() -> com.androidharness.app.terminal.InteractiveTerminalManager)? = null,
+            watch: (() -> com.androidharness.app.data.WatchService)? = null,
         ): ToolRegistry {
             val baseTools = mutableListOf<Tool>(
                 ListDirTool(),
@@ -140,6 +142,10 @@ class ToolRegistry(private val tools: List<Tool>) {
                 GitConflictTool(shellRouter, linuxEnv),
                 SaveSkillTool(),
                 HttpSendTool(),
+                TestRunnerTool(shellRouter),
+                DapTool({ command -> linuxEnv.shellProcessBuilder(command) }) { java.io.File(".") },
+                ProotTool({ com.androidharness.app.data.ProotManager(shellRouter) }) { java.io.File(".") },
+                LanguageServerAutoTool({ linuxEnv.prefix }) { command -> linuxEnv.shellProcessBuilder(command) },
                 CreateDirTool(),
                 DeleteFileTool(),
                 MoveFileTool(),
@@ -194,6 +200,8 @@ class ToolRegistry(private val tools: List<Tool>) {
                 baseTools.add(RememberTool(memory))
                 baseTools.add(RecallTool(memory))
             }
+            terminals?.let { provider -> baseTools.add(TerminalTool(provider) { java.io.File(".") }) }
+            watch?.let { provider -> baseTools.add(WatchTool(provider, shellRouter)) }
             if (imageStore != null) {
                 baseTools.add(ReadImageTool(imageStore))
             }

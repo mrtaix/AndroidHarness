@@ -1192,4 +1192,14 @@
     <string name="stream_writes_desc">"Certains serveurs, dont plusieurs modèles NVIDIA, n'envoient l'écriture d'un fichier qu'une fois terminée. Pour ces modèles, l'agent écrit le fichier dans sa réponse afin que vous puissiez le voir s'écrire."</string>
     <string name="stream_writes_detected">"Modèles détectés jusqu'ici : %1$d"</string>
     <string name="stall_timeout_never">"Jamais"</string>
+    <string name="settings_page_http_title">HTTP client</string>
+    <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="http_client_method">Method</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Headers, one per line (Name: value)</string>
+    <string name="http_client_body">Body</string>
+    <string name="http_client_send">Send</string>
+    <string name="http_client_sending">Sending…</string>
+    <string name="http_client_response">Response</string>
+    <string name="http_client_copy">Copy response</string>
 </resources>

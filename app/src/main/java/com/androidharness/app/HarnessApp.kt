@@ -353,6 +353,9 @@ class AppContainer(val appContext: Context) {
         searchApiRefresh = ::resolveSearchApiConfig,
         searchSetup = { searchSetup },
         searchSetupRefresh = ::resolveSearchSetup,
+        // Declared below; resolved when a tool runs, after construction.
+        terminals = { interactiveTerminal },
+        watch = { watchService },
         artifactLoader = sessions::artifacts,
         toolOutputLoader = sessions::toolOutput,
         fileHistory = fileHistory,
@@ -473,6 +476,8 @@ class AppContainer(val appContext: Context) {
     internal var telegram = com.androidharness.app.telegram.TelegramManager(this)
     val interactiveTerminal = com.androidharness.app.terminal.InteractiveTerminalManager(linuxEnv, runManager)
     val terminal = com.androidharness.app.data.TerminalManager(appContext, linuxEnv, shizuku, runManager, shellRouter, interactiveTerminal)
+    val watchService = com.androidharness.app.data.WatchService(shellRouter)
+    val devProvisioner = com.androidharness.app.data.DevProvisioner(linuxEnv, shellRouter)
     val storage = com.androidharness.app.data.storage.StorageManager(this)
     val projectChecks = com.androidharness.app.data.ProjectCheckStore(appContext, terminal)
 

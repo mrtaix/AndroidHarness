@@ -24,11 +24,11 @@ class LanguageServerTool(
 ) : Tool {
     override val name = NAME
     override val description = "Ask the project's language servers about code: diagnostics (errors and warnings in a file), " +
-        "definition, references and hover at a position, or symbols (the outline of a file). Line and column are 1-based. " +
+        "definition, references, hover, completion (autocomplete at a position) or symbols (the outline of a file). Line and column are 1-based. " +
         "Servers: " + servers.joinToString { "${it.name} (${it.extensions.keys.joinToString(" ")})" }
     override val isReadOnly = true
     override val parametersSchema = Schema.obj(mapOf(
-        "operation" to Schema.string("diagnostics, definition, references, hover or symbols."),
+        "operation" to Schema.string("diagnostics, definition, references, hover, completion or symbols."),
         "path" to Schema.string("File path relative to the project."),
         "line" to Schema.integer("1-based line, for definition, references and hover."),
         "column" to Schema.integer("1-based column, for definition, references and hover."),
@@ -60,8 +60,11 @@ class LanguageServerTool(
                     put("textDocument", document); put("position", position); put("context", buildJsonObject { put("includeDeclaration", true) })
                 }), root)
                 "hover" -> formatHover(session.request("textDocument/hover", buildJsonObject { put("textDocument", document); put("position", position) }))
+                "completion" -> formatCompletion(session.request("textDocument/completion", buildJsonObject {
+                    put("textDocument", document); put("position", position); put("context", buildJsonObject { put("triggerKind", 1) })
+                }))
                 "symbols" -> formatSymbols(session.request("textDocument/documentSymbol", buildJsonObject { put("textDocument", document) }), 0)
-                else -> throw ToolFailure("Unknown operation '$operation'. Use diagnostics, definition, references, hover or symbols.")
+                else -> throw ToolFailure("Unknown operation '$operation'. Use diagnostics, definition, references, hover, completion or symbols.")
             }
             ToolResult(true, output.ifBlank { "Nothing found." })
         }
@@ -89,6 +92,39 @@ class LanguageServerTool(
             "${relative(uri, root)}:${(obj["range"] ?: obj["targetSelectionRange"]).position()}"
         }.distinct().joinToString("\n")
     }
+    private fun formatCompletion(result: JsonElement?): String {
+        val items = when (result) {
+            is JsonArray -> result
+            is JsonObject -> (result["items"] as? JsonArray).orEmpty()
+            else -> JsonArray(emptyList())
+        }
+        return items.take(30).joinToString("\n") { element ->
+            val item = element as? JsonObject ?: return@joinToString ""
+            val label = item["label"]?.jsonPrimitive?.contentOrNull ?: return@joinToString ""
+            val kind = item["kind"]?.jsonPrimitive?.intOrNull?.let { completionKind(it) }
+            val detail = item["detail"]?.jsonPrimitive?.contentOrNull ?: item["documentation"]?.let { doc ->
+                when (doc) {
+                    is JsonPrimitive -> doc.contentOrNull
+                    is JsonObject -> doc["value"]?.jsonPrimitive?.contentOrNull
+                    else -> null
+                }
+            }
+            buildString {
+                append(label)
+                if (kind != null) append("  [").append(kind).append(']')
+                if (!detail.isNullOrBlank()) append(" — ").append(detail.lineSequence().first().take(120))
+            }
+        }
+    }
+
+    /** LSP CompletionItemKind, so a reply reads like an editor's list. */
+    private fun completionKind(kind: Int): String = when (kind) {
+        1 -> "text"; 2 -> "method"; 3 -> "function"; 4 -> "constructor"; 5 -> "field"; 6 -> "variable"
+        7 -> "class"; 8 -> "interface"; 9 -> "module"; 10 -> "property"; 12 -> "function"; 13 -> "variable"
+        14 -> "keyword"; 15 -> "snippet"; 21 -> "constant"; 22 -> "struct"; 23 -> "event"; 25 -> "type"
+        else -> "item"
+    }
+
     private fun formatHover(result: JsonElement?): String {
         val contents = (result as? JsonObject)?.get("contents") ?: return ""
         fun text(element: JsonElement): String = when (element) {

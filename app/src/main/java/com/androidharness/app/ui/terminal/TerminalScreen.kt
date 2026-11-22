@@ -119,6 +119,10 @@ fun TerminalScreen(
     val ptyCwd = workspace?.shellRoot ?: container.linuxEnv.shellFallbackRoot
     val ptySessions by pty.sessions.collectAsStateWithLifecycle()
     val ptySession = ptySessions[ptyKey]
+    // Extra shells live next to the workspace's own session; each keeps running while another is shown.
+    var extraTabs by remember(ptyKey) { mutableStateOf(emptyList<String>()) }
+    var activeTab by remember(ptyKey) { mutableStateOf(ptyKey) }
+    val ptyTabs = remember(ptyKey, extraTabs) { listOf(ptyKey) + extraTabs }
     val ptyDirectory = ptySession?.directory?.collectAsStateWithLifecycle()?.value
     val viewHandle = remember { TerminalViewHandle() }
     var showMenu by remember { mutableStateOf(false) }
@@ -246,17 +250,41 @@ fun TerminalScreen(
     ) { padding ->
         if (interactive) {
             com.androidharness.app.ui.common.LeftToRightContent {
-                InteractiveTerminalPane(
-                    manager = pty,
-                    sessionKey = ptyKey,
-                    cwd = ptyCwd,
-                    handle = viewHandle,
-                    onPaste = ::pasteClipboard,
-                    onCopy = ::copyOutput,
-                    // consumeWindowInsets stops the keyboard padding from counting
-                    // the navigation bar a second time.
-                    modifier = Modifier.padding(padding).consumeWindowInsets(padding).imePadding(),
-                )
+                Column(Modifier.padding(padding).consumeWindowInsets(padding).imePadding()) {
+                    Row(
+                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ptyTabs.forEachIndexed { index, key ->
+                            val running = ptySessions[key]?.running != false
+                            androidx.compose.material3.TextButton(onClick = { activeTab = key }) {
+                                Text((if (key == activeTab) "● " else "") + "T" + (index + 1) + (if (running) "" else " (exited)"))
+                            }
+                            if (index > 0) {
+                                androidx.compose.material3.TextButton(onClick = {
+                                    pty.close(key)
+                                    extraTabs = extraTabs - key
+                                    if (activeTab == key) activeTab = ptyKey
+                                }) { Text("×") }
+                            }
+                        }
+                        androidx.compose.material3.TextButton(onClick = {
+                            val next = "$ptyKey#$" + (extraTabs.size + 2)
+                            extraTabs = extraTabs + next
+                            activeTab = next
+                        }) { Text("+") }
+                    }
+                    InteractiveTerminalPane(
+                        manager = pty,
+                        sessionKey = activeTab,
+                        cwd = ptyCwd,
+                        handle = viewHandle,
+                        onPaste = ::pasteClipboard,
+                        onCopy = ::copyOutput,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
             return@Scaffold
         }

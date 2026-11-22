@@ -1188,4 +1188,14 @@
     <string name="stream_writes_desc">"कुछ सर्वर, जिनमें कई NVIDIA मॉडल शामिल हैं, फ़ाइल लेखन तभी भेजते हैं जब वह पूरा हो जाता है। उन मॉडलों के लिए एजेंट फ़ाइल को अपने उत्तर में लिखता है, जिससे आप उसे लिखते हुए देख सकते हैं।"</string>
     <string name="stream_writes_detected">"अब तक पहचाने गए मॉडल: %1$d"</string>
     <string name="stall_timeout_never">"कभी नहीं"</string>
+    <string name="settings_page_http_title">HTTP client</string>
+    <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="http_client_method">Method</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Headers, one per line (Name: value)</string>
+    <string name="http_client_body">Body</string>
+    <string name="http_client_send">Send</string>
+    <string name="http_client_sending">Sending…</string>
+    <string name="http_client_response">Response</string>
+    <string name="http_client_copy">Copy response</string>
 </resources>

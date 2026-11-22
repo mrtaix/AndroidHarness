@@ -1188,4 +1188,14 @@
     <string name="stream_writes_desc">"কিছু সার্ভার, যার মধ্যে কয়েকটি NVIDIA মডেল আছে, ফাইল লেখা শেষ হলেই পাঠায়। সেই মডেলগুলোর জন্য এজেন্ট ফাইলটি নিজের উত্তরের ভেতরে লেখে, যাতে আপনি এটি লেখা হতে দেখতে পারেন।"</string>
     <string name="stream_writes_detected">"এখন পর্যন্ত শনাক্ত করা মডেল: %1$d"</string>
     <string name="stall_timeout_never">"কখনও না"</string>
+    <string name="settings_page_http_title">HTTP client</string>
+    <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="http_client_method">Method</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Headers, one per line (Name: value)</string>
+    <string name="http_client_body">Body</string>
+    <string name="http_client_send">Send</string>
+    <string name="http_client_sending">Sending…</string>
+    <string name="http_client_response">Response</string>
+    <string name="http_client_copy">Copy response</string>
 </resources>

@@ -37,6 +37,16 @@
     <string name="settings_page_chat_desc">Live code, project map and slash commands</string>
     <string name="settings_page_codegraph_title">CodeGraph</string>
     <string name="settings_page_codegraph_desc">Install CodeGraph and manage project indexes</string>
+    <string name="settings_page_http_title">HTTP client</string>
+    <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="http_client_method">Method</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Headers, one per line (Name: value)</string>
+    <string name="http_client_body">Body</string>
+    <string name="http_client_send">Send</string>
+    <string name="http_client_sending">Sending…</string>
+    <string name="http_client_response">Response</string>
+    <string name="http_client_copy">Copy response</string>
     <string name="settings_page_caveman_title">Caveman</string>
     <string name="settings_page_caveman_desc">Shorter replies, optional coding skills and token reports</string>
     <string name="settings_page_voice_title">Voice &amp; speech</string>

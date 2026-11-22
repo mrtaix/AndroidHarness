@@ -1188,4 +1188,14 @@
     <string name="stream_writes_desc">"Ang ilang server, kabilang ang ilang NVIDIA na modelo, ay nagpapadala ng pagsulat ng file kapag tapos na ito. Sa mga modelong iyon, isinusulat ng agent ang file sa loob ng sagot nito para makita mo itong isinusulat."</string>
     <string name="stream_writes_detected">"Mga modelong natukoy hanggang ngayon: %1$d"</string>
     <string name="stall_timeout_never">"Huwag kailanman"</string>
+    <string name="settings_page_http_title">HTTP client</string>
+    <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="http_client_method">Method</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Headers, one per line (Name: value)</string>
+    <string name="http_client_body">Body</string>
+    <string name="http_client_send">Send</string>
+    <string name="http_client_sending">Sending…</string>
+    <string name="http_client_response">Response</string>
+    <string name="http_client_copy">Copy response</string>
 </resources>

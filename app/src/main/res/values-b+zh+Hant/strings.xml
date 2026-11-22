@@ -1184,4 +1184,14 @@
     <string name="stream_writes_desc">"有些伺服器（包括多個 NVIDIA 模型）只會在整個檔案寫入完成後才傳送。對這些模型，代理會把檔案寫進回覆裡，讓你能看到它逐步寫出。"</string>
     <string name="stream_writes_detected">"目前已偵測到的模型：%1$d 個"</string>
     <string name="stall_timeout_never">"永不"</string>
+    <string name="settings_page_http_title">HTTP client</string>
+    <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="http_client_method">Method</string>
+    <string name="http_client_url">URL</string>
+    <string name="http_client_headers">Headers, one per line (Name: value)</string>
+    <string name="http_client_body">Body</string>
+    <string name="http_client_send">Send</string>
+    <string name="http_client_sending">Sending…</string>
+    <string name="http_client_response">Response</string>
+    <string name="http_client_copy">Copy response</string>
 </resources>

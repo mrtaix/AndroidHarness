@@ -542,6 +542,7 @@ private fun SettingsScreenContent(
                             SlashCommandsSection(container)
                         }
                         SettingsPage.CODE_INTELLIGENCE -> CodeIntelligenceSection(container, workspace, currentProject)
+                        SettingsPage.HTTP_CLIENT -> HttpClientSection()
                         SettingsPage.CAVEMAN -> CavemanSection(container, settings)
                         SettingsPage.VOICE -> VoiceSpeechSection(container, settings, scope)
                         SettingsPage.LIVE_MODE -> LiveModeSection(container, settings, onOpenVoice = { openPage(SettingsPage.VOICE) })
@@ -846,6 +847,8 @@ private fun CodeIntelligenceSection(
         // available instead of offering a blind "Update".
         container.codeGraph.checkForUpdates()
     }
+
+    DevPayloadsSection(container.devProvisioner)
 
     SettingsHeader("CodeGraph")
     SettingsPanel(Modifier.fillMaxWidth().settingsAnchor(R.string.settings_search_codegraph_title)) {
