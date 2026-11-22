@@ -155,10 +155,10 @@ internal fun ChatOptionsSection(
         CardContentSettings(settings, onCardsOutput, onCardsArgs, onCardsLabels, onCardsStatus, onCardsOneLine, onCardPreset)
         val featureContext = androidx.compose.ui.platform.LocalContext.current
         val signals = remember(featureContext) {
-            val activity = featureContext.getSystemService(android.app.ActivityManager::class.java)
             val battery = featureContext.getSystemService(android.os.BatteryManager::class.java)
             com.androidharness.app.data.FeatureSignals(
-                ramGb = (((activity?.memoryInfo?.totalMem ?: 0L) / (1024L * 1024 * 1024)).toInt()).coerceAtLeast(1),
+                // The heap ceiling is the honest number this process can use.
+                ramGb = ((Runtime.getRuntime().maxMemory() / (1024L * 1024 * 1024)).toInt()).coerceAtLeast(1),
                 batteryPercent = battery?.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: 100,
                 charging = battery?.isCharging == true,
             )
