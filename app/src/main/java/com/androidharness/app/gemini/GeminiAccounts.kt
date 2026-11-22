@@ -281,10 +281,25 @@ class GeminiAccounts(
         val server = loaded["cloudaicompanionProject"]?.let { element ->
             (element as? JsonObject)?.get("id")?.jsonPrimitive?.contentOrNull ?: element.jsonPrimitive.contentOrNull
         }
-        // Antigravity still answers when discovery names no project, so a missing
-        // project must not block the account; the CLI derives one the same way.
-        val project = server?.takeIf { it.isNotBlank() }
-            ?: GeminiProtocol.stableProject(found.email.ifBlank { id })
+        // A new consumer account has no project yet; onboarding creates one.
+        val project = server?.takeIf { it.isNotBlank() } ?: run {
+            val tiers = (loaded["allowedTiers"] as? kotlinx.serialization.json.JsonArray).orEmpty()
+                .mapNotNull { (it as? JsonObject)?.get("id")?.jsonPrimitive?.contentOrNull }
+            val tier = tiers.firstOrNull { it.contains("free") } ?: tiers.firstOrNull()
+                ?: loaded["currentTier"]?.jsonObject?.get("id")?.jsonPrimitive?.contentOrNull
+            val onboarded = runCatching {
+                if (tier == null) null else post(GeminiProtocol.CODE_ASSIST, "onboardUser", buildJsonObject {
+                    put("tierId", tier)
+                    put("metadata", buildJsonObject { put("ideType", "ANTIGRAVITY") })
+                })
+            }.getOrNull()
+            onboarded?.let { op ->
+                (op["response"] as? JsonObject)?.get("cloudaicompanionProject")?.let { element ->
+                    (element as? JsonObject)?.get("id")?.jsonPrimitive?.contentOrNull ?: element.jsonPrimitive.contentOrNull
+                }
+            }?.takeIf { it.isNotBlank() }
+                ?: GeminiProtocol.stableProject(found.email.ifBlank { id })
+        }
         persist(store.copy(accounts = store.accounts.map { if (it.id == id) it.copy(project = project) else it }))
         projectCache[providerId] = project
         project
