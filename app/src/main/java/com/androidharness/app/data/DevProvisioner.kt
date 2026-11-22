@@ -83,7 +83,13 @@ class DevProvisioner(
         "pyright" -> command("npm install -g pyright", "Pyright", 900_000)
         "typescript" -> command("npm install -g typescript typescript-language-server", "TypeScript language server", 900_000)
         "debugpy" -> command("python -m pip install --user debugpy", "debugpy", 900_000)
-        "ubuntu" -> command("proot-distro install ubuntu", "Ubuntu", 1_800_000)
+        "ubuntu" -> {
+            // proot-distro ships as a package in the Linux environment; install it
+            // first so a fresh environment can still create the container.
+            val packageResult = installPackage("proot-distro")
+            if (!packageResult.first) packageResult
+            else command("proot-distro install ubuntu", "Ubuntu", 1_800_000)
+        }
         else -> false to "Unknown payload \"$id\""
     }
 
@@ -149,9 +155,12 @@ class DevProvisioner(
         }.getOrDefault("")
         val names = ProotDistroList.parse(text)
         return when {
-            text.contains("command not found", ignoreCase = true) || text.contains("not found", ignoreCase = true) ->
-                Payload("ubuntu", "Ubuntu container (proot)", Status.FAILED, "proot-distro is unavailable in the Linux environment.")
             names.isNotEmpty() -> Payload("ubuntu", "Ubuntu container (proot)", Status.READY, "Installed: " + names.joinToString(", "))
+            // proot-distro is a package too: the install button adds it first, then
+            // creates the container, so a fresh Linux environment still works.
+            text.contains("command not found", ignoreCase = true) ->
+                Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING,
+                    "proot-distro will be installed first (about 400 MB in total).", action = "Install")
             else -> Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING, "No container installed yet (about 400 MB).", action = "Install")
         }
     }

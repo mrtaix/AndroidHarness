@@ -448,6 +448,7 @@ class AppContainer(val appContext: Context) {
             com.androidharness.app.tools.OfferCodeHandoffTool(),
             com.androidharness.app.tools.GitHubApiTool(fetchClient) { github.accessToken() },
             com.androidharness.app.tools.GitHubSearchTool(fetchClient) { github.accessToken() },
+            com.androidharness.app.tools.GitHubPullRequestCommentsTool(fetchClient) { github.accessToken() },
             com.androidharness.app.tools.GitHubFileTool(fetchClient) { github.accessToken() }) +
             // Resolved on each call: the manager is declared below.
             com.androidharness.app.tools.ReminderTools.all({ reminders }, { clockAlarms }),
