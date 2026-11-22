@@ -60,6 +60,13 @@ private const val HARNESS_TREE_GLOB = ":(glob)**/$HARNESS_DIR/**"
 private const val HARNESS_DIR_EXCLUDE = ":(exclude,glob)**/$HARNESS_DIR"
 private const val HARNESS_TREE_EXCLUDE = ":(exclude,glob)**/$HARNESS_DIR/**"
 
+/** Everything the commit command stages, without the commit itself. */
+internal fun gitCommitStageCmd(): String = gitCmd(
+    "rm -r --cached --ignore-unmatch ${HARNESS_DIR_GLOB.shellQuote()} ${HARNESS_TREE_GLOB.shellQuote()}",
+    "add -A -- ${HARNESS_DIR_EXCLUDE.shellQuote()} ${HARNESS_TREE_EXCLUDE.shellQuote()}",
+    "rm -r --cached --ignore-unmatch ${HARNESS_DIR_GLOB.shellQuote()} ${HARNESS_TREE_GLOB.shellQuote()}",
+)
+
 internal fun gitCommitCmd(message: String): String = gitCmd(
     "rm -r --cached --ignore-unmatch ${HARNESS_DIR_GLOB.shellQuote()} ${HARNESS_TREE_GLOB.shellQuote()}",
     "add -A -- ${HARNESS_DIR_EXCLUDE.shellQuote()} ${HARNESS_TREE_EXCLUDE.shellQuote()}",
@@ -339,6 +346,25 @@ class GitCommitTool(
         withContext(Dispatchers.IO) {
             val message = args["message"]?.jsonPrimitive?.content
                 ?: throw ToolFailure("Missing required argument: message")
+            // Stage first so the guard reads exactly what would be published.
+            val staged = runGitWithRetry(router, linuxEnv, ctx, gitCommitStageCmd())
+            if (staged.ok) {
+                val listed = runGitWithRetry(router, linuxEnv, ctx, gitCmd("diff --cached --name-only -z"))
+                val files = listed.output.split('\u0000').filter { it.isNotBlank() }.mapNotNull { path ->
+                    runCatching {
+                        val node = ctx.workspace.resolve(path)
+                        if (!node.exists || !node.isFile) return@runCatching null
+                        val bytes = node.openInputStream()?.use { it.readBytes() } ?: return@runCatching null
+                        GitCommitGuard.Fileish(path, bytes.size.toLong(), GitCommitGuard.textOf(bytes))
+                    }.getOrNull()
+                }
+                val problems = GitCommitGuard.problems(files)
+                if (problems.isNotEmpty()) {
+                    return@withContext ToolResult(false, "Commit blocked before anything was published:\n" +
+                        problems.joinToString("\n") { "· $it" } +
+                        "\nRemove the file from the commit (add it to .gitignore) or rotate the credential, then retry.")
+                }
+            }
             val commitCommand = gitCommitCmd(message)
             val res = runGitWithRetry(router, linuxEnv, ctx, commitCommand)
             if (!res.ok && isIdentityUnknown(res.output)) {
