@@ -89,7 +89,7 @@ class GeminiProvider(
                 .post(body.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
                 .apply { ProviderHeaders.apply(this, config, options.debugAttempt, options.debugKeySlot, options.debugGroup, options.cacheKey) }
                 .build()
-            ProviderFactory.sseJson(request, ProviderHeaders.client(config, client)).mapLicenceError(account).collect { el ->
+            ProviderFactory.sseJson(request, ProviderHeaders.client(config, client)).mapLicenceError(account, config.id).collect { el ->
                 val chunk = (el as? JsonObject)?.let { if (account) it["response"] as? JsonObject ?: it else it } ?: return@collect
 
                 chunk["error"]?.jsonObjectOrAbsent()?.get("message")?.jsonPrimitive?.contentOrNull
@@ -160,7 +160,7 @@ class GeminiProvider(
      * That arrives as a thrown transport error, so turn it into the in-band
      * error shape the stream already explains, with the actionable wording.
      */
-    private fun kotlinx.coroutines.flow.Flow<JsonElement>.mapLicenceError(account: Boolean) =
+    private fun kotlinx.coroutines.flow.Flow<JsonElement>.mapLicenceError(account: Boolean, providerId: String = "") =
         if (!account) this else kotlinx.coroutines.flow.flow {
             try { collect { emit(it) } }
             catch (e: kotlinx.coroutines.CancellationException) { throw e }
@@ -169,7 +169,7 @@ class GeminiProvider(
                     ?: throw e
                 // A stale Code Assist project answers exactly like a missing licence.
                 // Drop it so the next send rediscovers the account's real project.
-                ProviderFactory.geminiForgetProject?.invoke(config.id)
+                ProviderFactory.geminiForgetProject?.invoke(providerId)
                 emit(JsonObject(mapOf("error" to JsonObject(mapOf(
                     "message" to JsonPrimitive(note),
                     "code" to JsonPrimitive(e.code),
