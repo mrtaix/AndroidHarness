@@ -71,10 +71,8 @@ jobs:
         if: steps.cache-glslc.outputs.cache-hit != 'true'
         run: sudo apt-get update && sudo apt-get install -y glslc
 
-      # One Gradle invocation for tests + both APKs: configuration is paid once,
-      # the daemon stays warm between tasks, and up-to-date tasks are skipped.
-      - name: Test and build APKs
-        run: ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:assembleRelease --stacktrace
+      - name: Run unit tests
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
 
       - name: Upload test report (on failure)
         if: failure()
@@ -82,6 +80,14 @@ jobs:
         with:
           name: unit-test-report
           path: app/build/reports/tests/testDebugUnitTest
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug --stacktrace
+
+      # Minified build: no debuggable JIT, no Compose debug checks, so the
+      # transcript stays smooth. Signed with the release config (debug key here).
+      - name: Build release APK (minified)
+        run: ./gradlew :app:assembleRelease --stacktrace
 
       - name: Stamp APK with date + commit
         id: apk
