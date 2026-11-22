@@ -80,7 +80,8 @@ import com.androidharness.app.ui.common.TextButton
  * while writing) and the line of text beside it rolls up to each new step.
  */
 @Composable
-internal fun AgentStatusBar(action: String?, busy: Boolean, shape: LogoShape = LogoShape.Monogram) {
+internal fun AgentStatusBar(action: String?, busy: Boolean, shape: LogoShape = LogoShape.Monogram, toolActions: List<String> = emptyList()) {
+    val lines = if (toolActions.size > 1) toolActions.take(4) else emptyList()
     AnimatedVisibility(
         visible = busy && action != null,
         enter = fadeIn(tween(150)) + expandVertically(animationSpec = fastSpatialSpec()),
@@ -99,11 +100,19 @@ internal fun AgentStatusBar(action: String?, busy: Boolean, shape: LogoShape = L
         ) {
             HarnessActivityLogo(shape, scheme.primary, Modifier.size(18.dp), animate = motion)
             Spacer(Modifier.width(10.dp))
-            androidx.compose.animation.AnimatedContent(action.orEmpty(), transitionSpec = {
-                (androidx.compose.animation.slideInVertically(tween(240)) { it } + fadeIn(tween(200))) togetherWith
-                    (androidx.compose.animation.slideOutVertically(tween(180)) { -it } + fadeOut(tween(120)))
-            }, label = "Agent status line", modifier = Modifier.weight(1f)) { text ->
-                ChatShimmerText(text, running = motion, style = MaterialTheme.typography.labelMedium)
+            if (lines.isEmpty()) {
+                androidx.compose.animation.AnimatedContent(action.orEmpty(), transitionSpec = {
+                    (androidx.compose.animation.slideInVertically(tween(240)) { it } + fadeIn(tween(200))) togetherWith
+                        (androidx.compose.animation.slideOutVertically(tween(180)) { -it } + fadeOut(tween(120)))
+                }, label = "Agent status line", modifier = Modifier.weight(1f)) { text ->
+                    ChatShimmerText(text, running = motion, style = MaterialTheme.typography.labelMedium)
+                }
+            } else {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    lines.forEach { line ->
+                        ChatShimmerText("• $line", running = motion, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
             }
         }
     }

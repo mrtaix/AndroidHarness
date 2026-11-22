@@ -153,6 +153,8 @@ data class ChatUiState(
     val showCostDialog: Boolean = false,
     val workspaceName: String = "",
     val currentToolAction: String? = null,
+    /** One line per running tool, so parallel work is visible instead of only the last call. */
+    val runningToolActions: List<String> = emptyList(),
     /** Live progress lines per running subagent (task tool), newest last. */
     val subagentSteps: Map<String, List<String>> = emptyMap(),
     val thinkingTiming: com.androidharness.app.agent.ThinkingTiming = com.androidharness.app.agent.ThinkingTiming(),
@@ -741,7 +743,10 @@ class ChatViewModel(
         }
     }
 
-    private fun ChatUiState.withCurrentAction(): ChatUiState = copy(currentAction = computeCurrentAction())
+    private fun ChatUiState.withCurrentAction(): ChatUiState = copy(
+        currentAction = computeCurrentAction(),
+        runningToolActions = runningCalls.map(::describeToolCall).distinct(),
+    )
 
     private fun applyModelState(models: com.androidharness.app.data.ChatModelState) {
         val settings = models.settings

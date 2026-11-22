@@ -2914,7 +2914,7 @@ private fun ChatScreenContent(
                         writing = state.streamingText != null,
                         lastTool = lastToolShape.takeIf { state.currentToolAction != null },
                     )
-                    AgentStatusBar(action = state.currentAction, busy = state.busy, shape = statusShape)
+                    AgentStatusBar(action = state.currentAction, busy = state.busy, shape = statusShape, toolActions = state.runningToolActions)
                 }
                 com.androidharness.app.ui.automation.ScheduledMessageRow(chatSchedules, scheduleConnection, scheduleNow) {
                     if (chatSchedules.size == 1) scheduleDraft = chatSchedules.first() else showScheduledList = true
