@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonArray
@@ -87,7 +88,7 @@ class GeminiProvider(
                 .post(body.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
                 .apply { ProviderHeaders.apply(this, config, options.debugAttempt, options.debugKeySlot, options.debugGroup, options.cacheKey) }
                 .build()
-            ProviderFactory.sseJson(request, ProviderHeaders.client(config, client)).collect { el ->
+            ProviderFactory.sseJson(request, ProviderHeaders.client(config, client)).mapLicenceError(account).collect { el ->
                 val chunk = (el as? JsonObject)?.let { if (account) it["response"] as? JsonObject ?: it else it } ?: return@collect
 
                 chunk["error"]?.jsonObjectOrAbsent()?.get("message")?.jsonPrimitive?.contentOrNull
@@ -152,6 +153,26 @@ class GeminiProvider(
             emit(StreamEvent.Done(finishReason))
         }
     }
+
+    /**
+     * An account without an Antigravity licence is refused with 403 #3501.
+     * That arrives as a thrown transport error, so turn it into the in-band
+     * error shape the stream already explains, with the actionable wording.
+     */
+    private fun kotlinx.coroutines.flow.Flow<JsonElement>.mapLicenceError(account: Boolean) =
+        if (!account) this else kotlinx.coroutines.flow.flow {
+            try { collect { emit(it) } }
+            catch (e: kotlinx.coroutines.CancellationException) { throw e }
+            catch (e: ApiException) {
+                val note = com.androidharness.app.gemini.GeminiProtocol.refusal(e.code, e.message.orEmpty())
+                    ?: throw e
+                emit(JsonObject(mapOf("error" to JsonObject(mapOf(
+                    "message" to JsonPrimitive(note),
+                    "code" to JsonPrimitive(e.code),
+                    "status" to JsonPrimitive("PERMISSION_DENIED"),
+                )))))
+            }
+        }
 
     internal fun buildRequestBody(config: ProviderConfig, systemPrompt: String, messages: List<ChatMessage>,
         tools: List<ToolSchema>, options: RequestOptions,

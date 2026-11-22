@@ -2,6 +2,7 @@ package com.androidharness.app.gemini
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -54,6 +55,15 @@ class GeminiProtocolTest {
         assertTrue(GeminiProtocol.SCOPES.any { it.endsWith("/auth/aicode") })
         assertTrue(GeminiProtocol.SCOPES.any { it.endsWith("/auth/experimentsandconfigs") })
         assertTrue(GeminiProtocol.CODE_ASSIST.endsWith("daily-cloudcode-pa.googleapis.com"))
+    }
+
+    @Test fun `a licence refusal explains the plan requirement and other errors stay silent`() {
+        val body = """{"error":{"code":403,"message":"You do not have a valid license of this product (#3501)","status":"PERMISSION_DENIED"}}"""
+        val note = GeminiProtocol.refusal(403, body)
+        assertTrue(note.orEmpty().contains("Antigravity licence"))
+        assertTrue(note.orEmpty().contains("AI Studio"))
+        assertNull(GeminiProtocol.refusal(403, """{"error":{"status":"INTERNAL"}}"""))
+        assertNull(GeminiProtocol.refusal(500, body))
     }
 
     @Test fun `account model list is stable and non-empty`() {

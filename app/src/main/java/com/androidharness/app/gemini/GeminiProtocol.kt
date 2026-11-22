@@ -54,6 +54,24 @@ object GeminiProtocol {
 
     private val random = SecureRandom()
 
+    /** A refusal from a Cloud Code endpoint, with the body kept for the licence check. */
+    class HttpError(val status: Int, val body: String) : java.io.IOException("HTTP $status: ${body.take(400)}")
+
+    /**
+     * Google's licence refusal turned into something a person can act on.
+     * Antigravity model access needs Google AI Pro, AI Ultra or a Gemini
+     * Enterprise licence; a free account is refused with error #3501.
+     */
+    fun refusal(status: Int?, body: String): String? {
+        if (status != 401 && status != 403) return null
+        val text = body.take(4_000).lowercase()
+        val needsLicence = "subscription_required" in text || "#3501" in text ||
+            "license" in text || "licence" in text
+        if (!needsLicence) return null
+        return "This Google account has no Antigravity licence (HTTP $status). Model access needs Google AI Pro, AI Ultra or a Gemini Enterprise licence. " +
+            "Sign in with an account that has one, or use a Gemini API key from AI Studio instead."
+    }
+
     /** RFC 7636 verifier: 43-128 characters from the unreserved set. */
     fun verifier(): String {
         val bytes = ByteArray(32).also { random.nextBytes(it) }

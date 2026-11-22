@@ -83,12 +83,8 @@ class GeminiAccounts(
 
     init {
         publish()
-        scope.launch {
-            store.accounts.filter { it.connected }.forEach { account ->
-                runCatching { accessToken(GeminiProtocol.providerId(account.id)) }
-                runCatching { models(GeminiProtocol.providerId(account.id)) }
-            }
-        }
+        // No network work here: an eager token/model round trip held the same
+        // lock a chat request waits on, which made the first message feel slow.
     }
 
     private fun persist(updated: GeminiProtocol.Store) {
@@ -203,6 +199,10 @@ class GeminiAccounts(
         "Gemini API: $models · Antigravity: $codeAssist"
     }
 
+    /** Google's licence refusal, when the failure is one. */
+    private fun refusalText(error: Throwable): String? =
+        (error as? GeminiProtocol.HttpError)?.let { GeminiProtocol.refusal(it.status, it.body) }
+
     /** Plan, credits and quota buckets for one signed-in account. */
     suspend fun usage(providerId: String): GeminiUsage = withContext(Dispatchers.IO) {
         runCatching {
@@ -214,7 +214,7 @@ class GeminiAccounts(
                     .post(body.toString().toRequestBody("application/json".toMediaType())).build()
                 http.newCall(request).execute().use { response ->
                     val text = response.body?.string().orEmpty()
-                    if (!response.isSuccessful) error("HTTP ${response.code}: ${text.take(400)}")
+                    if (!response.isSuccessful) throw GeminiProtocol.HttpError(response.code, text)
                     return json.parseToJsonElement(text).jsonObject
                 }
             }
@@ -242,7 +242,7 @@ class GeminiAccounts(
                 }
             }.orEmpty()
             GeminiUsage(plan = plan, credits = credits, quotas = quotas)
-        }.getOrElse { GeminiUsage(error = it.message ?: "Could not load quota.") }
+        }.getOrElse { GeminiUsage(error = refusalText(it) ?: it.message ?: "Could not load quota.") }
     }
 
     /** Antigravity project for the account, discovered once and remembered. */
@@ -288,7 +288,7 @@ class GeminiAccounts(
         val found = entry(id)
         if (found.models.isNotEmpty() && System.currentTimeMillis() - found.modelsAt < 30 * 60_000) return@withContext found.models
         val token = accessToken(providerId)
-        val project = project(providerId)
+        val project = found.project.takeIf { it.isNotBlank() } ?: project(providerId)
         val body = buildJsonObject { put("project", project) }
         val request = Request.Builder().url("${GeminiProtocol.CODE_ASSIST}/v1internal:fetchAvailableModels")
             .header("Authorization", "Bearer $token")
