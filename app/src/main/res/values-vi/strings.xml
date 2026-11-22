@@ -1194,4 +1194,6 @@
     <string name="http_client_sending">Đang gửi…</string>
     <string name="http_client_response">Phản hồi</string>
     <string name="http_client_copy">Sao chép phản hồi</string>
+    <string name="settings_page_advanced_title">Tính năng nâng cao</string>
+    <string name="settings_page_advanced_desc">Tải về, LSP, terminal, watch, debugger và công tắc tính năng</string>
 </resources>

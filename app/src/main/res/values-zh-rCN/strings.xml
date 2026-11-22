@@ -1225,4 +1225,6 @@
     <string name="http_client_sending">Sending…</string>
     <string name="http_client_response">Response</string>
     <string name="http_client_copy">Copy response</string>
+    <string name="settings_page_advanced_title">Advanced features</string>
+    <string name="settings_page_advanced_desc">Downloads, LSP, terminal, watch, debugger and feature switches</string>
 </resources>

@@ -136,6 +136,12 @@ internal enum class SettingsPage(
         "http client request get post put patch delete rest api headers body response curl",
         onHome = false,
     ),
+    ADVANCED_FEATURES(
+        R.string.settings_page_advanced_title,
+        R.string.settings_page_advanced_desc,
+        R.string.settings_group_coding,
+        "advanced features lsp terminal watch test explorer http client proot dap debugger download tmux pyright typescript clangd debugpy ubuntu off automatic on",
+    ),
     CAVEMAN(
         R.string.settings_page_caveman_title,
         R.string.settings_page_caveman_desc,
@@ -304,7 +310,7 @@ internal data class SettingsSearchEntry(
 internal val settingsHomePages = listOf(
     SettingsPage.LEARN,
     SettingsPage.MODELS, SettingsPage.CONNECTED_ACCOUNTS, SettingsPage.LOCAL_MODELS, SettingsPage.NINE_ROUTER,
-    SettingsPage.CHAT_OPTIONS, SettingsPage.CODING, SettingsPage.MEMORY, SettingsPage.VOICE, SettingsPage.LIVE_MODE,
+    SettingsPage.CHAT_OPTIONS, SettingsPage.ADVANCED_FEATURES, SettingsPage.CODING, SettingsPage.MEMORY, SettingsPage.VOICE, SettingsPage.LIVE_MODE,
     SettingsPage.SEARCH, SettingsPage.MCP, SettingsPage.GITHUB, SettingsPage.TELEGRAM,
     SettingsPage.APPEARANCE, SettingsPage.LANGUAGE, SettingsPage.RUMBLE,
     SettingsPage.PRIVACY, SettingsPage.BACKGROUND, SettingsPage.STORAGE,

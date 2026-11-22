@@ -5562,6 +5562,11 @@
           "kind": "settings",
           "target": "HTTP_CLIENT",
           "label": "Send a test request"
+        },
+        {
+          "kind": "settings",
+          "target": "ADVANCED_FEATURES",
+          "label": "Open advanced features"
         }
       ],
       "sources": [

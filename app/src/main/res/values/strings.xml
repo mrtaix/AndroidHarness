@@ -39,6 +39,8 @@
     <string name="settings_page_codegraph_desc">Install CodeGraph and manage project indexes</string>
     <string name="settings_page_http_title">HTTP client</string>
     <string name="settings_page_http_desc">Send requests and read the responses</string>
+    <string name="settings_page_advanced_title">Advanced features</string>
+    <string name="settings_page_advanced_desc">Downloads, LSP, terminal, watch, debugger and feature switches</string>
     <string name="http_client_method">Method</string>
     <string name="http_client_url">URL</string>
     <string name="http_client_headers">Headers, one per line (Name: value)</string>
