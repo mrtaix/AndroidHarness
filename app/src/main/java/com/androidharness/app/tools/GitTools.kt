@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -60,14 +61,18 @@ private const val HARNESS_TREE_GLOB = ":(glob)**/$HARNESS_DIR/**"
 private const val HARNESS_DIR_EXCLUDE = ":(exclude,glob)**/$HARNESS_DIR"
 private const val HARNESS_TREE_EXCLUDE = ":(exclude,glob)**/$HARNESS_DIR/**"
 
-/** Everything the commit command stages, without the commit itself. */
-internal fun gitCommitStageCmd(): String = gitCmd(
-    "rm -r --cached --ignore-unmatch ${HARNESS_DIR_GLOB.shellQuote()} ${HARNESS_TREE_GLOB.shellQuote()}",
-    "add -A -- ${HARNESS_DIR_EXCLUDE.shellQuote()} ${HARNESS_TREE_EXCLUDE.shellQuote()}",
-    "rm -r --cached --ignore-unmatch ${HARNESS_DIR_GLOB.shellQuote()} ${HARNESS_TREE_GLOB.shellQuote()}",
-)
+/** Everything the commit stages, without the commit itself. [paths] limits it to those files. */
+internal fun gitCommitStageCmd(paths: List<String> = emptyList()): String {
+    val target = if (paths.isEmpty()) "${HARNESS_DIR_EXCLUDE.shellQuote()} ${HARNESS_TREE_EXCLUDE.shellQuote()}"
+        else paths.joinToString(" ") { it.shellQuote() }
+    return gitCmd(
+        "rm -r --cached --ignore-unmatch ${HARNESS_DIR_GLOB.shellQuote()} ${HARNESS_TREE_GLOB.shellQuote()}",
+        "add -A -- $target",
+        "rm -r --cached --ignore-unmatch ${HARNESS_DIR_GLOB.shellQuote()} ${HARNESS_TREE_GLOB.shellQuote()}",
+    )
+}
 
-internal fun gitCommitCmd(message: String): String = gitCmd(
+internal fun gitCommitCmd(message: String, amend: Boolean = false): String = gitCmd(
     "rm -r --cached --ignore-unmatch ${HARNESS_DIR_GLOB.shellQuote()} ${HARNESS_TREE_GLOB.shellQuote()}",
     "add -A -- ${HARNESS_DIR_EXCLUDE.shellQuote()} ${HARNESS_TREE_EXCLUDE.shellQuote()}",
     // Belt and braces: whatever an older git's all-exclude pathspec lets through
@@ -76,7 +81,7 @@ internal fun gitCommitCmd(message: String): String = gitCmd(
     // build are staged as deletions here, which is the self-heal the first step
     // is for.
     "rm -r --cached --ignore-unmatch ${HARNESS_DIR_GLOB.shellQuote()} ${HARNESS_TREE_GLOB.shellQuote()}",
-    "commit -m ${message.shellQuote()}",
+    if (amend) "commit --amend -m ${message.shellQuote()}" else "commit -m ${message.shellQuote()}",
 )
 
 internal fun gitLogCmd(limit: Int, path: String?, stat: Boolean): String =
@@ -337,7 +342,12 @@ class GitCommitTool(
         "message. Runtime artifacts under .harness/ are never staged. Runs as a " +
         "modifying operation, so the user approves it first."
     override val parametersSchema = Schema.obj(
-        mapOf("message" to Schema.string("The commit message.")),
+        mapOf(
+            "message" to Schema.string("The commit message."),
+            "paths" to Schema.array(Schema.string("Workspace-relative path"),
+                "Only these workspace paths are staged; omit to stage every change."),
+            "amend" to Schema.boolean("Rewrite the previous commit instead of adding a new one."),
+        ),
         required = listOf("message"),
     )
     override val isReadOnly = false
@@ -347,7 +357,9 @@ class GitCommitTool(
             val message = args["message"]?.jsonPrimitive?.content
                 ?: throw ToolFailure("Missing required argument: message")
             // Stage first so the guard reads exactly what would be published.
-            val staged = runGitWithRetry(router, linuxEnv, ctx, gitCommitStageCmd())
+            val paths = args["paths"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }?.filter { it.isNotBlank() }.orEmpty()
+            val amend = args["amend"]?.jsonPrimitive?.booleanOrNull == true
+            val staged = runGitWithRetry(router, linuxEnv, ctx, gitCommitStageCmd(paths))
             if (staged.ok) {
                 val listed = runGitWithRetry(router, linuxEnv, ctx, gitCmd("diff --cached --name-only -z"))
                 val files = listed.output.split('\u0000').filter { it.isNotBlank() }.mapNotNull { path ->
@@ -365,7 +377,7 @@ class GitCommitTool(
                         "\nRemove the file from the commit (add it to .gitignore) or rotate the credential, then retry.")
                 }
             }
-            val commitCommand = gitCommitCmd(message)
+            val commitCommand = gitCommitCmd(message, amend)
             val res = runGitWithRetry(router, linuxEnv, ctx, commitCommand)
             if (!res.ok && isIdentityUnknown(res.output)) {
                 val repoConfig = runGitWithRetry(

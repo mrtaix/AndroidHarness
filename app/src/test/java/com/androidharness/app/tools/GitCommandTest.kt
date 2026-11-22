@@ -50,6 +50,15 @@ class GitCommandTest {
     }
 
     @Test
+    fun `a commit can stage only the named paths and amend`() {
+        val partial = gitCommitStageCmd(listOf("src/Main.kt", "docs/notes.md"))
+        assertTrue(partial.contains("'src/Main.kt' 'docs/notes.md'"))
+        assertFalse(partial.contains("'src/Main.kt' 'docs/notes.md'") && partial.contains("-A -- '.harness'"))
+        assertTrue(gitCommitCmd("fix", amend = true).contains("commit --amend -m 'fix'"))
+        assertFalse(gitCommitCmd("fix").contains("--amend"))
+    }
+
+    @Test
     fun `commit runs in bash and removes tracked runtime artifacts`() {
         success(gitCmd("init", "config user.name Test", "config user.email test@example.com"))
         tmp.root.resolve(".harness").mkdirs()
