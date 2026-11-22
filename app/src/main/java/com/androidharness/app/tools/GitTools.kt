@@ -655,6 +655,50 @@ class GitPushTool(
         }
 }
 
+/**
+ * Conflict work after a pull or merge: list the unmerged paths, or finish the
+ * operation once they are resolved. Read-only when [action] is "list".
+ */
+class GitConflictTool(
+    private val router: ShellTierRouter,
+    private val linuxEnv: LinuxEnvironmentManager,
+) : Tool {
+    override val name = "git_conflicts"
+    override val description =
+        "Inspect or finish a merge/rebase conflict. action: 'list' (default) shows unmerged " +
+            "paths with their stage markers, 'continue' finishes the merge or rebase after the " +
+            "files are resolved and staged, 'abort' returns to the pre-merge state."
+    override val parametersSchema = Schema.obj(
+        mapOf("action" to Schema.string("list (default) | continue | abort.")),
+    )
+    override val isReadOnly = false
+
+    override suspend fun execute(args: JsonObject, ctx: ToolContext): ToolResult = withContext(Dispatchers.IO) {
+        when (args["action"]?.jsonPrimitive?.contentOrNull?.lowercase() ?: "list") {
+            "continue" -> {
+                val rebase = runGitWithRetry(router, linuxEnv, ctx, gitCmd("rebase --continue"))
+                if (rebase.ok) return@withContext rebase
+                runGitWithRetry(router, linuxEnv, ctx, gitCmd("commit --no-edit"))
+            }
+            "abort" -> {
+                val rebase = runGitWithRetry(router, linuxEnv, ctx, gitCmd("rebase --abort"))
+                if (rebase.ok) return@withContext rebase
+                runGitWithRetry(router, linuxEnv, ctx, gitCmd("merge --abort"))
+            }
+            else -> {
+                val list = runGitWithRetry(router, linuxEnv, ctx, gitCmd("diff --name-only --diff-filter=U"))
+                if (!list.ok) return@withContext list
+                val paths = list.output.lines().filter { it.isNotBlank() }
+                if (paths.isEmpty()) return@withContext ToolResult(true, "No unresolved conflicts.")
+                val markers = runGitWithRetry(router, linuxEnv, ctx,
+                    gitCmd("grep -n -E '^(<<<<<<<|=======|>>>>>>>)' -- ${paths.joinToString(" ") { it.shellQuote() }}"))
+                ToolResult(true, "Unresolved files:\n" + paths.joinToString("\n") { "· $it" } +
+                    (if (markers.output.isNotBlank()) "\n\nConflict markers:\n" + markers.output.trim().take(8000) else ""))
+            }
+        }
+    }
+}
+
 class GitPullTool(
     private val router: ShellTierRouter,
     private val linuxEnv: LinuxEnvironmentManager,
