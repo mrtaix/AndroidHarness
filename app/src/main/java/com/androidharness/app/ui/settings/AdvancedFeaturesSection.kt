@@ -2,8 +2,6 @@ package com.androidharness.app.ui.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -33,11 +31,7 @@ internal fun AdvancedFeaturesSection(container: AppContainer, settings: AppSetti
             charging = battery?.isCharging == true,
         )
     }
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
-    ) {
+    Column(Modifier.fillMaxWidth()) {
         DevPayloadsSection(container.devProvisioner)
         FeatureSwitchesSection(
             settings = settings,
