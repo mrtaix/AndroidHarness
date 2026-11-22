@@ -1208,4 +1208,8 @@
     <string name="http_client_copy">Copy response</string>
     <string name="settings_page_advanced_title">Advanced features</string>
     <string name="settings_page_advanced_desc">Downloads, LSP, terminal, watch, debugger and feature switches</string>
+    <string name="ui_save_as_skill">Save as skill</string>
+    <string name="ui_save_as_skill_desc">Keep this answer as a reusable project skill. Give it a short lowercase name.</string>
+    <string name="ui_skill_name">Skill name</string>
+    <string name="ui_save">Save</string>
 </resources>

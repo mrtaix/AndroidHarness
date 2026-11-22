@@ -584,6 +584,8 @@ private fun ChatScreenContent(
     var showUndoDialog by remember { mutableStateOf(false) }
     // Chosen checkpoint awaiting confirmation with a per-file preview.
     var confirmRewindTurn by remember { mutableStateOf<String?>(null) }
+    // Text of an answer the user wants to keep as a reusable project skill.
+    var saveSkillText by remember { mutableStateOf<String?>(null) }
     var showChatSettings by rememberSaveable(viewModel) { mutableStateOf(false) }
     var showChatAgents by rememberSaveable(viewModel) { mutableStateOf(false) }
     var newAgentId by rememberSaveable(viewModel) { mutableStateOf<String?>(null) }
@@ -1267,6 +1269,36 @@ private fun ChatScreenContent(
             },
             dismissButton = {
                 TextButton(onClick = { confirmRewindTurn = null }) { Text(uiContext.getString(R.string.settings_action_cancel)) }
+            },
+        )
+    }
+
+    saveSkillText?.let { answer ->
+        var skillName by remember(answer) { mutableStateOf("") }
+        var skillResult by remember(answer) { mutableStateOf<String?>(null) }
+        AlertDialog(
+            onDismissRequest = { saveSkillText = null },
+            title = { Text(uiContext.getString(R.string.ui_save_as_skill)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(uiContext.getString(R.string.ui_save_as_skill_desc), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    OutlinedTextField(skillName, { skillName = it }, singleLine = true,
+                        label = { Text(uiContext.getString(R.string.ui_skill_name)) },
+                        modifier = Modifier.fillMaxWidth())
+                    skillResult?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.saveAsSkill(skillName, answer) { result ->
+                        skillResult = result
+                        if (result.startsWith("Saved")) saveSkillText = null
+                    }
+                }) { Text(uiContext.getString(R.string.ui_save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { saveSkillText = null }) { Text(uiContext.getString(R.string.settings_action_cancel)) }
             },
         )
     }
@@ -2214,6 +2246,7 @@ private fun ChatScreenContent(
                                                     ResponseActions(
                                                         onFork = { viewModel.requestFork(message) { onNavigateToSession(it) } },
                                                         onUndo = null,
+                                                        onSaveSkill = { saveSkillText = message.text },
                                                         details = {
                                                             message.generation.model?.let { model ->
                                                                 Text(
@@ -2340,6 +2373,7 @@ private fun ChatScreenContent(
                                                     ResponseActions(
                                                         onFork = { viewModel.requestFork(message) { onNavigateToSession(it) } },
                                                         onUndo = if (canRewind) ({ message.turnId?.let { confirmRewindTurn = it } }) else null,
+                                                        onSaveSkill = { saveSkillText = message.text },
                                                         details = {
                                                             Column {
                                                                 message.generation.model?.let { model ->
@@ -3182,7 +3216,7 @@ internal fun SpeakIconButton(active: Boolean, preparing: Boolean, onClick: () ->
 }
 
 @Composable
-internal fun ResponseActions(onFork: () -> Unit, onUndo: (() -> Unit)?, details: @Composable () -> Unit = {}) {
+internal fun ResponseActions(onFork: () -> Unit, onUndo: (() -> Unit)?, onSaveSkill: (() -> Unit)? = null, details: @Composable () -> Unit = {}) {
     val uiContext = androidx.compose.ui.platform.LocalContext.current
     var expanded by remember { mutableStateOf(false) }
     Box {
@@ -3195,6 +3229,8 @@ internal fun ResponseActions(onFork: () -> Unit, onUndo: (() -> Unit)?, details:
                 onClick = { expanded = false; onFork() })
             if (onUndo != null) com.androidharness.app.ui.common.ExpressiveDropdownMenuItem(text = { Text(uiContext.getString(R.string.ui_undo_file_changes_from_this_turn)) },
                 onClick = { expanded = false; onUndo() })
+            if (onSaveSkill != null) com.androidharness.app.ui.common.ExpressiveDropdownMenuItem(text = { Text(uiContext.getString(R.string.ui_save_as_skill)) },
+                onClick = { expanded = false; onSaveSkill() })
             HorizontalDivider()
             details()
         }

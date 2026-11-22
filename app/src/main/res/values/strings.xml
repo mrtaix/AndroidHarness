@@ -1229,4 +1229,8 @@
     <string name="stream_writes_title">Stream file writes as text</string>
     <string name="stream_writes_desc">Some servers, including several NVIDIA models, only send a file write once it is finished. For those models the agent writes the file into its reply instead, so you can watch it being written.</string>
     <string name="stream_writes_detected">Models detected so far: %1$d</string>
+    <string name="ui_save_as_skill">Save as skill</string>
+    <string name="ui_save_as_skill_desc">Keep this answer as a reusable project skill. Give it a short lowercase name.</string>
+    <string name="ui_skill_name">Skill name</string>
+    <string name="ui_save">Save</string>
 </resources>

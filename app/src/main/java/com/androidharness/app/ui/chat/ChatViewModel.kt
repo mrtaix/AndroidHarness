@@ -1441,6 +1441,35 @@ class ChatViewModel(
         _state.update { it.copy(fileAttachments = it.fileAttachments.toMutableList().apply { removeAt(index) }) }
     }
 
+    /**
+     * Save this assistant turn as a project skill. The chat is the source of
+     * truth for the wording; the skill just needs a stable name and the turn's
+     * text as its body.
+     */
+    fun saveAsSkill(name: String, text: String, onResult: (String) -> Unit) {
+        val clean = name.trim().lowercase()
+            .replace(Regex("[^a-z0-9-]"), "-")
+            .trim('-')
+        if (clean.length < 3) {
+            onResult("The name needs at least 3 letters or digits.")
+            return
+        }
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val outcome = runCatching {
+                val fs = chatWorkspace()
+                val body = text.trim().ifBlank { "Describe the workflow here." }
+                fs.resolve(".harness/skills/$clean/SKILL.md").writeText(
+                    "---\nname: $clean\ndescription: Saved from a chat answer\n---\n\n$body\n"
+                )
+                ".harness/skills/$clean/SKILL.md"
+            }
+            onResult(outcome.fold(
+                onSuccess = { "Saved the skill at $it. It is available in the next chat." },
+                onFailure = { "Could not save the skill: ${it.message ?: "unknown error"}" },
+            ))
+        }
+    }
+
     /** Workspace file list for the @-mention picker, cached per workspace. */
     fun loadMentionFiles() {
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {

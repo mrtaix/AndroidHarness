@@ -1196,4 +1196,8 @@
     <string name="http_client_copy">Sao chép phản hồi</string>
     <string name="settings_page_advanced_title">Tính năng nâng cao</string>
     <string name="settings_page_advanced_desc">Tải về, LSP, terminal, watch, debugger và công tắc tính năng</string>
+    <string name="ui_save_as_skill">Lưu thành skill</string>
+    <string name="ui_save_as_skill_desc">Giữ câu trả lời này thành skill dùng lại cho dự án. Đặt tên ngắn, viết thường.</string>
+    <string name="ui_skill_name">Tên skill</string>
+    <string name="ui_save">Lưu</string>
 </resources>
