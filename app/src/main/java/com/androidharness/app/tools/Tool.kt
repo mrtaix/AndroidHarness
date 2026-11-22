@@ -136,6 +136,7 @@ class ToolRegistry(private val tools: List<Tool>) {
                 GitCheckoutTool(shellRouter, linuxEnv),
                 GitPushTool(shellRouter, linuxEnv),
                 GitPullTool(shellRouter, linuxEnv),
+                GitTagTool(shellRouter, linuxEnv),
                 CreateDirTool(),
                 DeleteFileTool(),
                 MoveFileTool(),

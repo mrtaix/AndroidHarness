@@ -416,6 +416,39 @@ class GitCommitTool(
         }
 }
 
+/** Annotated tag plus release notes assembled from the commits it covers. */
+class GitTagTool(
+    private val router: ShellTierRouter,
+    private val linuxEnv: LinuxEnvironmentManager,
+) : Tool {
+    override val name = "git_tag"
+    override val description =
+        "Create an annotated tag on HEAD and return release notes for the commits it covers. " +
+            "Runs as a modifying operation, so the user approves it first."
+    override val parametersSchema = Schema.obj(
+        mapOf(
+            "name" to Schema.string("Tag name, for example v4.1.0."),
+            "message" to Schema.string("Annotation; defaults to the tag name."),
+        ),
+        required = listOf("name"),
+    )
+    override val isReadOnly = false
+
+    override suspend fun execute(args: JsonObject, ctx: ToolContext): ToolResult = withContext(Dispatchers.IO) {
+        val name = args["name"]?.jsonPrimitive?.contentOrNull?.trim().orEmpty()
+        require(name.isNotEmpty() && Regex("[A-Za-z0-9._/-]{1,120}").matches(name) && !name.startsWith("-")) {
+            "Enter a valid tag name."
+        }
+        val message = args["message"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() } ?: name
+        val tagged = runGitWithRetry(router, linuxEnv, ctx, gitCmd("tag -a ${name.shellQuote()} -m ${message.shellQuote()}"))
+        if (!tagged.ok) return@withContext ToolResult(false, tagged.output)
+        val previous = runGitWithRetry(router, linuxEnv, ctx, gitCmd("describe --tags --abbrev=0 ${name.shellQuote()}^"))
+        val range = previous.output.trim().takeIf { previous.ok && it.isNotBlank() }?.let { "$it..$name" } ?: name
+        val notes = runGitWithRetry(router, linuxEnv, ctx, gitCmd("log --no-merges --pretty='- %s (%h)' $range"))
+        ToolResult(true, "Tagged $name.\n\nRelease notes:\n" + notes.output.trim().take(20_000))
+    }
+}
+
 class GitLogTool(
     private val router: ShellTierRouter,
     private val linuxEnv: LinuxEnvironmentManager,
