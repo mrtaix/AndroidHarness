@@ -76,6 +76,8 @@ data class AppSettings(
     val chatCardsShowStatus: Boolean = true,
     /** Tool cards: a single summary line, no command or output. */
     val chatCardsOneLine: Boolean = false,
+    /** Per-capability Off/Automatic/On choice; missing means automatic. */
+    val featureSwitches: Map<String, FeatureSwitch> = emptyMap(),
     /** Global client identity for provider requests; blank keeps the app's own User-Agent. */
     val providerIdentity: String = com.androidharness.app.llm.ProviderIdentity.DEFAULT,
     /** Rows sent when [providerIdentity] is the custom choice. */
@@ -393,6 +395,7 @@ class SettingsRepository(private val context: Context) {
         val CHAT_CARDS_LABELS = booleanPreferencesKey("chat_cards_labels")
         val CHAT_CARDS_STATUS = booleanPreferencesKey("chat_cards_status")
         val CHAT_CARDS_ONE_LINE = booleanPreferencesKey("chat_cards_one_line")
+        val FEATURE_SWITCHES = stringPreferencesKey("feature_switches")
         val PROVIDER_IDENTITY = stringPreferencesKey("provider_identity")
         val PROVIDER_IDENTITY_HEADERS = stringPreferencesKey("provider_identity_headers")
         val MAX_OUTPUT = intPreferencesKey("max_output_tokens")
@@ -549,6 +552,7 @@ class SettingsRepository(private val context: Context) {
             chatCardsShowLabels = prefs[Keys.CHAT_CARDS_LABELS] ?: true,
             chatCardsShowStatus = prefs[Keys.CHAT_CARDS_STATUS] ?: true,
             chatCardsOneLine = prefs[Keys.CHAT_CARDS_ONE_LINE] ?: false,
+            featureSwitches = decodeFeatureSwitches(prefs[Keys.FEATURE_SWITCHES]),
             providerIdentity = prefs[Keys.PROVIDER_IDENTITY].orEmpty().takeIf { id ->
                 com.androidharness.app.llm.ProviderIdentity.presets.any { it.id == id }
             } ?: com.androidharness.app.llm.ProviderIdentity.DEFAULT,
@@ -701,6 +705,7 @@ class SettingsRepository(private val context: Context) {
             p[Keys.CHAT_CARDS_LABELS] = s.chatCardsShowLabels
             p[Keys.CHAT_CARDS_STATUS] = s.chatCardsShowStatus
             p[Keys.CHAT_CARDS_ONE_LINE] = s.chatCardsOneLine
+            p[Keys.FEATURE_SWITCHES] = s.featureSwitches.entries.joinToString(";") { "${it.key}=${it.value.name}" }
             p[Keys.PROVIDER_IDENTITY] = s.providerIdentity
             p[Keys.PROVIDER_IDENTITY_HEADERS] = kotlinx.serialization.json.Json.encodeToString(s.providerIdentityHeaders)
             p[Keys.MAX_OUTPUT] = s.maxOutputTokens
@@ -1260,6 +1265,22 @@ class SettingsRepository(private val context: Context) {
      * One write for a whole card preset. Six separate setters would rewrite the
      * preferences file six times and jank the list while the user picks one.
      */
+    private fun decodeFeatureSwitches(raw: String?): Map<String, FeatureSwitch> = raw.orEmpty()
+        .split(';').mapNotNull { entry ->
+            val id = entry.substringBefore('=').trim()
+            val mode = entry.substringAfter('=', "").trim()
+            FeatureKey.parse(id)?.let { it.id to FeatureSwitch.parse(mode) }
+        }.toMap()
+
+    /** One capability: off, automatic (the default), or forced on. */
+    suspend fun setFeatureSwitch(key: FeatureKey, mode: FeatureSwitch) {
+        context.settingsStore.edit { prefs ->
+            val current = decodeFeatureSwitches(prefs[Keys.FEATURE_SWITCHES]).toMutableMap()
+            current[key.id] = mode
+            prefs[Keys.FEATURE_SWITCHES] = current.entries.joinToString(";") { "${it.key}=${it.value.name}" }
+        }
+    }
+
     suspend fun setChatCardPreset(compact: Boolean, oneLine: Boolean, output: Boolean, arguments: Boolean,
         labels: Boolean = true, status: Boolean = true) {
         context.settingsStore.edit {

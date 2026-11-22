@@ -53,6 +53,7 @@ internal fun ChatOptionsSection(
     onCardsStatus: (Boolean) -> Unit = {},
     onCardsOneLine: (Boolean) -> Unit = {},
     onCardPreset: (Boolean, Boolean, Boolean, Boolean) -> Unit = { _, _, _, _ -> },
+    onFeatureSwitch: (com.androidharness.app.data.FeatureKey, com.androidharness.app.data.FeatureSwitch) -> Unit = { _, _ -> },
     reminders: com.androidharness.app.reminders.ReminderManager? = null,
     onRemindersEnabled: (Boolean) -> Unit = {},
 ) {
@@ -152,6 +153,17 @@ internal fun ChatOptionsSection(
             Switch(checked = settings.chatCompactCards, onCheckedChange = null)
         }
         CardContentSettings(settings, onCardsOutput, onCardsArgs, onCardsLabels, onCardsStatus, onCardsOneLine, onCardPreset)
+        val featureContext = androidx.compose.ui.platform.LocalContext.current
+        val signals = remember(featureContext) {
+            val activity = featureContext.getSystemService(android.app.ActivityManager::class.java)
+            val battery = featureContext.getSystemService(android.os.BatteryManager::class.java)
+            com.androidharness.app.data.FeatureSignals(
+                ramGb = (((activity?.memoryInfo?.totalMem ?: 0L) / (1024L * 1024 * 1024)).toInt()).coerceAtLeast(1),
+                batteryPercent = battery?.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: 100,
+                charging = battery?.isCharging == true,
+            )
+        }
+        FeatureSwitchesSection(settings, signals, onFeatureSwitch)
     }
     if (reminders != null) ChatRemindersSection(settings.chatRemindersEnabled, reminders, onRemindersEnabled)
     SettingsAnchor(R.string.settings_image_frequency) {

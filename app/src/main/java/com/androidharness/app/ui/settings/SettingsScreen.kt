@@ -475,6 +475,9 @@ private fun SettingsScreenContent(
                             onCardsLabels = { value -> scope.launch { container.settings.setChatCardsShowLabels(value) } },
                             onCardsStatus = { value -> scope.launch { container.settings.setChatCardsShowStatus(value) } },
                             onCardsOneLine = { value -> scope.launch { container.settings.setChatCardsOneLine(value) } },
+                            onFeatureSwitch = { key, mode ->
+                                scope.launch { container.settings.setFeatureSwitch(key, mode) }
+                            },
                             onCardPreset = { compact, oneLine, output, args ->
                                 scope.launch { container.settings.setChatCardPreset(compact, oneLine, output, args) }
                             },
