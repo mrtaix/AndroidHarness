@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">Пример карточки</string>
     <string name="settings_chat_cards_empty">В карточках инструментов ничего не показывается.</string>
     <string name="settings_chat_cards_one_line">Однострочные карточки</string>
+    <string name="settings_chat_cards_preset_compact">Компактно</string>
+    <string name="settings_chat_cards_preset_balanced">Сбалансированно</string>
+    <string name="settings_chat_cards_preset_full">Полно</string>
+    <string name="settings_measure_latency">Измерить задержку</string>
+    <string name="settings_latency_measuring">Измерение…</string>
+    <string name="settings_latency_title">Задержка провайдера</string>
+    <string name="settings_latency_failed">Нет ответа</string>
     <string name="settings_chat_cards_status">Значки маршрута</string>
     <string name="settings_headers_show_preview">"Заголовки запросов"</string>
     <string name="settings_headers_hide_preview">"Скрыть заголовки запросов"</string>

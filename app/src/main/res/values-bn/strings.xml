@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">নমুনা কার্ড</string>
     <string name="settings_chat_cards_empty">টুল কার্ডে কিছু দেখানো হয় না।</string>
     <string name="settings_chat_cards_one_line">একলাইন কার্ড</string>
+    <string name="settings_chat_cards_preset_compact">সংক্ষিপ্ত</string>
+    <string name="settings_chat_cards_preset_balanced">ভারসাম্য</string>
+    <string name="settings_chat_cards_preset_full">পূর্ণ</string>
+    <string name="settings_measure_latency">লেটেন্সি মাপুন</string>
+    <string name="settings_latency_measuring">মাপা হচ্ছে…</string>
+    <string name="settings_latency_title">প্রোভাইডার লেটেন্সি</string>
+    <string name="settings_latency_failed">উত্তর নেই</string>
     <string name="settings_chat_cards_status">রুট ব্যাজ</string>
     <string name="settings_headers_show_preview">"শিরোনাম অনুরোধ করুন"</string>
     <string name="settings_headers_hide_preview">"অনুরোধ শিরোনাম লুকান"</string>

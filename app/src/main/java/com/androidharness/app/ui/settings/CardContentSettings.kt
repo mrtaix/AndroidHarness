@@ -38,11 +38,21 @@ internal fun CardContentSettings(
     onLabels: (Boolean) -> Unit,
     onStatus: (Boolean) -> Unit,
     onOneLine: (Boolean) -> Unit,
+    onPreset: (Boolean, Boolean, Boolean, Boolean) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
     Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(stringResource(R.string.settings_chat_cards_title), style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(horizontal = 16.dp))
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Presets replace six taps with one, and the whole set lands in a single settings write.
+            PresetChip(R.string.settings_chat_cards_preset_compact, settings,
+                compact = true, oneLine = true, output = false, arguments = false, onPreset = onPreset)
+            PresetChip(R.string.settings_chat_cards_preset_balanced, settings,
+                compact = true, oneLine = false, output = true, arguments = true, onPreset = onPreset)
+            PresetChip(R.string.settings_chat_cards_preset_full, settings,
+                compact = false, oneLine = false, output = true, arguments = true, onPreset = onPreset)
+        }
         ToggleRow(R.string.settings_chat_cards_labels, settings.chatCardsShowLabels, onLabels)
         ToggleRow(R.string.settings_chat_cards_args, settings.chatCardsShowArgs, onArgs)
         ToggleRow(R.string.settings_chat_cards_output, settings.chatCardsShowOutput, onOutput)
@@ -82,6 +92,18 @@ internal fun CardContentSettings(
             }
         }
     }
+}
+
+@Composable
+private fun PresetChip(label: Int, settings: AppSettings, compact: Boolean, oneLine: Boolean, output: Boolean,
+    arguments: Boolean, onPreset: (Boolean, Boolean, Boolean, Boolean) -> Unit) {
+    val active = settings.chatCompactCards == compact && settings.chatCardsOneLine == oneLine &&
+        settings.chatCardsShowOutput == output && settings.chatCardsShowArgs == arguments
+    androidx.compose.material3.FilterChip(
+        selected = active,
+        onClick = { onPreset(compact, oneLine, output, arguments) },
+        label = { Text(stringResource(label), style = MaterialTheme.typography.labelLarge) },
+    )
 }
 
 @Composable

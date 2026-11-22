@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">Tarjeta de ejemplo</string>
     <string name="settings_chat_cards_empty">No se muestra nada en las tarjetas de herramientas.</string>
     <string name="settings_chat_cards_one_line">Tarjetas de una línea</string>
+    <string name="settings_chat_cards_preset_compact">Compacto</string>
+    <string name="settings_chat_cards_preset_balanced">Equilibrado</string>
+    <string name="settings_chat_cards_preset_full">Completo</string>
+    <string name="settings_measure_latency">Medir latencia</string>
+    <string name="settings_latency_measuring">Midiendo…</string>
+    <string name="settings_latency_title">Latencia del proveedor</string>
+    <string name="settings_latency_failed">Sin respuesta</string>
     <string name="settings_chat_cards_status">Etiquetas de ruta</string>
     <string name="settings_headers_show_preview">"Encabezados de solicitud"</string>
     <string name="settings_headers_hide_preview">"Ocultar encabezados de solicitud"</string>

@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">کارت نمونه</string>
     <string name="settings_chat_cards_empty">در کارت ابزارها چیزی نمایش داده نمی‌شود.</string>
     <string name="settings_chat_cards_one_line">کارت‌های تک‌خطی</string>
+    <string name="settings_chat_cards_preset_compact">فشرده</string>
+    <string name="settings_chat_cards_preset_balanced">متوازن</string>
+    <string name="settings_chat_cards_preset_full">کامل</string>
+    <string name="settings_measure_latency">اندازه‌گیری تأخیر</string>
+    <string name="settings_latency_measuring">در حال اندازه‌گیری…</string>
+    <string name="settings_latency_title">تأخیر ارائه‌دهنده</string>
+    <string name="settings_latency_failed">بدون پاسخ</string>
     <string name="settings_chat_cards_status">نشان‌های مسیر</string>
     <string name="settings_headers_show_preview">"درخواست سرصفحه ها"</string>
     <string name="settings_headers_hide_preview">"هدر درخواست را مخفی کنید"</string>

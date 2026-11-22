@@ -475,6 +475,9 @@ private fun SettingsScreenContent(
                             onCardsLabels = { value -> scope.launch { container.settings.setChatCardsShowLabels(value) } },
                             onCardsStatus = { value -> scope.launch { container.settings.setChatCardsShowStatus(value) } },
                             onCardsOneLine = { value -> scope.launch { container.settings.setChatCardsOneLine(value) } },
+                            onCardPreset = { compact, oneLine, output, args ->
+                                scope.launch { container.settings.setChatCardPreset(compact, oneLine, output, args) }
+                            },
                             reminders = container.reminders,
                             onRemindersEnabled = { value -> scope.launch { container.settings.setChatRemindersEnabled(value) } },
                         )

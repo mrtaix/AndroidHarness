@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">Thẻ mẫu</string>
     <string name="settings_chat_cards_empty">Thẻ công cụ không hiển thị gì.</string>
     <string name="settings_chat_cards_one_line">Thẻ một dòng</string>
+    <string name="settings_chat_cards_preset_compact">Gọn</string>
+    <string name="settings_chat_cards_preset_balanced">Cân bằng</string>
+    <string name="settings_chat_cards_preset_full">Đầy đủ</string>
+    <string name="settings_measure_latency">Đo độ trễ</string>
+    <string name="settings_latency_measuring">Đang đo…</string>
+    <string name="settings_latency_title">Độ trễ nhà cung cấp</string>
+    <string name="settings_latency_failed">Không trả lời</string>
     <string name="settings_chat_cards_status">Nhãn tuyến thực thi</string>
     <string name="settings_headers_show_preview">"Tiêu đề yêu cầu"</string>
     <string name="settings_headers_hide_preview">"Ẩn tiêu đề yêu cầu"</string>

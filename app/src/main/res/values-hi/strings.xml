@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">नमूना कार्ड</string>
     <string name="settings_chat_cards_empty">टूल कार्ड में कुछ नहीं दिखता।</string>
     <string name="settings_chat_cards_one_line">एक-पंक्ति कार्ड</string>
+    <string name="settings_chat_cards_preset_compact">संक्षिप्त</string>
+    <string name="settings_chat_cards_preset_balanced">संतुलित</string>
+    <string name="settings_chat_cards_preset_full">पूर्ण</string>
+    <string name="settings_measure_latency">लेटेंसी मापें</string>
+    <string name="settings_latency_measuring">माप रहे हैं…</string>
+    <string name="settings_latency_title">प्रदाता लेटेंसी</string>
+    <string name="settings_latency_failed">कोई उत्तर नहीं</string>
     <string name="settings_chat_cards_status">रूट बैज</string>
     <string name="settings_headers_show_preview">"हेडर का अनुरोध करें"</string>
     <string name="settings_headers_hide_preview">"अनुरोध शीर्षलेख छिपाएँ"</string>

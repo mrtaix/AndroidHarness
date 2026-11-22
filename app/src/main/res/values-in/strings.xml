@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">Kartu contoh</string>
     <string name="settings_chat_cards_empty">Tidak ada yang ditampilkan di kartu alat.</string>
     <string name="settings_chat_cards_one_line">Kartu satu baris</string>
+    <string name="settings_chat_cards_preset_compact">Ringkas</string>
+    <string name="settings_chat_cards_preset_balanced">Seimbang</string>
+    <string name="settings_chat_cards_preset_full">Penuh</string>
+    <string name="settings_measure_latency">Ukur latensi</string>
+    <string name="settings_latency_measuring">Mengukur…</string>
+    <string name="settings_latency_title">Latensi penyedia</string>
+    <string name="settings_latency_failed">Tanpa jawaban</string>
     <string name="settings_chat_cards_status">Lencana rute</string>
     <string name="settings_headers_show_preview">"Header permintaan"</string>
     <string name="settings_headers_hide_preview">"Sembunyikan header permintaan"</string>

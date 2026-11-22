@@ -53,6 +53,8 @@ fun ProvidersScreen(
     var controlsFor by remember { mutableStateOf<ProviderConfig?>(null) }
     var showControls by remember { mutableStateOf(false) }
     var saveFailed by remember { mutableStateOf(false) }
+    var measuringLatency by remember { mutableStateOf(false) }
+    var latency by remember { mutableStateOf<List<Pair<String, Long?>>?>(null) }
     var showAllModels by remember { mutableStateOf(false) }
     val visibility by com.androidharness.app.data.ModelVisibility.get(LocalContext.current).state.collectAsStateWithLifecycle()
     val selection = rememberProviderSelection()
@@ -85,6 +87,20 @@ fun ProvidersScreen(
                 item {
                     FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         TextButton(onClick = { controlsFor = null; showControls = true }) { Text(stringResource(R.string.provider_global_proxy_action)) }
+                        TextButton(enabled = !measuringLatency, onClick = {
+                            measuringLatency = true
+                            scope.launch {
+                                val results = mutableListOf<Pair<String, Long?>>()
+                                for (provider in providers.filter { com.androidharness.app.local.LocalModelCatalog.isLocal(it.id).not() }) {
+                                    val key = provider.effectiveApiKey(container.providers.apiKey(provider.id))
+                                    results += provider.name to runCatching {
+                                        com.androidharness.app.llm.ProviderLatency.measure(provider, key)
+                                    }.getOrNull()
+                                }
+                                latency = results
+                                measuringLatency = false
+                            }
+                        }) { Text(stringResource(if (measuringLatency) R.string.settings_latency_measuring else R.string.settings_measure_latency)) }
                         TextButton(enabled = !selection.busy, onClick = {
                             if (selection.selecting) selection.done() else selection.selecting = true
                         }) { Text(if (selection.selecting) uiContext.getString(R.string.settings_action_done) else uiContext.getString(R.string.ui_select_providers)) }
@@ -194,6 +210,26 @@ fun ProvidersScreen(
                 }
             }
         }
+    }
+
+    latency?.let { results ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { latency = null },
+            title = { Text(stringResource(R.string.settings_latency_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    results.forEach { (name, ms) ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(name, style = MaterialTheme.typography.bodyMedium)
+                            Text(ms?.let { "${it} ms" } ?: stringResource(R.string.settings_latency_failed),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (ms == null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { latency = null }) { Text(stringResource(R.string.settings_action_cancel)) } },
+        )
     }
 
     if (showControls) ProviderControlsSheet(container, controlsFor) { showControls = false; controlsFor = null }

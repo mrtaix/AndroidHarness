@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">Beispielkarte</string>
     <string name="settings_chat_cards_empty">In Tool-Karten wird nichts angezeigt.</string>
     <string name="settings_chat_cards_one_line">Einzeilige Karten</string>
+    <string name="settings_chat_cards_preset_compact">Kompakt</string>
+    <string name="settings_chat_cards_preset_balanced">Ausgewogen</string>
+    <string name="settings_chat_cards_preset_full">Vollständig</string>
+    <string name="settings_measure_latency">Latenz messen</string>
+    <string name="settings_latency_measuring">Messung…</string>
+    <string name="settings_latency_title">Anbieter-Latenz</string>
+    <string name="settings_latency_failed">Keine Antwort</string>
     <string name="settings_chat_cards_status">Ausführungs-Badges</string>
     <string name="settings_headers_show_preview">"Anfrage-Header"</string>
     <string name="settings_headers_hide_preview">"Anfrage-Header ausblenden"</string>

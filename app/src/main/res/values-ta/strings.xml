@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">மாதிரி அட்டை</string>
     <string name="settings_chat_cards_empty">கருவி அட்டைகளில் எதுவும் காட்டப்படாது.</string>
     <string name="settings_chat_cards_one_line">ஒரு வரி அட்டைகள்</string>
+    <string name="settings_chat_cards_preset_compact">சுருக்கம்</string>
+    <string name="settings_chat_cards_preset_balanced">சமநிலை</string>
+    <string name="settings_chat_cards_preset_full">முழு</string>
+    <string name="settings_measure_latency">தாமதத்தை அளவிடு</string>
+    <string name="settings_latency_measuring">அளவிடுகிறது…</string>
+    <string name="settings_latency_title">வழங்குநர் தாமதம்</string>
+    <string name="settings_latency_failed">பதில் இல்லை</string>
     <string name="settings_chat_cards_status">பாதை பேட்ஜ்கள்</string>
     <string name="settings_headers_show_preview">"கோரிக்கை தலைப்புகள்"</string>
     <string name="settings_headers_hide_preview">"கோரிக்கை தலைப்புகளை மறை"</string>

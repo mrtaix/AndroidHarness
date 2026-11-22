@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">Örnek kart</string>
     <string name="settings_chat_cards_empty">Araç kartlarında hiçbir şey gösterilmez.</string>
     <string name="settings_chat_cards_one_line">Tek satır kartlar</string>
+    <string name="settings_chat_cards_preset_compact">Kompakt</string>
+    <string name="settings_chat_cards_preset_balanced">Dengeli</string>
+    <string name="settings_chat_cards_preset_full">Tam</string>
+    <string name="settings_measure_latency">Gecikmeyi ölç</string>
+    <string name="settings_latency_measuring">Ölçülüyor…</string>
+    <string name="settings_latency_title">Sağlayıcı gecikmesi</string>
+    <string name="settings_latency_failed">Yanıt yok</string>
     <string name="settings_chat_cards_status">Yol rozetleri</string>
     <string name="settings_headers_show_preview">"Başlıkları iste"</string>
     <string name="settings_headers_hide_preview">"İstek başlıklarını gizle"</string>

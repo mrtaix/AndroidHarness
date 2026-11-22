@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">بطاقة تجريبية</string>
     <string name="settings_chat_cards_empty">لا يظهر شيء في بطاقات الأدوات.</string>
     <string name="settings_chat_cards_one_line">بطاقات بسطر واحد</string>
+    <string name="settings_chat_cards_preset_compact">مضغوط</string>
+    <string name="settings_chat_cards_preset_balanced">متوازن</string>
+    <string name="settings_chat_cards_preset_full">كامل</string>
+    <string name="settings_measure_latency">قياس زمن الاستجابة</string>
+    <string name="settings_latency_measuring">جارٍ القياس…</string>
+    <string name="settings_latency_title">زمن استجابة المزوّد</string>
+    <string name="settings_latency_failed">لا استجابة</string>
     <string name="settings_chat_cards_status">شارات المسار</string>
     <string name="settings_headers_show_preview">"ترويسات الطلب"</string>
     <string name="settings_headers_hide_preview">"إخفاء ترويسات الطلب"</string>

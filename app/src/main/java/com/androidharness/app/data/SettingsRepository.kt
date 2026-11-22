@@ -1256,6 +1256,22 @@ class SettingsRepository(private val context: Context) {
         context.settingsStore.edit { it[Keys.CHAT_CARDS_ONE_LINE] = oneLine }
     }
 
+    /**
+     * One write for a whole card preset. Six separate setters would rewrite the
+     * preferences file six times and jank the list while the user picks one.
+     */
+    suspend fun setChatCardPreset(compact: Boolean, oneLine: Boolean, output: Boolean, arguments: Boolean,
+        labels: Boolean = true, status: Boolean = true) {
+        context.settingsStore.edit {
+            it[Keys.CHAT_COMPACT_CARDS] = compact
+            it[Keys.CHAT_CARDS_ONE_LINE] = oneLine
+            it[Keys.CHAT_CARDS_OUTPUT] = output
+            it[Keys.CHAT_CARDS_TIMING] = arguments
+            it[Keys.CHAT_CARDS_LABELS] = labels
+            it[Keys.CHAT_CARDS_STATUS] = status
+        }
+    }
+
     suspend fun setResumePrompt(prompt: String) {
         val clean = prompt.trim()
         require(clean.length <= com.androidharness.app.agent.RunRecovery.MAX_PROMPT_CHARS)

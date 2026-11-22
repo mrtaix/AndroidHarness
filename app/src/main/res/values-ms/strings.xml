@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">Kad contoh</string>
     <string name="settings_chat_cards_empty">Tiada apa dipaparkan dalam kad alat.</string>
     <string name="settings_chat_cards_one_line">Kad satu baris</string>
+    <string name="settings_chat_cards_preset_compact">Padat</string>
+    <string name="settings_chat_cards_preset_balanced">Seimbang</string>
+    <string name="settings_chat_cards_preset_full">Penuh</string>
+    <string name="settings_measure_latency">Ukur kependaman</string>
+    <string name="settings_latency_measuring">Mengukur…</string>
+    <string name="settings_latency_title">Kependaman pembekal</string>
+    <string name="settings_latency_failed">Tiada jawapan</string>
     <string name="settings_chat_cards_status">Lencana laluan</string>
     <string name="settings_headers_show_preview">"Minta pengepala"</string>
     <string name="settings_headers_hide_preview">"Sembunyikan pengepala permintaan"</string>

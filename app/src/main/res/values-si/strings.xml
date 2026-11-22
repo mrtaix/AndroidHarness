@@ -617,6 +617,13 @@
     <string name="settings_chat_cards_preview">නියැදි කාඩ්පත</string>
     <string name="settings_chat_cards_empty">මෙවලම් කාඩ්පත්වල කිසිවක් නොපෙන්වයි.</string>
     <string name="settings_chat_cards_one_line">එක් පේළි කාඩ්පත්</string>
+    <string name="settings_chat_cards_preset_compact">කුඩා</string>
+    <string name="settings_chat_cards_preset_balanced">සමතුලිත</string>
+    <string name="settings_chat_cards_preset_full">සම්පූර්ණ</string>
+    <string name="settings_measure_latency">ප්‍රමාදය මනින්න</string>
+    <string name="settings_latency_measuring">මනිමින්…</string>
+    <string name="settings_latency_title">සපයන්නා ප්‍රමාදය</string>
+    <string name="settings_latency_failed">පිළිතුරක් නැත</string>
     <string name="settings_chat_cards_status">මාර්ග ලාංඡන</string>
     <string name="settings_headers_show_preview">"ඉල්ලුම Headers"</string>
     <string name="settings_headers_hide_preview">"Title එක හැංගිලා ගන්න"</string>
