@@ -203,6 +203,14 @@ class GeminiAccounts(
     private fun refusalText(error: Throwable): String? =
         (error as? GeminiProtocol.HttpError)?.let { GeminiProtocol.refusal(it.status, it.body) }
 
+    /** Forget a project that Google may have invalidated, so the next request rediscovers it. */
+    fun forgetProject(providerId: String) {
+        projectCache.remove(providerId)
+        val id = GeminiProtocol.accountId(providerId)
+        if (store.accounts.none { it.id == id && it.project.isNotBlank() }) return
+        persist(store.copy(accounts = store.accounts.map { if (it.id == id) it.copy(project = "") else it }))
+    }
+
     /** Plan, credits and quota buckets for one signed-in account. */
     suspend fun usage(providerId: String): GeminiUsage = withContext(Dispatchers.IO) {
         runCatching {

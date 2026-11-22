@@ -225,6 +225,9 @@ object ProviderFactory {
     @Volatile var geminiToken: (suspend (String) -> String)? = null
     @Volatile var geminiProject: (suspend (String) -> String)? = null
 
+    /** Drops a cached Code Assist project so the next request rediscovers it. */
+    @Volatile var geminiForgetProject: ((String) -> Unit)? = null
+
     fun create(config: ProviderConfig): LlmProvider = when {
         com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(config.id) ->
             checkNotNull(chatGptProvider) { "ChatGPT connection is not initialized." }

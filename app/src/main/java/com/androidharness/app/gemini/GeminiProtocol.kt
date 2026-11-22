@@ -68,8 +68,10 @@ object GeminiProtocol {
         val needsLicence = "subscription_required" in text || "#3501" in text ||
             "license" in text || "licence" in text
         if (!needsLicence) return null
-        return "This Google account has no Antigravity licence (HTTP $status). Model access needs Google AI Pro, AI Ultra or a Gemini Enterprise licence. " +
-            "Sign in with an account that has one, or use a Gemini API key from AI Studio instead."
+        return "Google refused this model request (HTTP $status, #3501). Either the account has no Antigravity licence " +
+            "(Google AI Pro, AI Ultra or Gemini Enterprise), or its Code Assist project id went stale. " +
+            "The cached project was just cleared: send the message again. If it repeats, the account really has no licence — " +
+            "sign in with another Google account or use a Gemini API key from AI Studio."
     }
 
     /** RFC 7636 verifier: 43-128 characters from the unreserved set. */

@@ -167,6 +167,9 @@ class GeminiProvider(
             catch (e: ApiException) {
                 val note = com.androidharness.app.gemini.GeminiProtocol.refusal(e.code, e.message.orEmpty())
                     ?: throw e
+                // A stale Code Assist project answers exactly like a missing licence.
+                // Drop it so the next send rediscovers the account's real project.
+                ProviderFactory.geminiForgetProject?.invoke(config.id)
                 emit(JsonObject(mapOf("error" to JsonObject(mapOf(
                     "message" to JsonPrimitive(note),
                     "code" to JsonPrimitive(e.code),

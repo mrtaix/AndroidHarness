@@ -60,8 +60,8 @@ class GeminiProtocolTest {
     @Test fun `a licence refusal explains the plan requirement and other errors stay silent`() {
         val body = """{"error":{"code":403,"message":"You do not have a valid license of this product (#3501)","status":"PERMISSION_DENIED"}}"""
         val note = GeminiProtocol.refusal(403, body)
-        assertTrue(note.orEmpty().contains("Antigravity licence"))
-        assertTrue(note.orEmpty().contains("AI Studio"))
+        assertTrue(note.orEmpty().contains("#3501"))
+        assertTrue(note.orEmpty().contains("send the message again"))
         assertNull(GeminiProtocol.refusal(403, """{"error":{"status":"INTERNAL"}}"""))
         assertNull(GeminiProtocol.refusal(500, body))
     }

@@ -190,6 +190,7 @@ class AppContainer(val appContext: Context) {
         com.androidharness.app.llm.RotatingKeyProvider.pools = providers::controls
         ProviderFactory.geminiToken = { id -> gemini.accessToken(id) }
         ProviderFactory.geminiProject = { id -> gemini.project(id) }
+        ProviderFactory.geminiForgetProject = { id -> gemini.forgetProject(id) }
         ProviderFactory.chatGptProvider = com.androidharness.app.chatgpt.ChatGptProvider(chatGpt::accessToken,
             modelEntry = { id, model -> chatGpt.state.value.accounts.firstOrNull { it.providerId == id }?.models?.firstOrNull { it.id == model } })
         com.androidharness.app.llm.ModelCatalog.chatGptModels = { chatGpt.refreshModels(it) }
