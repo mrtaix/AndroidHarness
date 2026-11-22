@@ -71,7 +71,7 @@ class SettingsNavigationTest {
             R.string.settings_group_data_sync, R.string.settings_group_help_about), displayGroups.keys.toList())
         assertEquals(listOf(SettingsPage.MODELS, SettingsPage.CONNECTED_ACCOUNTS, SettingsPage.LOCAL_MODELS, SettingsPage.NINE_ROUTER),
             displayGroups.getValue(R.string.settings_group_ai_models).map { it.page })
-        assertEquals(listOf(SettingsPage.CHAT_OPTIONS, SettingsPage.CODING, SettingsPage.MEMORY, SettingsPage.VOICE, SettingsPage.LIVE_MODE),
+        assertEquals(listOf(SettingsPage.CHAT_OPTIONS, SettingsPage.ADVANCED_FEATURES, SettingsPage.CODING, SettingsPage.MEMORY, SettingsPage.VOICE, SettingsPage.LIVE_MODE),
             displayGroups.getValue(R.string.settings_group_your_assistant).map { it.page })
         assertEquals(listOf(SettingsPage.SEARCH, SettingsPage.MCP, SettingsPage.GITHUB, SettingsPage.TELEGRAM),
             displayGroups.getValue(R.string.settings_group_integrations).map { it.page })

@@ -139,7 +139,7 @@ internal enum class SettingsPage(
     ADVANCED_FEATURES(
         R.string.settings_page_advanced_title,
         R.string.settings_page_advanced_desc,
-        R.string.settings_group_coding,
+        R.string.settings_group_your_assistant,
         "advanced features lsp terminal watch test explorer http client proot dap debugger download tmux pyright typescript clangd debugpy ubuntu off automatic on",
     ),
     CAVEMAN(
