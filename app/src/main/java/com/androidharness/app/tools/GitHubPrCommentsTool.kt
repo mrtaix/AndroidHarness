@@ -62,7 +62,7 @@ class GitHubPullRequestCommentsTool(
         pr.string("html_url")?.let { out.append(it).append('\n') }
 
         if (include == "all" || include == "reviews") {
-            val reviews = runCatching { api.get("$base/pulls/$number/reviews").jsonArrayOrNull() }
+            val reviews = runCatching { api.get("$base/pulls/$number/reviews").jsonArrayOrEmpty() }
                 .getOrDefault(JsonArray(emptyList()))
             if (reviews.isNotEmpty()) {
                 out.append("\n## Reviews (").append(reviews.size).append(")\n")
@@ -79,7 +79,7 @@ class GitHubPullRequestCommentsTool(
         }
 
         if (include == "all" || include == "inline") {
-            val inline = runCatching { api.get("$base/pulls/$number/comments").jsonArrayOrNull() }
+            val inline = runCatching { api.get("$base/pulls/$number/comments").jsonArrayOrEmpty() }
                 .getOrDefault(JsonArray(emptyList()))
             if (inline.isNotEmpty()) {
                 out.append("\n## Inline comments (").append(inline.size).append(")\n")
@@ -99,7 +99,7 @@ class GitHubPullRequestCommentsTool(
         }
 
         if (include == "all" || include == "comments") {
-            val comments = runCatching { api.get("$base/issues/$number/comments").jsonArrayOrNull() }
+            val comments = runCatching { api.get("$base/issues/$number/comments").jsonArrayOrEmpty() }
                 .getOrDefault(JsonArray(emptyList()))
             if (comments.isNotEmpty()) {
                 out.append("\n## Conversation (").append(comments.size).append(")\n")
@@ -124,7 +124,7 @@ class GitHubPullRequestCommentsTool(
 
     private fun GitHubReadResponse.jsonObjectOrNull(): JsonObject? = jsonElementOrNull() as? JsonObject
 
-    private fun GitHubReadResponse.jsonArrayOrNull(): JsonArray? = jsonElementOrNull() as? JsonArray
+    private fun GitHubReadResponse.jsonArrayOrEmpty(): JsonArray = jsonElementOrNull() as? JsonArray ?: JsonArray(emptyList())
 
     companion object { const val NAME = "github_pr_comments" }
 }
