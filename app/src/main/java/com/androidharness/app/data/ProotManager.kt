@@ -7,6 +7,7 @@ import java.io.File
 import java.io.StringBuffer
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
+import kotlin.concurrent.gobble
 
 /**
  * Ubuntu on demand through `proot-distro`, which the Linux environment already
@@ -39,8 +40,8 @@ class ProotManager(
             builder.start().also { proc ->
                 val stdout = StringBuffer()
                 val stderr = StringBuffer()
-                val out = thread { gobble(proc.inputStream, stdout, 12_000) }
-                val err = thread { gobble(proc.errorStream, stderr, 12_000) }
+                val out = thread { gobble(proc.inputStream, stdout, 12_000L) }
+                val err = thread { gobble(proc.errorStream, stderr, 12_000L) }
                 listOf(out, err).forEach { it.isDaemon = true; it.start() }
                 val exitCode = runCatching { proc.waitFor(timeoutMs, TimeUnit.MILLISECONDS) }
                     .getOrElse { proc.destroyForcibly(); false }

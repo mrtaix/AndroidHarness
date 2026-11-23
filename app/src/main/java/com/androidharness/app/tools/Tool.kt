@@ -144,7 +144,7 @@ class ToolRegistry(private val tools: List<Tool>) {
                 HttpSendTool(),
                 TestRunnerTool(shellRouter),
                 DapTool({ command -> linuxEnv.shellProcessBuilder(command) }) { java.io.File(".") },
-                ProotTool({ com.androidharness.app.data.ProotManager(shellRouter) }) { java.io.File(".") },
+                ProotTool({ com.androidharness.app.data.ProotManager(shellRouter, linuxEnv) }) { java.io.File(".") },
                 LanguageServerAutoTool({ linuxEnv.prefix }) { command -> linuxEnv.shellProcessBuilder(command) },
                 CreateDirTool(),
                 DeleteFileTool(),
