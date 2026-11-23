@@ -1,22 +1,14 @@
 package com.androidharness.app.data
 
-import com.androidharness.app.data.env.ExecutionTier
 import com.androidharness.app.data.env.ShellTierRouter
-import com.androidharness.app.data.env.ShellRunResult
 import java.io.File
-import java.io.StringWriter
-import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 
 /**
  * Ubuntu on demand through `proot-distro`, which the Linux environment already
  * ships. A container lives in the prefix, so it survives app updates and needs
  * no Android root: proot maps the guest root user onto the app uid.
  */
-class ProotManager(
-    private val router: ShellTierRouter,
-    private val linuxEnv: com.androidharness.app.data.env.LinuxEnvironmentManager
-) {
+class ProotManager(private val router: ShellTierRouter) {
     data class State(val distros: List<String>, val raw: String)
 
     suspend fun status(cwd: File): State {
@@ -30,31 +22,7 @@ class ProotManager(
         require(distro.matches(Regex("[a-z0-9][a-z0-9.:-]{1,40}"))) {
             "Distribution names look like ubuntu, ubuntu:24.04 or debian; got \"$distro\""
         }
-        // Use the app's shell environment which has the correct PATH to proot-distro
-        val result = runCatching {
-            val builder = linuxEnv.shellProcessBuilder("proot-distro install ${ProotCommand.quote(distro)}")
-            builder.directory(cwd)
-            builder.redirectErrorStream(true)
-            builder.environment().putAll(linuxEnv.processEnv())
-            builder.start().also { proc ->
-                val stdout = StringWriter()
-                val stderr = StringWriter()
-                val out = thread { copyStream(proc.inputStream, stdout, 12_000) }
-                val err = thread { copyStream(proc.errorStream, stderr, 12_000) }
-                listOf(out, err).forEach { it.isDaemon = true; it.start() }
-                val exitCode = runCatching { proc.waitFor(timeoutMs, TimeUnit.MILLISECONDS) }
-                    .getOrElse { proc.destroyForcibly(); false }
-                ShellRunResult(
-                    exitCode = proc.exitValue(),
-                    timedOut = !exitCode,
-                    rawOutput = stdout.toString(),
-                    rawStderr = stderr.toString(),
-                    tier = ExecutionTier.APP_LINUX,
-                    note = null
-                )
-            }
-        }
-        val result = result.getOrElse { ShellRunResult(-1, false, "", it.message.orEmpty(), ExecutionTier.APP_LINUX, "Failed to start proot-distro") }
+        val result = router.run("proot-distro install ${ProotCommand.quote(distro)}", cwd, timeoutMs, maxOutput = 12_000)
         val text = (result.rawOutput + "\n" + result.rawStderr).trim()
         return if (result.exitCode == 0 || text.contains("already exists", ignoreCase = true)) {
             "Installed $distro.\n" + text.lineSequence().filter { it.isNotBlank() }.toList().takeLast(8).joinToString("\n")
@@ -122,17 +90,5 @@ class ProotManager(
             File(cwd, ".proot-distro/$name/rootfs"),
         )
         return candidates.firstOrNull { File(it, "etc/os-release").isFile || File(it, "bin").isDirectory }
-    }
-
-    private fun copyStream(input: java.io.InputStream, output: StringWriter, maxBytes: Int) {
-        val buffer = ByteArray(8192)
-        var total = 0
-        while (true) {
-            val read = input.read(buffer)
-            if (read == -1) break
-            total += read
-            if (total > maxBytes) break
-            output.write(buffer, 0, read)
-        }
     }
 }

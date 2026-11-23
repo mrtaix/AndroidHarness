@@ -121,7 +121,7 @@ class DevProvisioner(
             // ProotManager already runs proot-distro through the shell router, which
             // is the tier that has the tool; installing from the app prefix would
             // report "command not found" (exit 127).
-            val output = ProotManager(router, linuxEnv).install("ubuntu", File("."))
+            val output = ProotManager(router).install("ubuntu", File("."))
             (output.startsWith("Installed") || output.contains("already installed", ignoreCase = true)) to output
         }
         else -> false to "Unknown payload \"$id\""

@@ -405,7 +405,7 @@ class LinuxEnvironmentManager(
     val corePackages = listOf("bash", "busybox", "ca-certificates", "termux-exec", "git")
 
     /** Everything a coding agent may need, used by the chat install card. */
-    val fullPackages = corePackages + listOf("gh", "python", "python-pip", "nodejs", "npm", "proot-distro")
+    val fullPackages = corePackages + listOf("gh", "python", "python-pip", "nodejs", "npm")
 
     /** Installs [wanted] plus their full dependency closure. Resumes after interruptions. */
     suspend fun install(wanted: List<String>, requester: String = "Manual install",
