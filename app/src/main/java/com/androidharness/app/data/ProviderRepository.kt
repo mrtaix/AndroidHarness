@@ -350,7 +350,9 @@ class ProviderRepository(
             if (gemini.state.value.accounts.any { it.providerId == providerId && it.connected }) "managed-oauth" else null
         com.androidharness.app.local.LocalModelCatalog.isLocal(providerId) -> "local"
         providerId == HarnessProvider.ID -> HarnessProvider.KEYLESS
-        providerId == OpenCodeFreeProvider.ID -> HarnessProvider.KEYLESS
+        // OpenCode's free anonymous tier expects the literal `public` bearer;
+        // an empty or sentinel key comes back as 401 Invalid credential.
+        providerId == OpenCodeFreeProvider.ID -> "public"
         else -> keys.getKey(providerId)
     }
 

@@ -24,7 +24,9 @@ class RotatingKeyProvider(
         val enabled = pool.keys.filter { it.enabled }
         if (enabled.isEmpty()) {
             if (pool.keys.isNotEmpty()) emit(StreamEvent.Failure("Enable an API key in provider controls before using this connection.", retryable = false))
-            else delegate.streamChat(config, config.effectiveApiKey(null), systemPrompt, messages, tools, options).collect { emit(it) }
+            // Use the key the caller resolved (keyless sentinel, managed OAuth,
+            // etc.) instead of dropping it and deriving one from the base URL.
+            else delegate.streamChat(config, apiKey.ifBlank { config.effectiveApiKey(null) }, systemPrompt, messages, tools, options).collect { emit(it) }
             return@flow
         }
         val start = if (pool.rotate) Math.floorMod(cursor.getAndIncrement(), enabled.size.toLong()).toInt() else 0

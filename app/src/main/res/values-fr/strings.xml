@@ -1209,4 +1209,5 @@
     <string name="ui_skill_name">Skill name</string>
     <string name="ui_save">Save</string>
     <string name="auto_approve_all_title">Auto-approve everything</string>
+    <string name="auto_approve_all_desc">Approve every tool prompt automatically, including settings, plugins, schedules and package installs.</string>
 </resources>

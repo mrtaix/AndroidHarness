@@ -98,6 +98,7 @@ internal fun AgentBehaviorSection(
     onSteeringMode: (SteeringMode) -> Unit = {},
     onRunTips: (Boolean) -> Unit = {},
     onAutoContinueQuestions: (Boolean) -> Unit = {},
+    onAutoApproveAll: (Boolean) -> Unit = {},
     onAutoCompact: (Int) -> Unit = {},
     /** Blank restores the built-in resume prompt. */
     onResumePrompt: (String) -> Unit = {},
@@ -128,16 +129,31 @@ internal fun AgentBehaviorSection(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         BehaviorGroup(stringResource(R.string.settings_agent_group_permissions), Icons.Rounded.Security) {
-            SettingsAnchor(R.string.settings_anchor_default_permission) {
-                BehaviorValueRow(
-                    title = stringResource(R.string.settings_anchor_default_permission),
-                    value = localizedOption(settings.permissionMode.label),
-                    description = settings.permissionMode.description(),
-                    onClick = { pickerName = BehaviorPicker.PERMISSIONS.name },
-                    caution = settings.permissionMode == PermissionMode.FULL_ACCESS,
-                )
+                SettingsAnchor(R.string.settings_anchor_default_permission) {
+                    BehaviorValueRow(
+                        title = stringResource(R.string.settings_anchor_default_permission),
+                        value = localizedOption(settings.permissionMode.label),
+                        description = settings.permissionMode.description(),
+                        onClick = { pickerName = BehaviorPicker.PERMISSIONS.name },
+                        caution = settings.permissionMode == PermissionMode.FULL_ACCESS,
+                    )
+                }
+                BehaviorDivider()
+                SettingsAnchor(R.string.auto_approve_all_title) {
+                    Row(
+                        Modifier.fillMaxWidth().clickable(role = Role.Switch) { onAutoApproveAll(!settings.autoApproveAll) }.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(stringResource(R.string.auto_approve_all_title), style = MaterialTheme.typography.titleSmall)
+                            Text(stringResource(R.string.auto_approve_all_desc), style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Switch(checked = settings.autoApproveAll, onCheckedChange = null)
+                    }
+                }
             }
-        }
         BehaviorGroup(stringResource(R.string.settings_agent_group_run_limits), Icons.Rounded.Tune) {
             SettingsAnchor(R.string.settings_anchor_max_context) {
                 BehaviorValueRow(

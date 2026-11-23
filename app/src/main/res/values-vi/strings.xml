@@ -1201,4 +1201,5 @@
     <string name="ui_skill_name">Tên skill</string>
     <string name="ui_save">Lưu</string>
     <string name="auto_approve_all_title">Tự động phê duyệt tất cả</string>
+    <string name="auto_approve_all_desc">Tự động phê duyệt mọi lời nhắc công cụ, gồm cả cài đặt, plugin, lịch trình và cài gói.</string>
 </resources>

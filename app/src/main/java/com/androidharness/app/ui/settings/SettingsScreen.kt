@@ -2053,6 +2053,7 @@ private fun AgentSection(
         onSteeringMode = { scope.launch { container.settings.setSteeringMode(it) } },
         onRunTips = { scope.launch { container.settings.setRunTipsEnabled(it) } },
         onAutoContinueQuestions = { scope.launch { container.settings.setAutoContinueQuestions(it) } },
+        onAutoApproveAll = { scope.launch { container.settings.setAutoApproveAll(it) } },
         onAgentSettingsAccess = { scope.launch { container.settings.setAgentSettingsAccess(it) } },
         onStallTimeout = { scope.launch { container.settings.setStreamStallTimeoutSeconds(it) } },
         onStreamFileWrites = { scope.launch { container.settings.setStreamFileWritesAsText(it) } },
