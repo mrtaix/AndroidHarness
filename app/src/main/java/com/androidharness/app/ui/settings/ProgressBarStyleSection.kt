@@ -16,6 +16,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -31,6 +35,10 @@ import com.androidharness.app.ui.common.RadioButton
 
 @Composable
 internal fun ProgressBarStyleSection(selectedStyle: ProgressBarStyle, onSelect: (ProgressBarStyle) -> Unit) {
+    // Reflect the tap immediately instead of waiting for the DataStore flow to
+    // travel back; the persisted value still wins whenever it changes.
+    var chosen by remember(selectedStyle) { mutableStateOf(selectedStyle) }
+    fun pick(style: ProgressBarStyle) { chosen = style; onSelect(style) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.settings_anchor_progress_bar_style), style = MaterialTheme.typography.bodyLarge)
         Text(stringResource(R.string.settings_progress_bar_subtitle),
@@ -39,13 +47,13 @@ internal fun ProgressBarStyleSection(selectedStyle: ProgressBarStyle, onSelect: 
             if (maxWidth >= 300.dp * LocalDensity.current.fontScale) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     ProgressBarStyle.entries.forEach { style ->
-                        ProgressStyleChoice(style, selectedStyle == style, { onSelect(style) }, Modifier.weight(1f))
+                        ProgressStyleChoice(style, chosen == style, { pick(style) }, Modifier.weight(1f))
                     }
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ProgressBarStyle.entries.forEach { style ->
-                        ProgressStyleChoice(style, selectedStyle == style, { onSelect(style) }, Modifier.fillMaxWidth())
+                        ProgressStyleChoice(style, chosen == style, { pick(style) }, Modifier.fillMaxWidth())
                     }
                 }
             }
@@ -66,7 +74,7 @@ private fun ProgressStyleChoice(style: ProgressBarStyle, isSelected: Boolean, on
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(if (style == ProgressBarStyle.FLAT) uiContext.getString(R.string.ui_flat) else uiContext.getString(R.string.ui_squiggly), Modifier.weight(1f),
                     style = MaterialTheme.typography.labelLarge)
-                RadioButton(selected = isSelected, onClick = null)
+                RadioButton(selected = isSelected, onClick = onClick)
             }
             CompositionLocalProvider(LocalProgressBarStyle provides style) {
                 AppLinearProgressIndicator(Modifier.fillMaxWidth().clearAndSetSemantics {}, trackColor = scheme.outlineVariant)

@@ -194,12 +194,11 @@ internal fun TodoCard(todos: List<TodoItem>) {
                     }
                 },
             )
-            androidx.compose.material3.LinearWavyProgressIndicator(
-                progress = { progress },
+            com.androidharness.app.ui.common.AppLinearProgressIndicator(
+                { progress },
+                Modifier.fillMaxWidth().padding(start = 56.dp, end = 16.dp, bottom = 12.dp),
                 color = if (allDone) success else scheme.primary,
                 trackColor = scheme.surfaceContainerHighest,
-                amplitude = { if (allDone) 0f else 1f },
-                modifier = Modifier.fillMaxWidth().padding(start = 56.dp, end = 16.dp, bottom = 12.dp),
             )
             AnimatedVisibility(expanded,
                 enter = expandVertically(animationSpec = bouncySpec()) + fadeIn(),
