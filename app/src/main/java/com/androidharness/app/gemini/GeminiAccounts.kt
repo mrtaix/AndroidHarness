@@ -282,7 +282,7 @@ class GeminiAccounts(
             (element as? JsonObject)?.get("id")?.jsonPrimitive?.contentOrNull ?: element.jsonPrimitive.contentOrNull
         } ?: loaded["projectId"]?.jsonPrimitive?.contentOrNull
         // A new consumer account has no project yet; onboarding creates one.
-        val project = server?.takeIf { it.isNotBlank() } ?: run {
+        val project: String = server?.takeIf { it.isNotBlank() } ?: run {
             val tiers = (loaded["allowedTiers"] as? kotlinx.serialization.json.JsonArray).orEmpty()
                 .mapNotNull { (it as? JsonObject)?.get("id")?.jsonPrimitive?.contentOrNull }
             val tier = tiers.firstOrNull { it.contains("free") } ?: tiers.firstOrNull()
@@ -298,15 +298,11 @@ class GeminiAccounts(
                     (element as? JsonObject)?.get("id")?.jsonPrimitive?.contentOrNull ?: element.jsonPrimitive.contentOrNull
                 }
             }?.takeIf { it.isNotBlank() }
-        }
-        if (project.isNullOrBlank()) {
+        } ?: run {
             // The Antigravity hub uses this fixed project when loadCodeAssist
             // returns none (business/workspace accounts). A fabricated UUID is
             // rejected with 403 #3501; this one is accepted by the service.
-            val fixed = GeminiProtocol.DEFAULT_PROJECT
-            persist(store.copy(accounts = store.accounts.map { if (it.id == id) it.copy(project = fixed) else it }))
-            projectCache[providerId] = fixed
-            fixed
+            GeminiProtocol.DEFAULT_PROJECT
         }
         persist(store.copy(accounts = store.accounts.map { if (it.id == id) it.copy(project = project) else it }))
         projectCache[providerId] = project
