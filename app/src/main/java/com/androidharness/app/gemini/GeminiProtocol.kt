@@ -21,7 +21,10 @@ object GeminiProtocol {
     const val CODE_ASSIST_FALLBACK = "https://cloudcode-pa.googleapis.com"
 
     /** The wire fingerprint `agy` sends; Google gates model catalog visibility on it. */
-    const val USER_AGENT = "antigravity/cli/1.5.5 (aidev_client; os_type=linux; arch=amd64; cl=982146307; auth_method=consumer)"
+    const val USER_AGENT = "antigravity/hub/2.24.0 (aidev_client; os_type=darwin; arch=arm64; cl=1000335682)"
+
+    /** Project the Antigravity hub itself uses when loadCodeAssist returns none. */
+    const val DEFAULT_PROJECT = "rising-fact-p41fc"
 
     /** The scopes the Antigravity CLI requests. */
     val SCOPES = listOf(

@@ -300,14 +300,13 @@ class GeminiAccounts(
             }?.takeIf { it.isNotBlank() }
         }
         if (project.isNullOrBlank()) {
-            // A fabricated UUID is NOT a valid Cloud Code Assist project: Google
-            // answers 403 #3501 even for a licensed account. Never cache one.
-            projectCache.remove(providerId)
-            persist(store.copy(accounts = store.accounts.map { if (it.id == id) it.copy(project = "") else it }))
-            throw GeminiProtocol.HttpError(403,
-                "Google did not return a Code Assist project for this account. " +
-                    "Sign out and sign in again with an account that has Antigravity access, " +
-                    "or use a Gemini API key from AI Studio.")
+            // The Antigravity hub uses this fixed project when loadCodeAssist
+            // returns none (business/workspace accounts). A fabricated UUID is
+            // rejected with 403 #3501; this one is accepted by the service.
+            val fixed = GeminiProtocol.DEFAULT_PROJECT
+            persist(store.copy(accounts = store.accounts.map { if (it.id == id) it.copy(project = fixed) else it }))
+            projectCache[providerId] = fixed
+            fixed
         }
         persist(store.copy(accounts = store.accounts.map { if (it.id == id) it.copy(project = project) else it }))
         projectCache[providerId] = project
