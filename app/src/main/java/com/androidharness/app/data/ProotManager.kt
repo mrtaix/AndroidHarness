@@ -4,10 +4,10 @@ import com.androidharness.app.data.env.ExecutionTier
 import com.androidharness.app.data.env.ShellTierRouter
 import com.androidharness.app.data.env.ShellRunResult
 import java.io.File
-import java.io.StringBuffer
+import java.io.StringWriter
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
-import kotlin.concurrent.gobble
+import kotlinx.coroutines.gobble
 
 /**
  * Ubuntu on demand through `proot-distro`, which the Linux environment already
@@ -38,10 +38,10 @@ class ProotManager(
             builder.redirectErrorStream(true)
             builder.environment().putAll(linuxEnv.processEnv())
             builder.start().also { proc ->
-                val stdout = StringBuffer()
-                val stderr = StringBuffer()
-                val out = thread { gobble(proc.inputStream, stdout, 12_000L) }
-                val err = thread { gobble(proc.errorStream, stderr, 12_000L) }
+                val stdout = StringWriter()
+                val stderr = StringWriter()
+                val out = thread { kotlinx.coroutines.gobble(proc.inputStream, stdout, 12_000L) }
+                val err = thread { kotlinx.coroutines.gobble(proc.errorStream, stderr, 12_000L) }
                 listOf(out, err).forEach { it.isDaemon = true; it.start() }
                 val exitCode = runCatching { proc.waitFor(timeoutMs, TimeUnit.MILLISECONDS) }
                     .getOrElse { proc.destroyForcibly(); false }
