@@ -22,7 +22,31 @@ class ProotManager(private val router: ShellTierRouter) {
         require(distro.matches(Regex("[a-z0-9][a-z0-9.:-]{1,40}"))) {
             "Distribution names look like ubuntu, ubuntu:24.04 or debian; got \"$distro\""
         }
-        val result = router.run("proot-distro install ${ProotCommand.quote(distro)}", cwd, timeoutMs, maxOutput = 12_000)
+        // Use the app's shell environment which has the correct PATH to proot-distro
+        val result = runCatching {
+            val builder = linuxEnv.shellProcessBuilder("proot-distro install ${ProotCommand.quote(distro)}")
+            builder.directory(cwd)
+            builder.redirectErrorStream(true)
+            builder.environment().putAll(linuxEnv.processEnv())
+            builder.start().also { proc ->
+                val stdout = StringBuffer()
+                val stderr = StringBuffer()
+                val out = Thread { gobble(proc.inputStream, stdout, 12_000) }
+                val err = Thread { gobble(proc.errorStream, stderr, 12_000) }
+                listOf(out, err).forEach { it.isDaemon = true; it.start() }
+                val exitCode = runCatching { proc.waitFor(timeoutMs, TimeUnit.MILLISECONDS) }
+                    .getOrElse { proc.destroyForcibly(); false }
+                ShellRunResult(
+                    exitCode = proc.exitValue(),
+                    timedOut = !exitCode,
+                    rawOutput = stdout.toString(),
+                    rawStderr = stderr.toString(),
+                    tier = ExecutionTier.APP_LINUX,
+                    note = null
+                )
+            }
+        }
+        val result = result.getOrElse { ShellRunResult(-1, false, "", it.message.orEmpty(), ExecutionTier.APP_LINUX, "Failed to start proot-distro") }
         val text = (result.rawOutput + "\n" + result.rawStderr).trim()
         return if (result.exitCode == 0 || text.contains("already exists", ignoreCase = true)) {
             "Installed $distro.\n" + text.lineSequence().filter { it.isNotBlank() }.toList().takeLast(8).joinToString("\n")
