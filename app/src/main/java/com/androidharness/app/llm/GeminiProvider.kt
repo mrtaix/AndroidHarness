@@ -50,11 +50,13 @@ class GeminiProvider(
             val project = checkNotNull(ProviderFactory.geminiProject?.invoke(config.id)) {
                 "Google did not return a Code Assist project for this account."
             }
-            // The wire envelope `agy` sends (verified against opencodex/CLIProxyAPI):
-            // requestId is "agent-<uuid>" with a hyphen, and the only extra key in
-            // `request` is sessionId. Non-first-party keys such as `labels` and a
-            // slash-separated requestId were refused with 403 #3501 even though
-            // the account had a valid licence.
+            val gp = com.androidharness.app.gemini.GeminiProtocol
+            // A personal Google account has no Antigravity licence. Sending a plain
+            // Gemini model to the daily Antigravity hub is refused with 403 #3501.
+            // The Gemini CLI quota path (production host + CLI headers + plain
+            // project/model/request envelope) works for those accounts. Only a
+            // model explicitly suffixed `:antigravity` uses the hub wire.
+            val hubWire = config.model.contains(":antigravity", ignoreCase = true)
             val inner = JsonObject(body.toMutableMap().apply {
                 put("sessionId", kotlinx.serialization.json.JsonPrimitive(java.util.UUID.randomUUID().toString()))
             })
@@ -62,14 +64,23 @@ class GeminiProvider(
                 put("model", config.model)
                 put("project", project)
                 put("request", inner)
-                put("requestType", "agent")
-                put("userAgent", "antigravity")
-                put("requestId", "agent-${java.util.UUID.randomUUID()}")
+                if (hubWire) {
+                    put("requestType", "agent")
+                    put("userAgent", "antigravity")
+                    put("requestId", "agent-${java.util.UUID.randomUUID()}")
+                }
             }
+            val host = if (hubWire) gp.CODE_ASSIST else gp.CODE_ASSIST_CLI
             return Request.Builder()
-                .url("${com.androidharness.app.gemini.GeminiProtocol.CODE_ASSIST}/v1internal:streamGenerateContent?alt=sse")
+                .url("$host/v1internal:streamGenerateContent?alt=sse")
                 .header("Authorization", "Bearer $token")
-                .header("User-Agent", com.androidharness.app.gemini.GeminiProtocol.USER_AGENT)
+                .header("User-Agent", if (hubWire) gp.USER_AGENT else gp.CLI_USER_AGENT)
+                .apply {
+                    if (!hubWire) {
+                        header("X-Goog-Api-Client", gp.CLI_API_CLIENT)
+                        header("Client-Metadata", gp.CLI_METADATA)
+                    }
+                }
                 .post(wrapped.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
                 .apply { ProviderHeaders.apply(this, config, options.debugAttempt, options.debugKeySlot, options.debugGroup, options.cacheKey) }
                 .build()

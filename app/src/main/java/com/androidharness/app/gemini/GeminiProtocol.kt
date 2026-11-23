@@ -20,6 +20,17 @@ object GeminiProtocol {
     const val CODE_ASSIST = "https://daily-cloudcode-pa.googleapis.com"
     const val CODE_ASSIST_FALLBACK = "https://cloudcode-pa.googleapis.com"
 
+    /**
+     * A personal Google account without an Antigravity licence is still allowed
+     * through the Gemini CLI quota path. Per opencode-antigravity-auth, that path
+     * uses the production host and three specific headers, and sends a plain
+     * `project/model/request` envelope (no requestType/userAgent/requestId).
+     */
+    const val CODE_ASSIST_CLI = "https://cloudcode-pa.googleapis.com"
+    const val CLI_USER_AGENT = "google-api-nodejs-client/9.15.1"
+    const val CLI_API_CLIENT = "gl-node/22.17.0"
+    const val CLI_METADATA = "ideType=IDE_UNSPECIFIED,platform=PLATFORM_UNSPECIFIED,pluginType=GEMINI"
+
     /** The wire fingerprint `agy` sends; Google gates model catalog visibility on it. */
     const val USER_AGENT = "antigravity/hub/2.24.0 (aidev_client; os_type=darwin; arch=arm64; cl=1000335682)"
 

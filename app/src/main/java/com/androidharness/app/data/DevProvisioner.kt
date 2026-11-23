@@ -118,11 +118,17 @@ class DevProvisioner(
         "typescript" -> command("npm install -g typescript typescript-language-server", "TypeScript language server", 900_000)
         "debugpy" -> command("python -m pip install --user debugpy", "debugpy", 900_000)
         "ubuntu" -> {
-            // ProotManager already runs proot-distro through the shell router, which
-            // is the tier that has the tool; installing from the app prefix would
-            // report "command not found" (exit 127).
-            val output = ProotManager(router).install("ubuntu", File("."))
-            (output.startsWith("Installed") || output.contains("already installed", ignoreCase = true)) to output
+            // proot-distro lives in the app's own Linux prefix; without it every
+            // shell tier answers "command not found" (exit 127). Install the
+            // binary packages through the same manager that owns the prefix,
+            // then let ProotManager drive the container install.
+            val prepared = linuxEnv.install(listOf("proot", "proot-distro"), requester = "Ubuntu container")
+            if (prepared.isFailure) {
+                false to ("Installing proot-distro failed: " + (prepared.exceptionOrNull()?.message ?: "unknown error"))
+            } else {
+                val output = ProotManager(router).install("ubuntu", File("."))
+                (output.startsWith("Installed") || output.contains("already installed", ignoreCase = true)) to output
+            }
         }
         else -> false to "Unknown payload \"$id\""
     }
