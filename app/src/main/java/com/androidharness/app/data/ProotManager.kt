@@ -24,7 +24,7 @@ class ProotManager(private val router: ShellTierRouter) {
         }
         val result = router.run("proot-distro install ${ProotCommand.quote(distro)}", cwd, timeoutMs, maxOutput = 12_000)
         val text = (result.rawOutput + "\n" + result.rawStderr).trim()
-        return if (result.exitCode == 0) {
+        return if (result.exitCode == 0 || text.contains("already exists", ignoreCase = true)) {
             "Installed $distro.\n" + text.lineSequence().filter { it.isNotBlank() }.toList().takeLast(8).joinToString("\n")
         } else {
             "Install of $distro failed (exit ${result.exitCode}" + (if (result.timedOut) ", timed out" else "") + ").\n$text"

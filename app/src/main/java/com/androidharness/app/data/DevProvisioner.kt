@@ -86,17 +86,29 @@ class DevProvisioner(
             state.copy(payloads = state.payloads + (id to current.copy(status = Status.INSTALLING, detail = "Starting…")))
         }
         scope.launch {
-            val outcome = runCatching { perform(id) }
+            val outcome = if (id == "ubuntu" && containerExists()) {
+                // The container is already there: don't re-run proot-distro install,
+                // which would block until the install timeout expires.
+                "Installed ubuntu." to true
+            } else runCatching { perform(id) }.getOrNull()
             _state.update { state ->
-                val done = outcome.getOrNull()
-                val failed = outcome.exceptionOrNull()
+                val done = outcome?.second
+                val detail = outcome?.first
                 state.copy(payloads = state.payloads + (id to current.copy(
-                    status = if (done != null && done.first) Status.READY else Status.FAILED,
-                    detail = done?.second ?: (failed?.message ?: "Install failed"),
+                    status = if (done == true) Status.READY else Status.FAILED,
+                    detail = detail ?: "Install failed",
                 )))
             }
             refresh()
         }
+    }
+
+    private suspend fun containerExists(): Boolean {
+        val text = runCatching {
+            val result = router.run("proot-distro list", File("."), timeoutMs = 30_000, maxOutput = 8_000)
+            result.rawOutput + "\n" + result.rawStderr
+        }.getOrDefault("")
+        return ProotDistroList.parse(text).contains("ubuntu")
     }
 
     private suspend fun perform(id: String): Pair<Boolean, String> = when (id) {
