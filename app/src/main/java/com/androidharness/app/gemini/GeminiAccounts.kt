@@ -299,10 +299,9 @@ class GeminiAccounts(
                 }
             }?.takeIf { it.isNotBlank() }
         } ?: run {
-            // The Antigravity hub uses this fixed project when loadCodeAssist
-            // returns none (business/workspace accounts). A fabricated UUID is
-            // rejected with 403 #3501; this one is accepted by the service.
-            GeminiProtocol.DEFAULT_PROJECT
+            // The Antigravity hub generates a synthetic `adjective-noun-xxxxx`
+            // project when loadCodeAssist returns none (same as the CLI).
+            GeminiProtocol.syntheticProject()
         }
         persist(store.copy(accounts = store.accounts.map { if (it.id == id) it.copy(project = project) else it }))
         projectCache[providerId] = project

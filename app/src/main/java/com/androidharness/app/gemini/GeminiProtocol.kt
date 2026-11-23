@@ -20,24 +20,19 @@ object GeminiProtocol {
     const val CODE_ASSIST = "https://daily-cloudcode-pa.googleapis.com"
     const val CODE_ASSIST_FALLBACK = "https://cloudcode-pa.googleapis.com"
 
-    /**
-     * A personal Google account without an Antigravity licence is still allowed
-     * through the Gemini CLI quota path. Per opencode-antigravity-auth, that path
-     * uses the production host and three specific headers, and sends a plain
-     * `project/model/request` envelope (no requestType/userAgent/requestId).
-     */
-    const val CODE_ASSIST_CLI = "https://cloudcode-pa.googleapis.com"
-    const val CLI_USER_AGENT = "google-api-nodejs-client/9.15.1"
-    const val CLI_API_CLIENT = "gl-node/22.17.0"
-    const val CLI_METADATA = "ideType=IDE_UNSPECIFIED,platform=PLATFORM_UNSPECIFIED,pluginType=GEMINI"
-
     /** The wire fingerprint `agy` sends; Google gates model catalog visibility on it. */
     const val USER_AGENT = "antigravity/hub/2.24.0 (aidev_client; os_type=darwin; arch=arm64; cl=1000335682)"
 
-    /** Project the Antigravity hub itself uses when loadCodeAssist returns none. */
-    const val DEFAULT_PROJECT = "rising-fact-p41fc"
+    /** Synthetic project id shape used by the Antigravity hub when
+     *  loadCodeAssist returns none: `adjective-noun-xxxxx`. */
+    private val PROJECT_ADJECTIVES = listOf("useful", "bright", "swift", "calm", "bold")
+    private val PROJECT_NOUNS = listOf("fuze", "wave", "spark", "flow", "core")
+    fun syntheticProject(): String {
+        val part = java.util.UUID.randomUUID().toString().replace("-", "").take(5).lowercase()
+        return "${PROJECT_ADJECTIVES.random()}-${PROJECT_NOUNS.random()}-$part"
+    }
 
-    /** The scopes the Antigravity CLI requests. */
+    /** The scopes the Antigravity desktop/CLI app requests. */
     val SCOPES = listOf(
         "https://www.googleapis.com/auth/aicode",
         "https://www.googleapis.com/auth/cloud-platform",
@@ -80,7 +75,8 @@ object GeminiProtocol {
         if (status != 401 && status != 403) return null
         val text = body.take(4_000).lowercase()
         val needsLicence = "subscription_required" in text || "#3501" in text ||
-            "license" in text || "licence" in text
+            "3501" in text || "license" in text || "licence" in text ||
+            "permission_denied" in text
         if (!needsLicence) return null
         return "Google refused this model request (HTTP $status, #3501). Either the account has no Antigravity licence " +
             "(Google AI Pro, AI Ultra or Gemini Enterprise), or its Code Assist project id went stale. " +

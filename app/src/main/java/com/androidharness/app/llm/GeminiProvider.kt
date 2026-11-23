@@ -47,16 +47,15 @@ class GeminiProvider(
             val token = checkNotNull(ProviderFactory.geminiToken?.invoke(config.id)) {
                 "Sign in to Google in Settings > Connected accounts."
             }
-            val project = checkNotNull(ProviderFactory.geminiProject?.invoke(config.id)) {
+            val discovered = checkNotNull(ProviderFactory.geminiProject?.invoke(config.id)) {
                 "Google did not return a Code Assist project for this account."
             }
             val gp = com.androidharness.app.gemini.GeminiProtocol
-            // A personal Google account has no Antigravity licence. Sending a plain
-            // Gemini model to the daily Antigravity hub is refused with 403 #3501.
-            // The Gemini CLI quota path (production host + CLI headers + plain
-            // project/model/request envelope) works for those accounts. Only a
-            // model explicitly suffixed `:antigravity` uses the hub wire.
-            val hubWire = config.model.contains(":antigravity", ignoreCase = true)
+            // Google retired the Gemini CLI quota path; every model now uses the
+            // Antigravity hub wire (verified against opencode-antigravity-auth).
+            // An empty or fabricated project is refused with 403 #3501; the
+            // discovery step supplies a synthetic project in the hub's own shape.
+            val project = discovered
             val inner = JsonObject(body.toMutableMap().apply {
                 put("sessionId", kotlinx.serialization.json.JsonPrimitive(java.util.UUID.randomUUID().toString()))
             })
@@ -64,23 +63,15 @@ class GeminiProvider(
                 put("model", config.model)
                 put("project", project)
                 put("request", inner)
-                if (hubWire) {
-                    put("requestType", "agent")
-                    put("userAgent", "antigravity")
-                    put("requestId", "agent-${java.util.UUID.randomUUID()}")
-                }
+                put("requestType", "agent")
+                put("userAgent", "antigravity")
+                put("requestId", "agent-${java.util.UUID.randomUUID()}")
             }
-            val host = if (hubWire) gp.CODE_ASSIST else gp.CODE_ASSIST_CLI
+            val host = gp.CODE_ASSIST
             return Request.Builder()
                 .url("$host/v1internal:streamGenerateContent?alt=sse")
                 .header("Authorization", "Bearer $token")
-                .header("User-Agent", if (hubWire) gp.USER_AGENT else gp.CLI_USER_AGENT)
-                .apply {
-                    if (!hubWire) {
-                        header("X-Goog-Api-Client", gp.CLI_API_CLIENT)
-                        header("Client-Metadata", gp.CLI_METADATA)
-                    }
-                }
+                .header("User-Agent", gp.USER_AGENT)
                 .post(wrapped.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
                 .apply { ProviderHeaders.apply(this, config, options.debugAttempt, options.debugKeySlot, options.debugGroup, options.cacheKey) }
                 .build()
