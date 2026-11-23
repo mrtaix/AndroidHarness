@@ -1,14 +1,22 @@
 package com.androidharness.app.data
 
+import com.androidharness.app.data.env.ExecutionTier
 import com.androidharness.app.data.env.ShellTierRouter
+import com.androidharness.app.data.env.ShellRunResult
 import java.io.File
+import java.io.StringBuffer
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 /**
  * Ubuntu on demand through `proot-distro`, which the Linux environment already
  * ships. A container lives in the prefix, so it survives app updates and needs
  * no Android root: proot maps the guest root user onto the app uid.
  */
-class ProotManager(private val router: ShellTierRouter) {
+class ProotManager(
+    private val router: ShellTierRouter,
+    private val linuxEnv: com.androidharness.app.data.env.LinuxEnvironmentManager
+) {
     data class State(val distros: List<String>, val raw: String)
 
     suspend fun status(cwd: File): State {
@@ -31,8 +39,8 @@ class ProotManager(private val router: ShellTierRouter) {
             builder.start().also { proc ->
                 val stdout = StringBuffer()
                 val stderr = StringBuffer()
-                val out = Thread { gobble(proc.inputStream, stdout, 12_000) }
-                val err = Thread { gobble(proc.errorStream, stderr, 12_000) }
+                val out = thread { gobble(proc.inputStream, stdout, 12_000) }
+                val err = thread { gobble(proc.errorStream, stderr, 12_000) }
                 listOf(out, err).forEach { it.isDaemon = true; it.start() }
                 val exitCode = runCatching { proc.waitFor(timeoutMs, TimeUnit.MILLISECONDS) }
                     .getOrElse { proc.destroyForcibly(); false }
