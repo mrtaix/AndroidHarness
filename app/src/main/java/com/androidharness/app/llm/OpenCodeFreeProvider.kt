@@ -41,7 +41,7 @@ object OpenCodeFreeProvider {
 
     /** Free models from the public catalog. No key is required for inference. */
     internal fun parseCatalog(body: String): List<ModelEntry> {
-        val root = Json.parseToJsonElement(body).jsonObject
+        val root = requireNotNull(Json.parseToJsonElement(body).jsonObjectOrAbsent()) { "Invalid OpenCode model catalog" }
         val data = requireNotNull(root["data"]?.jsonArrayOrAbsent()) { "Invalid OpenCode model catalog" }
         val entries = data.mapNotNull { element ->
             val obj = element as? JsonObject ?: return@mapNotNull null

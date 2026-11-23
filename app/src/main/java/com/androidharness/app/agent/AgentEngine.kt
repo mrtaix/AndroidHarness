@@ -84,8 +84,6 @@ class QuestionRequest(
 
     /** Set just before completing [response] when the app answered because nobody did. */
     @Volatile var autoAnswered = false
-    /** Set from the live setting at each tool round; read by performWithPermission. */
-    @Volatile private var autoApproveActive = false
 }
 
 /** The agent wants to run commands that need the Linux environment. */
@@ -277,6 +275,9 @@ class AgentEngine(
     private val learnContextLimit: suspend (String, Int) -> Unit = { _, _ -> },
 ) {
     private val json = Json { ignoreUnknownKeys = true }
+
+    /** Set from the live setting at each tool round; read by performWithPermission. */
+    @Volatile private var autoApproveActive = false
 
     /** The latest request per chat, for side questions that reuse its cached prefix. */
     val sideContexts = SideContexts()
