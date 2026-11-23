@@ -509,10 +509,10 @@ class SettingsRepository(private val context: Context) {
 
     val settings: Flow<AppSettings> = context.settingsStore.data.map { prefs ->
         AppSettings(
-            permissionMode = prefs[Keys.PERMISSION_MODE],
-            autoApproveAll = prefs[Keys.AUTO_APPROVE_ALL] ?: false,
+            permissionMode = prefs[Keys.PERMISSION_MODE]
                 ?.let { runCatching { PermissionMode.valueOf(it) }.getOrNull() }
                 ?: PermissionMode.CONFIRM_RISKY,
+            autoApproveAll = prefs[Keys.AUTO_APPROVE_ALL] ?: false,
             subagentFullAccess = prefs[Keys.SUBAGENT_FULL_ACCESS] ?: false,
             backgroundSubagents = prefs[Keys.BACKGROUND_SUBAGENTS] ?: false,
             subagentCompletionNotifications = prefs[Keys.SUBAGENT_COMPLETION_NOTIFICATIONS] ?: true,

@@ -84,6 +84,8 @@ class QuestionRequest(
 
     /** Set just before completing [response] when the app answered because nobody did. */
     @Volatile var autoAnswered = false
+    /** Set from the live setting at each tool round; read by performWithPermission. */
+    @Volatile private var autoApproveActive = false
 }
 
 /** The agent wants to run commands that need the Linux environment. */
@@ -486,6 +488,7 @@ class AgentEngine(
             // Full access additionally lifts every sandbox layer for the
             // tools this round executes.
             val effectiveMode = permissionMode()
+            autoApproveActive = autoApprove()
             val sandboxOff = !conversation.isChat && effectiveMode == PermissionMode.FULL_ACCESS
             val nextReplySettings = cavemanSettings()
             val nextMemoryQuery = recentMemoryQuery(working)
@@ -1741,7 +1744,7 @@ class AgentEngine(
         suspend fun askUser(request: ApprovalRequest): Boolean {
             // The user's explicit auto-approve switch bypasses every prompt,
             // including the ones that normally ask in all permission modes.
-            if (autoApprove()) return true
+            if (autoApproveActive) return true
             if (hooked) {
                 val event = kotlinx.serialization.json.buildJsonObject {
                     put("tool", call.name); put("call_id", call.id); put("arguments", runConfig!!.redact(call.argumentsJson))
@@ -1868,7 +1871,7 @@ class AgentEngine(
                 com.androidharness.app.data.env.PhoneControlPreview.describe(backend, privileged, risk),
                 if (risk == com.androidharness.app.data.env.PhoneCommandRisk.DESTRUCTIVE) "$PHONE_CONTROL_KEY$PHONE_CONTROL_ONCE$sessionId"
                 else "$PHONE_CONTROL_KEY$sessionId")
-            if (autoApprove()) true else {
+            if (autoApproveActive) true else {
                 emitEvent(AgentEvent.ApprovalNeeded(request))
                 request.response.await()
             }
