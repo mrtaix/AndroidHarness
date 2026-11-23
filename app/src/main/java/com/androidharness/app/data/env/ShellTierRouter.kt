@@ -218,6 +218,20 @@ class ShellTierRouter(
         return ShellRunResult(r.exitCode, r.timedOut, r.output, r.stderr, ExecutionTier.PRIVILEGED, note)
     }
 
+    /**
+     * Runs a command on the privileged shell tier with no fallback to the app
+     * user. Needed for tools whose state lives in the shell's deployed prefix
+     * (proot-distro containers): that directory is 0700 shell-owned and the app
+     * uid cannot see it, so the ordinary workspace-routed [run] would miss it.
+     * Returns null when no privileged runner is available at all.
+     */
+    suspend fun runPrivilegedNow(
+        command: String,
+        cwd: File = File("."),
+        timeoutMs: Int = 60_000,
+        maxOutput: Int = 8_000,
+    ): ShellRunResult? = runPrivileged(command, cwd, timeoutMs, maxOutput, allowFallback = false)
+
     // --- app-uid tier ------------------------------------------------------
 
     private suspend fun runApp(

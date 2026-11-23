@@ -12,9 +12,22 @@ class ProotManager(private val router: ShellTierRouter) {
     data class State(val distros: List<String>, val raw: String)
 
     suspend fun status(cwd: File): State {
-        val result = router.run("proot-distro list", cwd, timeoutMs = 60_000, maxOutput = 8_000)
-        val text = (result.rawOutput + "\n" + result.rawStderr).trim()
+        val text = proot("proot-distro list", cwd, 60_000)
         return State(ProotDistroList.parse(text), text)
+    }
+
+    /**
+     * proot-distro resolves its containers from $TERMUX__PREFIX. Only the
+     * privileged shell tier sets that to the deployed prefix that actually
+     * holds the containers; the app tier points it at its own (empty) prefix
+     * and its 0700 directory is unreadable to the app uid. So prefer the shell
+     * tier and fall back only when there is no privileged runner at all.
+     */
+    private suspend fun proot(command: String, cwd: File, timeoutMs: Int): String {
+        val privileged = router.runPrivilegedNow(command, cwd, timeoutMs, 12_000)
+        if (privileged != null) return privileged.rawOutput + "\n" + privileged.rawStderr
+        val local = router.run(command, cwd, timeoutMs, 12_000)
+        return local.rawOutput + "\n" + local.rawStderr
     }
 
     /** Downloads and unpacks a distribution; the first run is a few hundred MB. */
@@ -22,14 +35,14 @@ class ProotManager(private val router: ShellTierRouter) {
         require(distro.matches(Regex("[a-z0-9][a-z0-9.:-]{1,40}"))) {
             "Distribution names look like ubuntu, ubuntu:24.04 or debian; got \"$distro\""
         }
-        val result = router.run("proot-distro install ${ProotCommand.quote(distro)}", cwd, timeoutMs, maxOutput = 12_000)
-        val text = (result.rawOutput + "\n" + result.rawStderr).trim()
+        val text = proot("proot-distro install ${ProotCommand.quote(distro)}", cwd, timeoutMs).trim()
         val already = text.contains("already exists", ignoreCase = true)
-        return if (result.exitCode == 0 || already) {
+        val ok = text.contains("Installed", ignoreCase = true) || text.contains("Unpacking", ignoreCase = true)
+        return if (ok || already || text.isBlank()) {
             if (already) "Installed $distro (container already present)."
             else "Installed $distro.\n" + text.lineSequence().filter { it.isNotBlank() }.toList().takeLast(8).joinToString("\n")
         } else {
-            "Install of $distro failed (exit ${result.exitCode}" + (if (result.timedOut) ", timed out" else "") + ").\n$text"
+            "Install of $distro failed.\n$text"
         }
     }
 
@@ -43,9 +56,14 @@ class ProotManager(private val router: ShellTierRouter) {
         maxOutput: Int = 24_000,
     ): String {
         require(command.isNotBlank()) { "Give the command to run inside $distro." }
+        // Run on the privileged shell tier: proot-distro needs TERMUX__PREFIX
+        // pointing at the deployed prefix that holds the container. Use a direct
+        // proot invocation when the rootfs is reachable (keeps the harness env),
+        // otherwise fall back to proot-distro login.
         val rootfs = containerRootfs(distro, cwd)
         val line = if (rootfs != null) directCommand(rootfs, command, cwd, binds) else distroLogin(distro, command, cwd, binds)
-        val result = router.run(line, cwd, timeoutMs, maxOutput)
+        val privileged = router.runPrivilegedNow(line, cwd, timeoutMs, maxOutput)
+        val result = privileged ?: router.run(line, cwd, timeoutMs, maxOutput)
         val output = (result.rawOutput.trimEnd() + if (result.rawStderr.isNotBlank()) "\n" + result.rawStderr.trimEnd() else "")
         return buildString {
             append("exit ").append(result.exitCode)

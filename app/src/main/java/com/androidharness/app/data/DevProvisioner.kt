@@ -104,7 +104,7 @@ class DevProvisioner(
     }
 
     private suspend fun containerExists(): Boolean =
-        ProotManager(router).containerRootfs("ubuntu", File(".")) != null
+        ProotManager(router).status(File(".")).distros.contains("ubuntu")
 
     private suspend fun perform(id: String): Pair<Boolean, String> = when (id) {
         "clangd" -> installPackage("clang")
@@ -182,13 +182,13 @@ class DevProvisioner(
 
     private suspend fun distro(): Payload {
         if (!linuxEnv.isReady) return Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING, "The Linux environment is not installed.")
-        // Check the rootfs on disk, not `proot-distro list`: that command runs in
-        // a different prefix under the privileged tier, so it can report no
-        // container even when one is already unpacked there.
-        val rootfs = ProotManager(router).containerRootfs("ubuntu", File("."))
-        return if (rootfs != null) {
+        // Ask the privileged shell tier, whose TERMUX__PREFIX points at the
+        // deployed prefix that actually holds the containers. The app tier's
+        // prefix has no containers and its 0700 directory is unreadable to us.
+        val names = ProotManager(router).status(File(".")).distros
+        return if (names.isNotEmpty()) {
             Payload("ubuntu", "Ubuntu container (proot)", Status.READY,
-                "Installed: ubuntu " + rootfs.absolutePath)
+                "Installed: " + names.joinToString(", "))
         } else {
             Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING,
                 "proot-distro will be installed first (about 400 MB in total).", action = "Install")
