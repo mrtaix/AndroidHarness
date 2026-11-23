@@ -1208,4 +1208,5 @@
     <string name="ui_save_as_skill_desc">Keep this answer as a reusable project skill. Give it a short lowercase name.</string>
     <string name="ui_skill_name">Skill name</string>
     <string name="ui_save">Save</string>
+    <string name="auto_approve_all_title">Auto-approve everything</string>
 </resources>

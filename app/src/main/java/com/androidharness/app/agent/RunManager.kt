@@ -687,6 +687,9 @@ class RunManager(
                         runCatching { settings.settings.first().permissionMode }
                             .getOrDefault(permissionMode)
                     },
+                    autoApprove = {
+                        runCatching { settings.settings.first().autoApproveAll }.getOrDefault(false)
+                    },
                     sessionAllowedTools = allowedTools[sid] ?: mutableSetOf(),
                     workspace = runWorkspace,
                     options = RequestOptions(maxOutputTokens = maxOutputTokens, thinking = thinking,

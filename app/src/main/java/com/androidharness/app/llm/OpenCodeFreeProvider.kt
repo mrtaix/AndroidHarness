@@ -2,7 +2,7 @@ package com.androidharness.app.llm
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonArrayOrAbsent
+import com.androidharness.app.llm.jsonArrayOrAbsent
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.booleanOrNull

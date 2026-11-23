@@ -1200,4 +1200,5 @@
     <string name="ui_save_as_skill_desc">Giữ câu trả lời này thành skill dùng lại cho dự án. Đặt tên ngắn, viết thường.</string>
     <string name="ui_skill_name">Tên skill</string>
     <string name="ui_save">Lưu</string>
+    <string name="auto_approve_all_title">Tự động phê duyệt tất cả</string>
 </resources>

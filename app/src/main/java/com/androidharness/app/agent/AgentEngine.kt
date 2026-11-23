@@ -304,6 +304,8 @@ class AgentEngine(
          * mid-run applies immediately instead of on the next message.
          */
         permissionMode: suspend () -> PermissionMode,
+        /** When true, tool calls that normally still ask are approved without a prompt. */
+        autoApprove: suspend () -> Boolean = { false },
         sessionAllowedTools: MutableSet<String>,
         workspace: WorkspaceFs,
         options: RequestOptions,
@@ -1737,6 +1739,9 @@ class AgentEngine(
         val isPkgInstall = call.name == "pkg_install" || isSdkInstall
         // Claude Code's PermissionRequest hook can answer an approval prompt; Notification hooks hear that one is shown.
         suspend fun askUser(request: ApprovalRequest): Boolean {
+            // The user's explicit auto-approve switch bypasses every prompt,
+            // including the ones that normally ask in all permission modes.
+            if (autoApprove()) return true
             if (hooked) {
                 val event = kotlinx.serialization.json.buildJsonObject {
                     put("tool", call.name); put("call_id", call.id); put("arguments", runConfig!!.redact(call.argumentsJson))
@@ -1766,8 +1771,7 @@ class AgentEngine(
                 val preview = tool.approvalPreview(parsedArgs, mode)
                 if (preview == null) true else {
                     val request = ApprovalRequest(call, "Change app settings", preview, "app_settings:${call.id}")
-                    emitEvent(AgentEvent.ApprovalNeeded(request))
-                    request.response.await()
+                    askUser(request)
                 }
             }
             tool is com.androidharness.app.tools.AppPluginsTool -> {
@@ -1775,8 +1779,7 @@ class AgentEngine(
                 val preview = tool.approvalPreview(parsedArgs, mode)
                 if (preview == null) true else {
                     val request = ApprovalRequest(call, "Manage plugins", preview, "app_plugins:${call.id}")
-                    emitEvent(AgentEvent.ApprovalNeeded(request))
-                    request.response.await()
+                    askUser(request)
                 }
             }
             call.name in com.androidharness.app.tools.ReminderTools.confirmed -> {
@@ -1793,14 +1796,12 @@ class AgentEngine(
                     else -> "Set a reminder"
                 }
                 val request = ApprovalRequest(call, label, preview, "reminder:${call.id}")
-                emitEvent(AgentEvent.ApprovalNeeded(request))
-                request.response.await()
+                askUser(request)
             }
             tool is com.androidharness.app.tools.AutomationCreateTool -> {
                 // A schedule later runs unattended, so it is confirmed in every mode and never remembered.
                 val request = ApprovalRequest(call, "Schedule a message in this chat", tool.approvalPreview(parsedArgs), "automation:${call.id}")
-                emitEvent(AgentEvent.ApprovalNeeded(request))
-                request.response.await()
+                askUser(request)
             }
             isPkgInstall -> {
                 // Mandatory confirmation: even in FULL_ACCESS or FULL_AUTO mode,
@@ -1811,8 +1812,7 @@ class AgentEngine(
                     else -> computePkgInstallPreview(call)
                 }
                 val request = ApprovalRequest(call, route.label?.let { "$it · ${tool.description}" } ?: tool.description, preview, grantKey)
-                emitEvent(AgentEvent.ApprovalNeeded(request))
-                request.response.await()
+                askUser(request)
             }
             mode == PermissionMode.FULL_ACCESS -> true
             hookAllow -> true
@@ -1868,8 +1868,10 @@ class AgentEngine(
                 com.androidharness.app.data.env.PhoneControlPreview.describe(backend, privileged, risk),
                 if (risk == com.androidharness.app.data.env.PhoneCommandRisk.DESTRUCTIVE) "$PHONE_CONTROL_KEY$PHONE_CONTROL_ONCE$sessionId"
                 else "$PHONE_CONTROL_KEY$sessionId")
-            emitEvent(AgentEvent.ApprovalNeeded(request))
-            request.response.await()
+            if (autoApprove()) true else {
+                emitEvent(AgentEvent.ApprovalNeeded(request))
+                request.response.await()
+            }
         }
         var executed = try {
             if (call.name in setOf("git_push", "git_pull", "github_create_pull_request", "http_request", "shell", "shell_background") &&

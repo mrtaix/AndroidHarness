@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.androidharness.app.llm.HarnessProvider
+import com.androidharness.app.llm.OpenCodeFreeProvider
 import com.androidharness.app.llm.ModelCatalog
 import com.androidharness.app.llm.ModelEntry
 import com.androidharness.app.llm.ProviderApiKey

@@ -26,6 +26,8 @@ enum class ProgressBarStyle { FLAT, SQUIGGLY }
 @kotlinx.serialization.Serializable
 data class AppSettings(
     val permissionMode: PermissionMode = PermissionMode.CONFIRM_RISKY,
+    /** Auto-approve tool calls that normally still ask, even in Full access. */
+    val autoApproveAll: Boolean = false,
     val subagentFullAccess: Boolean = false,
     val backgroundSubagents: Boolean = false,
     val subagentCompletionNotifications: Boolean = true,
@@ -352,6 +354,7 @@ class SettingsRepository(private val context: Context) {
 
     private object Keys {
         val PERMISSION_MODE = stringPreferencesKey("permission_mode")
+        val AUTO_APPROVE_ALL = booleanPreferencesKey("auto_approve_all")
         val SUBAGENT_FULL_ACCESS = booleanPreferencesKey("subagent_full_access")
         val BACKGROUND_SUBAGENTS = booleanPreferencesKey("background_subagents")
         val SUBAGENT_COMPLETION_NOTIFICATIONS = booleanPreferencesKey("subagent_completion_notifications")
@@ -506,7 +509,8 @@ class SettingsRepository(private val context: Context) {
 
     val settings: Flow<AppSettings> = context.settingsStore.data.map { prefs ->
         AppSettings(
-            permissionMode = prefs[Keys.PERMISSION_MODE]
+            permissionMode = prefs[Keys.PERMISSION_MODE],
+            autoApproveAll = prefs[Keys.AUTO_APPROVE_ALL] ?: false,
                 ?.let { runCatching { PermissionMode.valueOf(it) }.getOrNull() }
                 ?: PermissionMode.CONFIRM_RISKY,
             subagentFullAccess = prefs[Keys.SUBAGENT_FULL_ACCESS] ?: false,
@@ -714,6 +718,7 @@ class SettingsRepository(private val context: Context) {
             p[Keys.NOTIFICATIONS_ENABLED] = s.notificationsEnabled
             p[Keys.KEEP_ALIVE] = s.keepAlive
             p[Keys.LIVE_UPDATES_ENABLED] = s.liveUpdatesEnabled
+            p[Keys.AUTO_APPROVE_ALL] = s.autoApproveAll
             p[Keys.SUBAGENT_FULL_ACCESS] = s.subagentFullAccess
             p[Keys.BACKGROUND_SUBAGENTS] = s.backgroundSubagents
             p[Keys.SUBAGENT_COMPLETION_NOTIFICATIONS] = s.subagentCompletionNotifications
@@ -836,6 +841,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPermissionMode(mode: PermissionMode) {
         context.settingsStore.edit { it[Keys.PERMISSION_MODE] = mode.name }
+    }
+
+    suspend fun setAutoApproveAll(enabled: Boolean) {
+        context.settingsStore.edit { it[Keys.AUTO_APPROVE_ALL] = enabled }
     }
 
     suspend fun setSubagentFullAccess(enabled: Boolean) {
