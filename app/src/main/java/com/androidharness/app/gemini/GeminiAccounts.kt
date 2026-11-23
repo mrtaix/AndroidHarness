@@ -280,7 +280,7 @@ class GeminiAccounts(
         }
         val server = loaded["cloudaicompanionProject"]?.let { element ->
             (element as? JsonObject)?.get("id")?.jsonPrimitive?.contentOrNull ?: element.jsonPrimitive.contentOrNull
-        }
+        } ?: loaded["projectId"]?.jsonPrimitive?.contentOrNull
         // A new consumer account has no project yet; onboarding creates one.
         val project = server?.takeIf { it.isNotBlank() } ?: run {
             val tiers = (loaded["allowedTiers"] as? kotlinx.serialization.json.JsonArray).orEmpty()
@@ -298,7 +298,16 @@ class GeminiAccounts(
                     (element as? JsonObject)?.get("id")?.jsonPrimitive?.contentOrNull ?: element.jsonPrimitive.contentOrNull
                 }
             }?.takeIf { it.isNotBlank() }
-                ?: GeminiProtocol.stableProject(found.email.ifBlank { id })
+        }
+        if (project.isNullOrBlank()) {
+            // A fabricated UUID is NOT a valid Cloud Code Assist project: Google
+            // answers 403 #3501 even for a licensed account. Never cache one.
+            projectCache.remove(providerId)
+            persist(store.copy(accounts = store.accounts.map { if (it.id == id) it.copy(project = "") else it }))
+            throw GeminiProtocol.HttpError(403,
+                "Google did not return a Code Assist project for this account. " +
+                    "Sign out and sign in again with an account that has Antigravity access, " +
+                    "or use a Gemini API key from AI Studio.")
         }
         persist(store.copy(accounts = store.accounts.map { if (it.id == id) it.copy(project = project) else it }))
         projectCache[providerId] = project

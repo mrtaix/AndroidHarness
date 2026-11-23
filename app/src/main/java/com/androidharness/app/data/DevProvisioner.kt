@@ -86,14 +86,14 @@ class DevProvisioner(
             state.copy(payloads = state.payloads + (id to current.copy(status = Status.INSTALLING, detail = "Starting…")))
         }
         scope.launch {
-            val outcome = if (id == "ubuntu" && containerExists()) {
+            val outcome: Pair<Boolean, String>? = if (id == "ubuntu" && containerExists()) {
                 // The container is already there: don't re-run proot-distro install,
                 // which would block until the install timeout expires.
-                "Installed ubuntu." to true
+                true to "Installed ubuntu (container already present)."
             } else runCatching { perform(id) }.getOrNull()
             _state.update { state ->
-                val done = outcome?.second
-                val detail = outcome?.first
+                val done = outcome?.first
+                val detail = outcome?.second
                 state.copy(payloads = state.payloads + (id to current.copy(
                     status = if (done == true) Status.READY else Status.FAILED,
                     detail = detail ?: "Install failed",
