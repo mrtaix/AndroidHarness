@@ -103,13 +103,8 @@ class DevProvisioner(
         }
     }
 
-    private suspend fun containerExists(): Boolean {
-        val text = runCatching {
-            val result = router.run("proot-distro list", File("."), timeoutMs = 30_000, maxOutput = 8_000)
-            result.rawOutput + "\n" + result.rawStderr
-        }.getOrDefault("")
-        return ProotDistroList.parse(text).contains("ubuntu")
-    }
+    private suspend fun containerExists(): Boolean =
+        ProotManager(router).containerRootfs("ubuntu", File(".")) != null
 
     private suspend fun perform(id: String): Pair<Boolean, String> = when (id) {
         "clangd" -> installPackage("clang")
@@ -187,20 +182,16 @@ class DevProvisioner(
 
     private suspend fun distro(): Payload {
         if (!linuxEnv.isReady) return Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING, "The Linux environment is not installed.")
-        // ProotManager runs through the shell router, so the check must use the
-        // same tier; the app's own prefix is a different install and may not have
-        // proot-distro at all.
-        val text = runCatching {
-            val result = router.run("proot-distro list", File("."), timeoutMs = 60_000, maxOutput = 8_000)
-            result.rawOutput + "\n" + result.rawStderr
-        }.getOrDefault("")
-        val names = ProotDistroList.parse(text)
-        return when {
-            names.isNotEmpty() -> Payload("ubuntu", "Ubuntu container (proot)", Status.READY, "Installed: " + names.joinToString(", "))
-            text.contains("command not found", ignoreCase = true) ->
-                Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING,
-                    "proot-distro will be installed first (about 400 MB in total).", action = "Install")
-            else -> Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING, "No container installed yet (about 400 MB).", action = "Install")
+        // Check the rootfs on disk, not `proot-distro list`: that command runs in
+        // a different prefix under the privileged tier, so it can report no
+        // container even when one is already unpacked there.
+        val rootfs = ProotManager(router).containerRootfs("ubuntu", File("."))
+        return if (rootfs != null) {
+            Payload("ubuntu", "Ubuntu container (proot)", Status.READY,
+                "Installed: ubuntu " + rootfs.absolutePath)
+        } else {
+            Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING,
+                "proot-distro will be installed first (about 400 MB in total).", action = "Install")
         }
     }
 

@@ -87,10 +87,19 @@ class ProotManager(private val router: ShellTierRouter) {
     /** The container root proot needs, when proot-distro already unpacked one. */
     fun containerRootfs(distro: String, cwd: File): File? {
         val name = distro.substringBefore(':')
+        val rel = "var/lib/proot-distro/containers/$name/rootfs"
+        // `proot-distro install` runs through the shell router: under the
+        // privileged tier its PREFIX is the deployed copy, not this app's own
+        // prefix. Check both so a container created by either tier is found.
+        val deployed = "/data/local/tmp/androidharness/${appPackage()}/linux"
         val candidates = listOf(
-            File(System.getenv("PREFIX").orEmpty(), "var/lib/proot-distro/containers/$name/rootfs"),
+            File(System.getenv("PREFIX").orEmpty(), rel),
+            File(deployed, rel),
             File(cwd, ".proot-distro/$name/rootfs"),
         )
         return candidates.firstOrNull { File(it, "etc/os-release").isFile || File(it, "bin").isDirectory }
     }
+
+    private fun appPackage(): String =
+        System.getProperty("harness.package") ?: "com.androidharness.app.release"
 }

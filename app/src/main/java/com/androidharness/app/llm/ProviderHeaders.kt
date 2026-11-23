@@ -50,8 +50,11 @@ object ProviderHeaders {
         group: String? = null,
         sessionId: String? = null,
     ): Request.Builder {
-        // The global client identity goes first so a provider's own header row can still win.
-        ProviderIdentity.headers().forEach { builder.header(it.name, it.value) }
+        // A signed-in Google account talks to the Antigravity hub, which gates
+        // access on its own User-Agent. A global CLI preset (e.g. OpenCode) would
+        // overwrite the hub UA and get a 403 #3501, so skip it for Gemini.
+        val isGoogleAccount = com.androidharness.app.gemini.GeminiProtocol.isProvider(config.id)
+        if (!isGoogleAccount) ProviderIdentity.headers().forEach { builder.header(it.name, it.value) }
         if (editable(config)) normalized(config.headers).filter { it.enabled }.forEach { builder.header(it.name, it.value) }
         // The debug console reads these tags back; providers stay unaware of capture.
         builder.tag(

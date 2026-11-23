@@ -58,6 +58,10 @@ class GeminiProvider(
             val project = discovered
             val inner = JsonObject(body.toMutableMap().apply {
                 put("sessionId", kotlinx.serialization.json.JsonPrimitive(java.util.UUID.randomUUID().toString()))
+                // The Antigravity hub requires the system instruction to carry role "user".
+                (body["systemInstruction"] as? JsonObject)?.let { original ->
+                    put("systemInstruction", JsonObject(original.toMutableMap().apply { put("role", JsonPrimitive("user")) }))
+                }
             })
             val wrapped = buildJsonObject {
                 put("model", config.model)
