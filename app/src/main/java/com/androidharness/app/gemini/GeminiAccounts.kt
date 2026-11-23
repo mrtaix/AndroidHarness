@@ -181,6 +181,40 @@ class GeminiAccounts(
         models
     }
 
+    }
+    
+    /** Returns the current access token for the account, refreshing if needed. */
+    suspend fun accessToken(providerId: String): String = withContext(Dispatchers.IO) {
+        val id = GeminiProtocol.accountId(providerId)
+        val found = entry(id)
+        val token = found.accessToken.takeIf { it.isNotBlank() } ?: run {
+            val token = exchange(FormBody.Builder()
+                .add("client_id", GeminiProtocol.CLIENT_ID)
+                .add("client_secret", GeminiProtocol.CLIENT_SECRET)
+                .add("grant_type", "refresh_token")
+                .add("refresh_token", found.refreshToken)
+                .build()
+            )
+            val updated = found.copy(accessToken = token.accessToken, refreshToken = token.refreshToken, expiresIn = token.expiresIn)
+            accounts[accounts.indexOf(found)] = updated
+            persist(accounts)
+            token.accessToken
+        }
+        token
+    }
+
+    /** Forgets the project for the given provider, forcing re-discovery on next use. */
+    fun forgetProject(providerId: String) = withContext(Dispatchers.IO) {
+        val id = GeminiProtocol.accountId(providerId)
+        val found = entry(id)
+        if (found.project.isNotBlank()) {
+            val updated = found.copy(project = "")
+            accounts[accounts.indexOf(found)] = updated
+            persist(accounts)
+            projectCache.remove(providerId)
+        }
+    }
+
     private val projectCache = java.util.concurrent.ConcurrentHashMap<String, String>()
 
     private data class Tokens(val accessToken: String?, val refreshToken: String?, val expiresIn: Long)
