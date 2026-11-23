@@ -39,6 +39,7 @@ object ProviderHeaders {
     }
 
     fun editable(config: ProviderConfig): Boolean = config.id != HarnessProvider.ID &&
+        config.id != OpenCodeFreeProvider.ID &&
         !com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(config.id) &&
         !com.androidharness.app.local.LocalModelCatalog.isLocal(config.id) && !config.baseUrl.startsWith("local://")
 
@@ -54,7 +55,9 @@ object ProviderHeaders {
         // access on its own User-Agent. A global CLI preset (e.g. OpenCode) would
         // overwrite the hub UA and get a 403 #3501, so skip it for Gemini.
         val isGoogleAccount = com.androidharness.app.gemini.GeminiProtocol.isProvider(config.id)
-        if (!isGoogleAccount) ProviderIdentity.headers().forEach { builder.header(it.name, it.value) }
+        val isOpenCodeFree = config.id == OpenCodeFreeProvider.ID
+        if (!isGoogleAccount && !isOpenCodeFree) ProviderIdentity.headers().forEach { builder.header(it.name, it.value) }
+        if (isOpenCodeFree) OpenCodeFreeProvider.headers().forEach { builder.header(it.name, it.value) }
         if (editable(config)) normalized(config.headers).filter { it.enabled }.forEach { builder.header(it.name, it.value) }
         // The debug console reads these tags back; providers stay unaware of capture.
         builder.tag(

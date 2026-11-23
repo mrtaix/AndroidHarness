@@ -112,6 +112,7 @@ object ModelCatalog {
                     }
                     val body = resp.body?.string() ?: return@use Result.Failed("Empty response")
                     val entries = if (config.id == HarnessProvider.ID) HarnessProvider.parseKiloCatalog(body)
+                        else if (config.id == OpenCodeFreeProvider.ID) OpenCodeFreeProvider.parseCatalog(body)
                         else parseCatalog(config.type, body)
                     Result.Models(entries, System.currentTimeMillis() - started)
                 }
@@ -126,6 +127,9 @@ object ModelCatalog {
         if (config.id == HarnessProvider.ID) return Request.Builder()
             .url(HarnessProvider.KILO_BASE_URL + "/models")
             .header("User-Agent", HarnessProvider.USER_AGENT).build()
+        if (config.id == OpenCodeFreeProvider.ID) return Request.Builder()
+            .url(OpenCodeFreeProvider.MODELS_URL)
+            .header("User-Agent", OpenCodeFreeProvider.CLI_UA).build()
         val authed = apiKey.isNotBlank() && apiKey != OpenAiCompatProvider.LOCAL_KEY
         val (url, requestBuilder) = when (config.type) {
             // Responses is OpenAI-only; its model listing is identical.

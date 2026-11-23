@@ -451,7 +451,9 @@ class OpenAiCompatProvider(
         if (apiKey.isNotBlank() && apiKey != LOCAL_KEY) {
             requestBuilder.header("Authorization", "Bearer $apiKey")
         }
-        if (HarnessProvider.isOpenCode(config) &&
+        // OpenCode Free injects its own CLI identity through ProviderHeaders;
+        // HarnessProvider.withSession would overwrite it with "harness".
+        if (config.id != OpenCodeFreeProvider.ID && HarnessProvider.isOpenCode(config) &&
             (config.id != HarnessProvider.ID || HarnessProvider.isOpenCode(config.baseUrl))) {
             HarnessProvider.withSession(requestBuilder, options.cacheKey)
         }

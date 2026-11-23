@@ -59,7 +59,10 @@ class ProviderRepository(
                     com.androidharness.app.gemini.GeminiProtocol.CODE_ASSIST,
                     account.models.firstOrNull() ?: com.androidharness.app.gemini.GeminiProtocol.ACCOUNT_MODELS.first())
             } +
-            listOf(HarnessProvider.config.copy(model = HarnessProvider.sanitize(saved.firstOrNull { it.id == HarnessProvider.ID }?.model, harnessCustom))) + saved.filterNot { it.id == HarnessProvider.ID || com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(it.id) || com.androidharness.app.gemini.GeminiProtocol.isProvider(it.id) || com.androidharness.app.local.LocalModelCatalog.isLocal(it.id) || it.baseUrl.startsWith("local://") } + localModels.configs(installed)
+            listOf(
+                HarnessProvider.config.copy(model = HarnessProvider.sanitize(saved.firstOrNull { it.id == HarnessProvider.ID }?.model, harnessCustom)),
+                OpenCodeFreeProvider.config.copy(model = saved.firstOrNull { it.id == OpenCodeFreeProvider.ID }?.model?.takeIf { it.isNotBlank() } ?: OpenCodeFreeProvider.DEFAULT_MODEL),
+            ) + saved.filterNot { it.id == HarnessProvider.ID || it.id == OpenCodeFreeProvider.ID || com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(it.id) || com.androidharness.app.gemini.GeminiProtocol.isProvider(it.id) || com.androidharness.app.local.LocalModelCatalog.isLocal(it.id) || it.baseUrl.startsWith("local://") } + localModels.configs(installed)
     }.combine(settings.settings) { available, saved ->
         ProviderListPreferences.apply(available.map { config ->
             if (com.androidharness.app.llm.ProviderHeaders.editable(config)) config.copy(headers = keys.providerHeaders(config.id)) else config
@@ -346,6 +349,7 @@ class ProviderRepository(
             if (gemini.state.value.accounts.any { it.providerId == providerId && it.connected }) "managed-oauth" else null
         com.androidharness.app.local.LocalModelCatalog.isLocal(providerId) -> "local"
         providerId == HarnessProvider.ID -> HarnessProvider.KEYLESS
+        providerId == OpenCodeFreeProvider.ID -> HarnessProvider.KEYLESS
         else -> keys.getKey(providerId)
     }
 
