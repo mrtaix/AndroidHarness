@@ -7,7 +7,6 @@ import java.io.File
 import java.io.StringWriter
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
-import kotlinx.coroutines.gobble
 
 /**
  * Ubuntu on demand through `proot-distro`, which the Linux environment already
@@ -40,8 +39,8 @@ class ProotManager(
             builder.start().also { proc ->
                 val stdout = StringWriter()
                 val stderr = StringWriter()
-                val out = thread { kotlinx.coroutines.gobble(proc.inputStream, stdout, 12_000L) }
-                val err = thread { kotlinx.coroutines.gobble(proc.errorStream, stderr, 12_000L) }
+                val out = thread { copyStream(proc.inputStream, stdout, 12_000) }
+                val err = thread { copyStream(proc.errorStream, stderr, 12_000) }
                 listOf(out, err).forEach { it.isDaemon = true; it.start() }
                 val exitCode = runCatching { proc.waitFor(timeoutMs, TimeUnit.MILLISECONDS) }
                     .getOrElse { proc.destroyForcibly(); false }
@@ -123,5 +122,17 @@ class ProotManager(
             File(cwd, ".proot-distro/$name/rootfs"),
         )
         return candidates.firstOrNull { File(it, "etc/os-release").isFile || File(it, "bin").isDirectory }
+    }
+
+    private fun copyStream(input: java.io.InputStream, output: StringWriter, maxBytes: Int) {
+        val buffer = ByteArray(8192)
+        var total = 0
+        while (true) {
+            val read = input.read(buffer)
+            if (read == -1) break
+            total += read
+            if (total > maxBytes) break
+            output.write(buffer, 0, read)
+        }
     }
 }
