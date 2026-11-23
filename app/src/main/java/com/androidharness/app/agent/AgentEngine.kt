@@ -1920,6 +1920,7 @@ class AgentEngine(
                 } else {
                     val request = EnvironmentRequest(call, command.orEmpty(), listOf(hint))
                     emitEvent(AgentEvent.EnvironmentNeeded(request))
+                    if (autoApproveActive) request.response.complete(true)
                     if (request.response.await() && linuxEnv.isReady) {
                         "Linux setup completed. The previous command already ran and may have partially changed files; inspect its result before deciding whether to retry."
                     } else {
@@ -1949,6 +1950,7 @@ class AgentEngine(
                     repair = true, missingTool = missingTool,
                 )
                 emitEvent(AgentEvent.EnvironmentNeeded(request))
+                if (autoApproveActive) request.response.complete(true)
                 if (request.response.await()) {
                     // Repaired: run the exact same command again for the model.
                     kotlin.coroutines.coroutineContext[TaskBudget]?.check()

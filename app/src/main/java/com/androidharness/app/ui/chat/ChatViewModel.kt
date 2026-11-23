@@ -116,6 +116,7 @@ data class ChatUiState(
     val busy: Boolean = false,
     val error: String? = null,
     val permissionMode: PermissionMode = PermissionMode.CONFIRM_RISKY,
+    val autoApproveAll: Boolean = false,
     val thinkingLevel: ThinkingLevel = ThinkingLevel.OFF,
     val searchDepth: com.androidharness.app.data.SearchDepth = com.androidharness.app.data.SearchDepth.AUTO,
     val reasoningConfigs: Map<String, com.androidharness.app.agent.CustomReasoningConfig> = emptyMap(),
@@ -753,6 +754,7 @@ class ChatViewModel(
         val selection = models.selection
         _state.update { it.copy(
             permissionMode = settings.permissionMode,
+            autoApproveAll = settings.autoApproveAll,
             thinkingLevel = selection.thinking,
             searchDepth = settings.searchDepth,
             reasoningConfigs = settings.reasoningConfigs,
@@ -1715,11 +1717,20 @@ class ChatViewModel(
                         c.mcp.unapprovedWorkspaceServers(runWorkspace, snapshot)
                     }
                     if (unapproved.isNotEmpty()) {
-                        pendingRunText = payload
-                        pendingReplacement = replacement
-                        pendingMcpWorkspace = runWorkspace
-                        _state.update { it.copy(pendingWorkspaceMcp = unapproved.map { s -> s.name }) }
-                        return@launch
+                        if (s0.autoApproveAll) {
+                            // Auto-approve switch covers the workspace MCP gate:
+                            // remember this exact config so the run proceeds.
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                val snapshot = c.configuration.load(runWorkspace)
+                                c.mcp.approveWorkspace(runWorkspace, snapshot)
+                            }
+                        } else {
+                            pendingRunText = payload
+                            pendingReplacement = replacement
+                            pendingMcpWorkspace = runWorkspace
+                            _state.update { it.copy(pendingWorkspaceMcp = unapproved.map { s -> s.name }) }
+                            return@launch
+                        }
                     }
                 }
                 // A model picked from the provider's catalog overrides its default.

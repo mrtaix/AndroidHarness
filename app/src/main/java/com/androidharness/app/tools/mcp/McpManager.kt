@@ -316,9 +316,11 @@ class McpManager(
      * spawns commands until a chat dialog says so. Global servers are
      * unaffected by the gate.
      */
-    suspend fun activeTools(workspace: WorkspaceFs, snapshot: com.androidharness.app.config.HarnessConfig = configuration(workspace), permissionMode: com.androidharness.app.agent.PermissionMode = com.androidharness.app.agent.PermissionMode.FULL_AUTO, leaseId: String? = null): List<Tool> {
+    suspend fun activeTools(workspace: WorkspaceFs, snapshot: com.androidharness.app.config.HarnessConfig = configuration(workspace), permissionMode: com.androidharness.app.agent.PermissionMode = com.androidharness.app.agent.PermissionMode.FULL_AUTO, leaseId: String? = null, autoApprove: Boolean = false): List<Tool> {
         val global = _servers.value.filter { it.enabled }
-        val approved = isWorkspaceApproved(workspace, snapshot)
+        // The auto-approve switch covers the workspace-config gate too, so a
+        // cloned repo's MCP servers connect without the chat approval card.
+        val approved = autoApprove || isWorkspaceApproved(workspace, snapshot)
         val ws = workspaceConfigs(workspace, snapshot).filter { it.enabled }
             .filter { ws -> global.none { it.name.equals(ws.name, ignoreCase = true) } }
         if (!approved) {
@@ -349,7 +351,8 @@ class McpManager(
         }
         val tools = mutableListOf<Tool>()
         try {
-            val automaticCommandsAllowed = permissionMode == com.androidharness.app.agent.PermissionMode.FULL_ACCESS ||
+            val automaticCommandsAllowed = autoApprove ||
+                permissionMode == com.androidharness.app.agent.PermissionMode.FULL_ACCESS ||
                 snapshot.permissions.values.none { it in setOf("ask", "deny") }
             if (automaticCommandsAllowed) codeGraph?.agentTools(workspace)?.let { tools.addAll(it) }
         } catch (e: kotlinx.coroutines.CancellationException) {

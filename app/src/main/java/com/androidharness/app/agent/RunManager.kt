@@ -706,7 +706,7 @@ class RunManager(
                     maxIterations = maxIterations,
                     // Connected MCP servers ride into this run; a failing
                     // server must never block the run itself.
-                    extraTools = if (conversation.isChat || runWorkspace is ChatWorkspaceFs) emptyList() else mcp?.activeTools(runWorkspace, projectConfiguration, settings.settings.first().permissionMode, "$sid:$turnId").orEmpty(),
+                    extraTools = if (conversation.isChat || runWorkspace is ChatWorkspaceFs) emptyList() else mcp?.activeTools(runWorkspace, projectConfiguration, settings.settings.first().permissionMode, "$sid:$turnId", settings.settings.first().autoApproveAll).orEmpty(),
                     projectConfiguration = projectConfiguration,
                     pluginsApproved = projectToolsApproved,
                     resolveSubagentModel = modelResolver::resolve,
