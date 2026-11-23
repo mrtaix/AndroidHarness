@@ -43,29 +43,6 @@ class DevProvisioner(
     val state: StateFlow<State> = _state
 
     suspend fun refresh() {
-        if (_state.value.payloads.values.any { it.status == Status.INSTALLING }) {
-            // Check if the install actually completed by verifying the container exists
-            if (_state.value.payloads["ubuntu"]?.status == Status.INSTALLING) {
-                val text = runCatching {
-                    val result = router.run("proot-distro list", File("."), timeoutMs = 30_000, maxOutput = 8_000)
-                    result.rawOutput + "\n" + result.rawStderr
-                }.getOrDefault("")
-                val names = ProotDistroList.parse(text)
-                if (names.contains("ubuntu")) {
-                    // Install actually completed, reset to READY
-                    _state.update { state ->
-                        val payload = state.payloads["ubuntu"]
-                        if (payload != null && payload.status == Status.INSTALLING) {
-                            state.copy(payloads = state.payloads + ("ubuntu" to payload.copy(
-                                status = Status.READY,
-                                detail = "Installed: " + names.joinToString(", ")
-                            )))
-                        } else state
-                    }
-                }
-            }
-            return
-        }
         _state.update { it.copy(loading = true) }
         scope.launch {
             val payloads = LinkedHashMap<String, Payload>()
@@ -74,7 +51,6 @@ class DevProvisioner(
             payloads["typescript"] = binary("typescript", "typescript-language-server", "TypeScript and JavaScript completion")
             payloads["tmux"] = binary("tmux", "tmux", "Panes inside one terminal")
             payloads["debugpy"] = pythonModule()
-            payloads["ubuntu"] = distro()
             _state.update { it.copy(loading = false, payloads = payloads) }
         }
     }
@@ -86,11 +62,7 @@ class DevProvisioner(
             state.copy(payloads = state.payloads + (id to current.copy(status = Status.INSTALLING, detail = "Starting…")))
         }
         scope.launch {
-            val outcome: Pair<Boolean, String>? = if (id == "ubuntu" && containerExists()) {
-                // The container is already there: don't re-run proot-distro install,
-                // which would block until the install timeout expires.
-                true to "Installed ubuntu (container already present)."
-            } else runCatching { perform(id) }.getOrNull()
+            val outcome: Pair<Boolean, String>? = runCatching { perform(id) }.getOrNull()
             _state.update { state ->
                 val done = outcome?.first
                 val detail = outcome?.second
@@ -103,28 +75,12 @@ class DevProvisioner(
         }
     }
 
-    private suspend fun containerExists(): Boolean =
-        ProotManager(router).status(File(".")).distros.contains("ubuntu")
-
     private suspend fun perform(id: String): Pair<Boolean, String> = when (id) {
         "clangd" -> installPackage("clang")
         "tmux" -> installPackage("tmux")
         "pyright" -> command("npm install -g pyright", "Pyright", 900_000)
         "typescript" -> command("npm install -g typescript typescript-language-server", "TypeScript language server", 900_000)
         "debugpy" -> command("python -m pip install --user debugpy", "debugpy", 900_000)
-        "ubuntu" -> {
-            // proot-distro lives in the app's own Linux prefix; without it every
-            // shell tier answers "command not found" (exit 127). Install the
-            // binary packages through the same manager that owns the prefix,
-            // then let ProotManager drive the container install.
-            val prepared = linuxEnv.install(listOf("proot", "proot-distro"), requester = "Ubuntu container")
-            if (prepared.isFailure) {
-                false to ("Installing proot-distro failed: " + (prepared.exceptionOrNull()?.message ?: "unknown error"))
-            } else {
-                val output = ProotManager(router).install("ubuntu", File("."))
-                (output.startsWith("Installed") || output.contains("already installed", ignoreCase = true)) to output
-            }
-        }
         else -> false to "Unknown payload \"$id\""
     }
 
@@ -180,22 +136,7 @@ class DevProvisioner(
         else Payload("debugpy", "Python debugger (debugpy)", Status.MISSING, "Not installed yet.", action = "Install")
     }
 
-    private suspend fun distro(): Payload {
-        if (!linuxEnv.isReady) return Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING, "The Linux environment is not installed.")
-        // Ask the privileged shell tier, whose TERMUX__PREFIX points at the
-        // deployed prefix that actually holds the containers. The app tier's
-        // prefix has no containers and its 0700 directory is unreadable to us.
-        val names = ProotManager(router).status(File(".")).distros
-        return if (names.isNotEmpty()) {
-            Payload("ubuntu", "Ubuntu container (proot)", Status.READY,
-                "Installed: " + names.joinToString(", "))
-        } else {
-            Payload("ubuntu", "Ubuntu container (proot)", Status.MISSING,
-                "proot-distro will be installed first (about 400 MB in total).", action = "Install")
-        }
-    }
-
     companion object {
-        val ids = listOf("tmux", "pyright", "typescript", "clangd", "debugpy", "ubuntu")
+        val ids = listOf("tmux", "pyright", "typescript", "clangd", "debugpy")
     }
 }

@@ -1019,13 +1019,27 @@ class ChatViewModel(
     private fun dispatchAgentText(agentText: String, steering: SteeringMode? = null): Boolean {
         val sid = sessionId
         if (sid != null && c.runManager.isRunning(sid)) {
-            if (_state.value.conversation.isChat && (_state.value.attachments.isNotEmpty() || _state.value.fileAttachments.isNotEmpty())) {
+            // Images cannot ride the text-only steering queue.
+            if (_state.value.conversation.isChat && _state.value.attachments.isNotEmpty()) {
                 _state.update { it.copy(error = c.appContext.getString(R.string.chat_attachment_wait_for_reply)) }
                 return false
             }
+            // Fold file attachments into the queued text so a message sent while
+            // the agent is busy does not lose its files (the "Đây" case).
+            val files = pendingFileAttachments.toList()
+            val suffix = com.androidharness.app.ui.chat.FileAttachments.buildMessageSuffix(files)
+            val queued = when {
+                suffix.isBlank() -> agentText
+                agentText.isBlank() -> suffix
+                else -> "$agentText\n\n$suffix"
+            }
+            if (files.isNotEmpty()) {
+                pendingFileAttachments.clear()
+                _state.update { it.copy(fileAttachments = emptyList()) }
+            }
             // Queue the expanded text for this chat's successful Run finished event.
             // Local slash commands never reach here, so /cost /skills /clear keep working mid-run.
-            val target = SlashCommands.dispatchTarget(isRunning = true, agentText = agentText)
+            val target = SlashCommands.dispatchTarget(isRunning = true, agentText = queued)
             c.runManager.inject(sid, target.text, steering)
             return true
         }
