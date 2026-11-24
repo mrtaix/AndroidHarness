@@ -457,7 +457,7 @@ class AgentEngine(
                     id = "chief-${java.util.UUID.randomUUID()}", name = "task", argumentsJson = args.toString(),
                 )
                 val result = performWithPermission(call, permissionMode(), sessionAllowedTools, workspace, sessionId, turnId,
-                    agentMode, requestOptions, config, apiKey, registry, resolveSubagentModel, { emit(it) }, subagentRuns)
+                    mode, requestOptions, config, apiKey, registry, resolveSubagentModel, { emit(it) }, subagentRuns)
                 if (!result.ok) error(result.output)
                 return Regex("task_id=([^\\s]+)").find(result.output)?.groupValues?.get(1)
                     ?: error("Chief delegate did not return a task id")
