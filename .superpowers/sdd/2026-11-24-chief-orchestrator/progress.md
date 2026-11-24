@@ -62,3 +62,4 @@ Ruling: inside `channelFlow` use the imported `launch` extension (ProducerScope 
 | Show report | `ChiefTreeCard.kt` | CI build pending | NOT RUN locally |
 
 Ruling: the engine watches each spawned background run with `waitFor(30s)` and calls `attachFinished`, which moves the node to REVIEW with the report. The chief still reviews before merge.
+| CI run 45457502033 | `6a22cb06` | unit tests PASS, debug PASS, release PASS, success | PASS | final |
