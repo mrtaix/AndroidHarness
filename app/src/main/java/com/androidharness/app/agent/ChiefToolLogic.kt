@@ -15,6 +15,7 @@ class ChiefToolLogic(
     private val tree: ChiefTree,
     private val store: ChiefTreeStore? = null,
     private val delegate: ChiefDelegate,
+    private val onChange: (ChiefSnapshot) -> Unit = {},
 ) {
     suspend fun plan(goal: String): String {
         val node = tree.plan(goal)
@@ -107,6 +108,8 @@ class ChiefToolLogic(
     }
 
     private fun persist() {
-        store?.save(tree.snapshot())
+        val snapshot = tree.snapshot()
+        store?.save(snapshot)
+        onChange(snapshot)
     }
 }

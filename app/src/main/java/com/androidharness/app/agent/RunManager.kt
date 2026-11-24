@@ -101,6 +101,8 @@ class RunManager(
         val currentToolAction: String? = null,
         /** Live progress lines per running subagent (task tool), newest last. */
         val subagentSteps: Map<String, List<String>> = emptyMap(),
+        /** Latest chief hierarchy snapshot, null until the experimental flag is used. */
+        val chiefTree: ChiefSnapshot? = null,
         val error: String? = null,
         /** Transient "Retrying in Ns…" status while the engine backs off. */
         val retryStatus: String? = null,
@@ -1109,6 +1111,7 @@ class RunManager(
                 )
             }
             is AgentEvent.SubagentPreview -> Unit
+            is AgentEvent.ChiefTreeChanged -> live.update { it.copy(chiefTree = event.snapshot) }
             is AgentEvent.Finished -> event.reason?.let { reason ->
                 // Abnormal end (no visible answer), show why instead of
                 // ending the run silently.

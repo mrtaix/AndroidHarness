@@ -1,6 +1,7 @@
 package com.androidharness.app.tools
 
 import com.androidharness.app.agent.ChiefDelegate
+import com.androidharness.app.agent.ChiefSnapshot
 import com.androidharness.app.agent.ChiefToolLogic
 import com.androidharness.app.agent.ChiefTree
 import com.androidharness.app.agent.ChiefTreeStore
@@ -16,8 +17,9 @@ fun chiefTools(
     tree: ChiefTree,
     store: ChiefTreeStore?,
     delegate: ChiefDelegate,
+    onChange: (ChiefSnapshot) -> Unit = {},
 ): List<Tool> {
-    val logic = ChiefToolLogic(tree, store, delegate)
+    val logic = ChiefToolLogic(tree, store, delegate, onChange)
     val string = Schema.string("")
     val strings = Schema.array(Schema.string(""), "")
     return listOf(

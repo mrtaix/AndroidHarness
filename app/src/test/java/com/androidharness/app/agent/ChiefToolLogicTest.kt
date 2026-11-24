@@ -42,6 +42,15 @@ class ChiefToolLogicTest {
         assertEquals("task-1", tree.get(node)?.delegateId)
     }
 
+    @Test fun `assign emits snapshot to listeners`() = runBlocking {
+        val tree = ChiefTree()
+        val root = tree.plan("ship feature")
+        var latest: ChiefSnapshot? = null
+        val logic = ChiefToolLogic(tree, null, FakeDelegate(), onChange = { latest = it })
+        logic.assign(root.id, "worker", "do work", emptyList(), listOf("src/w"))
+        assertEquals(2, latest?.nodes?.size)
+    }
+
     @Test fun `chief_status renders indentation by depth`() = runBlocking {
         val (tree, _, logic) = setup()
         val root = tree.all().first().id

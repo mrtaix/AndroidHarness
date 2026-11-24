@@ -376,6 +376,11 @@
     <string name="transfer_port">Port</string>
     <string name="subagents_allow_background">Allow background delegation</string>
     <string name="chief_hierarchy_title" translatable="false">Chief agent hierarchy (experimental)</string>
+    <string name="chief_tree_title" translatable="false">Chief agents</string>
+    <string name="chief_tree_empty" translatable="false">No chief nodes yet</string>
+    <string name="chief_tree_approve" translatable="false">Approve</string>
+    <string name="chief_tree_reject" translatable="false">Reject</string>
+    <string name="chief_tree_stop" translatable="false">Stop</string>
     <string name="subagents_background_description">Keep chatting while subagents explore in the background. Background tasks use read-only tools; two run at a time.</string>
     <string name="subagents_notify_completion">Notify on completion</string>
     <string name="subagents_notify_description">Get a notification with the result. Tap to open the subagent’s chat.</string>

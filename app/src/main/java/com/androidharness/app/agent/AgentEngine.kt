@@ -215,6 +215,9 @@ sealed interface AgentEvent {
      */
     data class SubagentMessageCommitted(val parentCallId: String, val message: ChatMessage) : AgentEvent
 
+    /** Live chief hierarchy snapshot; the chat renders it as a collapsible tree. */
+    data class ChiefTreeChanged(val snapshot: ChiefSnapshot) : AgentEvent
+
     /**
      * Line-change stats from one successful editing tool call ("+N −M" chips),
      * plus the pre-change state the Files-changed tracker needs: [existedBefore]
@@ -472,7 +475,8 @@ class AgentEngine(
         }
         val chiefNames = com.androidharness.app.agent.ChiefToolAvailability.toolNames(chiefEnabled, 0)
         val effectiveExtraTools = if (chiefEnabled) extraTools +
-            com.androidharness.app.tools.chiefTools(chiefTree, chiefStoreForRun, chiefDelegate).filter { it.name in chiefNames } +
+            com.androidharness.app.tools.chiefTools(chiefTree, chiefStoreForRun, chiefDelegate,
+                onChange = { emit(com.androidharness.app.agent.AgentEvent.ChiefTreeChanged(it)) }).filter { it.name in chiefNames } +
             listOf(object : com.androidharness.app.tools.Tool by com.androidharness.app.tools.TaskTool() {
                 override val description: String =
                     "Run a nested agent inside the chief hierarchy. Subagents may delegate further until depth 3. " +

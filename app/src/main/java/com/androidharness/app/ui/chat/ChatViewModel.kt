@@ -158,6 +158,8 @@ data class ChatUiState(
     val runningToolActions: List<String> = emptyList(),
     /** Live progress lines per running subagent (task tool), newest last. */
     val subagentSteps: Map<String, List<String>> = emptyMap(),
+    /** Latest experimental chief hierarchy snapshot. */
+    val chiefTree: com.androidharness.app.agent.ChiefSnapshot? = null,
     val thinkingTiming: com.androidharness.app.agent.ThinkingTiming = com.androidharness.app.agent.ThinkingTiming(),
     val reasoningTokens: Int? = null,
     /** Wall-clock start of the running turn; null once the turn ends. */
@@ -715,6 +717,7 @@ class ChatViewModel(
                 installingEnvironment = live.installingEnvironment,
                 currentToolAction = live.currentToolAction,
                 subagentSteps = live.subagentSteps,
+                chiefTree = live.chiefTree,
                 thinkingTiming = if (committed) st.thinkingTiming.stop(com.androidharness.app.agent.ThinkingTiming.now()) else live.thinkingTiming,
                 reasoningTokens = if (committed) st.reasoningTokens else live.reasoningTokens,
                 turnStartedAt = live.turnStartedAt,

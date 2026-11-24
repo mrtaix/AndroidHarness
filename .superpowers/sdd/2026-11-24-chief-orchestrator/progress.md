@@ -36,3 +36,13 @@ Final review (fresh subagent) findings and rulings:
 - REJECTED: empty-scope overlap is intentional: a child without an explicit scope cannot be assigned beside a scoped active node.
 | CI run 45426163974 | old commit `420a7a33` | FAIL: `AgentEngine.kt:460 Unresolved reference agentMode` (run-scope variable is `mode`) | FAIL -> fixed | - |
 | CI run 45431689787 | `57bb49b4` | unit tests PASS, debug APK PASS, release APK PASS, final conclusion success | PASS | final |
+
+## Increment 2 — UI cây Chief
+
+| Task | Files | Test | Result |
+|---|---|---|---|
+| Expose snapshot | `ChiefToolLogic.kt`, `ChiefTools.kt`, `AgentEngine.kt`, `AgentEvent`, `RunManager.kt`, `ChatViewModel.kt`, `ChiefToolLogicTest.kt` | RED no `onChange`; GREEN OK (25 pure tests) | PASS |
+| UI card | `ChiefTreeCard.kt`, `ui_extra_strings.xml`, `ChatScreen.kt` | local JVM N/A; CI device/unit build pending | NOT RUN locally |
+
+Ruling: action buttons prefill the composer with `chief_review`/`chief_stop` commands instead of injecting tool calls directly. Safer and matches existing composer patterns; user reviews before sending.
+Ruling: 5 new UI strings are `translatable="false"` to keep the 21-locale parity test green.

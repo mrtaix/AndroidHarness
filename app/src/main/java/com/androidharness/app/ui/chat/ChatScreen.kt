@@ -2450,6 +2450,16 @@ private fun ChatScreenContent(
                                         }
                                     }
                                 }
+                                if (isTurnFinal && !isTurnRunning && state.chiefTree != null) {
+                                    val chief = state.chiefTree!!
+                                    indexedItem(key = "message-$messageKey-chief-tree", contentType = ChatListContentType.Subagents) {
+                                        Box(Modifier.animateItem(fadeInSpec = fastEffectsSpec(), placementSpec = null, fadeOutSpec = null)) {
+                                            com.androidharness.app.ui.chat.components.ChiefTreeCard(chief) { command ->
+                                                setComposerText(command)
+                                            }
+                                        }
+                                    }
+                                }
                                 if (isTurnRunning || isSearchTurn) {
                                     val taskCalls = message.toolCalls.filter { it.name == "task" && (isSearchTurn || it.id !in subagentResults) }
                                     val otherCalls = message.toolCalls.filter { it.name != "task" }
