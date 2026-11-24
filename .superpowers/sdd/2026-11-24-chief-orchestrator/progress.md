@@ -84,3 +84,9 @@ Ruling: WORKER cannot delegate at all; only CHIEF may create a LEAD. Tool schema
 Ruling: scratch contains only the node's `scope` paths, copied at assign time. SAF workspaces and empty scopes fall back to the shared workspace; no merge-back happens automatically — the chief reviews the report/diff and merges through tools.
 | CI run 45479629853 | `02be81e0` | FAIL: `AgentEngine.kt:272` inferred type on constructor property rejected; cascaded `effectiveWorkspace` type errors | FAIL -> fixed | - |
 | CI run 45482158604 | `041c4be5` | unit tests PASS, debug PASS, release PASS, success | PASS | final |
+
+## Fix — missing settings button
+
+Root cause: `SettingsPage.SUBAGENT` renders the hand-written `SubagentSettingsSection`; adding a row to `AgentSettingsCatalog` only affected settings search and agent tools, not the page. The chief toggle therefore never appeared.
+Fix: `SubagentSettingsSection` now renders a catalog fallback for every SUBAGENT toggle not in `wiredSubagentKeys`; future catalog entries appear without another hand edit.
+Ruling: explicit `onChiefHierarchy` row removed to avoid duplicates; `SettingsScreen` writes catalog toggles through `setting.write`.

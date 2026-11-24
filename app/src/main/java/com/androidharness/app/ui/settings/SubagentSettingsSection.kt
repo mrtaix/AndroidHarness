@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ internal fun SubagentSettingsSection(
     onCompletionNotifications: (Boolean) -> Unit = {},
     onOpenBackgroundSettings: () -> Unit = {},
     onSubagentsEnabled: (Boolean) -> Unit = {},
+    onCatalogToggle: (AgentSetting, Boolean) -> Unit = {},
 ) {
     val uiContext = androidx.compose.ui.platform.LocalContext.current
     val on = settings.subagentsEnabled
@@ -60,12 +62,54 @@ internal fun SubagentSettingsSection(
             }
         }
     }
+    CatalogToggleFallback(settings, on, onCatalogToggle)
     SettingsPanel(Modifier.fillMaxWidth()) {
         SettingRow(androidx.compose.material.icons.Icons.Rounded.Notifications,
             stringResource(R.string.background_settings_title), stringResource(R.string.background_settings_description),
             onClick = onOpenBackgroundSettings)
     }
 }
+
+/**
+ * Renders every toggle the catalog declares for this page but the hand-written
+ * section does not wire. New catalog settings appear without a second edit here.
+ */
+@Composable
+private fun CatalogToggleFallback(
+    settings: AppSettings,
+    enabled: Boolean,
+    onToggle: (AgentSetting, Boolean) -> Unit,
+) {
+    val extras = AgentSettingsCatalog.all.filter { setting ->
+        setting.page == SettingsPage.SUBAGENT &&
+            setting.kind == SettingKind.Toggle &&
+            setting.key !in wiredSubagentKeys
+    }
+    if (extras.isEmpty()) return
+    SettingsPanel(Modifier.fillMaxWidth().alpha(if (enabled) 1f else .5f)) {
+        extras.forEach { setting ->
+            val checked = setting.read(settings).toBooleanStrictOrNull() == true
+            Row(
+                Modifier.fillMaxWidth().toggleable(checked, enabled = enabled, role = Role.Switch) {
+                    onToggle(setting, !checked)
+                }.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(stringResource(setting.title), style = MaterialTheme.typography.titleSmall)
+                    Text(setting.about, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Switch(checked, onCheckedChange = null, enabled = enabled)
+            }
+        }
+    }
+}
+
+private val wiredSubagentKeys = setOf(
+    "subagents_enabled", "subagent_action_tools", "background_subagents", "subagent_notifications",
+)
 
 @Composable
 private fun SubagentSettingSwitch(title: Int, description: Int, checked: Boolean, onChange: (Boolean) -> Unit, enabled: Boolean = true) {

@@ -531,6 +531,9 @@ private fun SettingsScreenContent(
                                 onCompletionNotifications = { scope.launch { container.settings.setSubagentCompletionNotifications(it) } },
                                 onOpenBackgroundSettings = { openPage(SettingsPage.BACKGROUND) },
                                 onSubagentsEnabled = { scope.launch { container.settings.setSubagentsEnabled(it) } },
+                                onCatalogToggle = { setting, on ->
+                                    scope.launch { setting.write(container.settings, on.toString()) }
+                                },
                             )
                         }
                         SettingsPage.LOCAL_MODELS -> LocalModelsSection(container, scrollContent = true)

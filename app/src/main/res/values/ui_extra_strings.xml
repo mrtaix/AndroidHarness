@@ -376,6 +376,7 @@
     <string name="transfer_port">Port</string>
     <string name="subagents_allow_background">Allow background delegation</string>
     <string name="chief_hierarchy_title" translatable="false">Chief agent hierarchy (experimental)</string>
+    <string name="chief_hierarchy_desc" translatable="false">Let a chief agent delegate to leads and workers, review their reports, then merge. Off by default.</string>
     <string name="chief_tree_title" translatable="false">Chief agents</string>
     <string name="chief_tree_empty" translatable="false">No chief nodes yet</string>
     <string name="chief_tree_approve" translatable="false">Approve</string>
