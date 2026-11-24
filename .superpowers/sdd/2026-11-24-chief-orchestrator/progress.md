@@ -73,3 +73,12 @@ Ruling: the engine watches each spawned background run with `waitFor(30s)` and c
 Ruling: WORKER cannot delegate at all; only CHIEF may create a LEAD. Tool schema exposes `role` with that contract. This closes the reviewer’s "permissions stored but unused" finding at the delegation layer; commit/push/deploy remain unavailable to every child because chief delegates run background/read-only.
 | CI run 45468379316 | `ac2c1fc7` | FAIL unrelated flake: `GroqWhisperClientTest` TimeoutException (2562 tests, 1 failed) | FAIL (flake) | - |
 | CI run 45470503836 | `ac2c1fc7` | unit tests PASS, debug PASS, release PASS, success | PASS | final |
+
+## Increment 5 — per-node scratch workspace
+
+| Task | Files | Test | Result |
+|---|---|---|---|
+| Scratch copy helper | `ChiefWorkspace.kt`, `ChiefWorkspaceTest.kt` | RED unresolved helper; GREEN OK (4 tests) | PASS |
+| Engine routing | `AgentEngine.kt`, `HarnessApp.kt` | CI build pending | NOT RUN locally |
+
+Ruling: scratch contains only the node's `scope` paths, copied at assign time. SAF workspaces and empty scopes fall back to the shared workspace; no merge-back happens automatically — the chief reviews the report/diff and merges through tools.

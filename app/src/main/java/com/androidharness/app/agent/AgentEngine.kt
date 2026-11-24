@@ -267,6 +267,9 @@ class AgentEngine(
     private val chiefStore: (String) -> com.androidharness.app.agent.ChiefTreeStore = { sid ->
         com.androidharness.app.agent.ChiefTreeStore(java.io.File(".", "chief-tree-$sid.json"))
     },
+    /** Base for per-node scratch workspaces; device runs pass noBackupFilesDir. */
+    private val chiefWorkspaceBase: () -> java.io.File = { java.io.File(".") },
+    private val chiefWorkspaces = java.util.concurrent.ConcurrentHashMap<String, com.androidharness.app.workspace.WorkspaceFs>(),
     private val configuredSubagent: suspend () -> SubagentConnection? = { null },
     private val prepareGitHub: suspend () -> Unit = {},
     private val deviceAccess: com.androidharness.app.data.env.DeviceAccessManager? = null,
@@ -462,8 +465,18 @@ class AgentEngine(
                     put("prompt", request.prompt)
                     put("background", true)
                 }
+                val taskId = "chief-${java.util.UUID.randomUUID()}"
+                workspace.shellRoot?.let { shellRoot ->
+                    runCatching {
+                        com.androidharness.app.agent.ChiefWorkspace.prepare(
+                            chiefWorkspaceBase(), request.node.id, shellRoot, request.node.scope,
+                        )
+                    }.getOrNull()?.let { scratch ->
+                        chiefWorkspaces[taskId] = com.androidharness.app.workspace.FileFs(scratch)
+                    }
+                }
                 val call = com.androidharness.app.core.ToolCallData(
-                    id = "chief-${java.util.UUID.randomUUID()}", name = "task", argumentsJson = args.toString(),
+                    id = taskId, name = "task", argumentsJson = args.toString(),
                 )
                 val result = performWithPermission(call, permissionMode(), sessionAllowedTools, workspace, sessionId, turnId,
                     mode, requestOptions, config, apiKey, registry, resolveSubagentModel, { emit(it) }, subagentRuns)
@@ -475,6 +488,7 @@ class AgentEngine(
                         val run = subagentRuns?.waitFor(sessionId, delegateId, 30_000) ?: break
                         if (!run.status.active) {
                             chiefLogic?.attachFinished(delegateId, run.report())
+                            chiefWorkspaces.remove(delegateId)
                             break
                         }
                     }
@@ -1691,13 +1705,14 @@ class AgentEngine(
                 return ToolResult(false, e.message ?: "Could not configure the subagent model.")
             }
             val agentType = childContext?.agent ?: "default"
+            val effectiveWorkspace = chiefWorkspaces[call.id] ?: workspace
             val execute: suspend (suspend (AgentEvent) -> Unit) -> ToolResult = { events ->
                 withContext(childContext ?: kotlin.coroutines.EmptyCoroutineContext) {
                     val hookEvent = kotlinx.serialization.json.buildJsonObject { put("agent_id", call.id); put("agent_type", agentType); put("prompt", prompt) }
                     val start = if (hooked) childContext!!.fire(com.androidharness.app.config.HookEvents.SUBAGENT_START, hookEvent) else null
                     start?.messages?.forEach { events(AgentEvent.Notice(it)) }
                     val fullPrompt = start?.instructions?.takeIf(String::isNotBlank)?.let { "$prompt\n\n$it" } ?: prompt
-                    val outcome = runSubagent(fullPrompt, title, call.id, connection.config, connection.apiKey, workspace, requestOptions, events,
+                    val outcome = runSubagent(fullPrompt, title, call.id, connection.config, connection.apiKey, effectiveWorkspace, requestOptions, events,
                         registry, mode, sessionAllowedTools, sessionId, turnId,
                         actionTools = !background && agentMode == AgentMode.ACT && cavemanSettings().subagentFullAccess)
                     if (!hooked) outcome else {
@@ -1711,7 +1726,7 @@ class AgentEngine(
             val runs = subagentRuns ?: return execute(emitEvent)
             val run = SubagentRun(sessionId, turnId, call, title ?: "Subagent", prompt,
                 connection.config.model, connection.config.id, background,
-                workspacePaths = workspace.workspacePaths())
+                workspacePaths = effectiveWorkspace.workspacePaths())
             if (background) {
                 runs.background(run, kotlin.coroutines.coroutineContext, execute)
                 return ToolResult(true, "Started ${run.name} in the background. task_id=${run.id}. " +
