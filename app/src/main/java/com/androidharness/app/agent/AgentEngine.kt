@@ -482,7 +482,7 @@ class AgentEngine(
                 val result = performWithPermission(call, permissionMode(), sessionAllowedTools, workspace, sessionId, turnId,
                     mode, requestOptions, config, apiKey, registry, resolveSubagentModel, { emit(it) }, subagentRuns)
                 if (!result.ok) error(result.output)
-                val delegateId = Regex("task_id=([^\\s]+)").find(result.output)?.groupValues?.get(1)
+                val delegateId = com.androidharness.app.agent.ChiefTaskId.from(result.output)
                     ?: error("Chief delegate did not return a task id")
                 launch {
                     while (true) {

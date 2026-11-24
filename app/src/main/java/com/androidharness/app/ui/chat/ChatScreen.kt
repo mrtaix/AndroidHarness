@@ -2015,6 +2015,16 @@ private fun ChatScreenContent(
                                     }
                                 }
                             }
+                            if (state.chiefTree != null) {
+                                val chief = state.chiefTree!!
+                                indexedItem(key = "chief-live", contentType = ChatListContentType.Subagents) {
+                                    com.androidharness.app.ui.chat.components.ChiefTreeCard(
+                                        chief,
+                                        steps = state.subagentSteps,
+                                        onAction = { command -> setComposerText(command) },
+                                    )
+                                }
+                            }
                             if (state.messages.isEmpty() && state.streamingText == null) {
                                 indexedItem(key = "empty-state", contentType = ChatListContentType.Empty) {
                                     // Exactly the visible area between the list's top and bottom padding
@@ -2447,16 +2457,6 @@ private fun ChatScreenContent(
                                     indexedItem(key = "message-$messageKey-subagent-tree", contentType = ChatListContentType.Subagents) {
                                         Box(Modifier.animateItem(fadeInSpec = fastEffectsSpec(), placementSpec = null, fadeOutSpec = null)) {
                                             com.androidharness.app.ui.chat.components.SubagentTreeCard(runs, onOpenSubagent)
-                                        }
-                                    }
-                                }
-                                if (isTurnFinal && !isTurnRunning && state.chiefTree != null) {
-                                    val chief = state.chiefTree!!
-                                    indexedItem(key = "message-$messageKey-chief-tree", contentType = ChatListContentType.Subagents) {
-                                        Box(Modifier.animateItem(fadeInSpec = fastEffectsSpec(), placementSpec = null, fadeOutSpec = null)) {
-                                            com.androidharness.app.ui.chat.components.ChiefTreeCard(chief) { command ->
-                                                setComposerText(command)
-                                            }
                                         }
                                     }
                                 }

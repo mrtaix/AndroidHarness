@@ -25,7 +25,11 @@ import com.androidharness.app.agent.ChiefStatus
  * composer instead of calling tools directly, so the user reviews the command.
  */
 @Composable
-fun ChiefTreeCard(snapshot: ChiefSnapshot, onAction: (String) -> Unit) {
+fun ChiefTreeCard(
+    snapshot: ChiefSnapshot,
+    steps: Map<String, List<String>> = emptyMap(),
+    onAction: (String) -> Unit,
+) {
     val scheme = MaterialTheme.colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -47,14 +51,14 @@ fun ChiefTreeCard(snapshot: ChiefSnapshot, onAction: (String) -> Unit) {
                 return@Card
             }
             snapshot.nodes.sortedBy { it.depth }.forEach { node ->
-                ChiefTreeNode(node, onAction)
+                ChiefTreeNode(node, steps[node.delegateId].orEmpty().lastOrNull(), onAction)
             }
         }
     }
 }
 
 @Composable
-private fun ChiefTreeNode(node: ChiefNode, onAction: (String) -> Unit) {
+private fun ChiefTreeNode(node: ChiefNode, latestStep: String?, onAction: (String) -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
@@ -76,6 +80,15 @@ private fun ChiefTreeNode(node: ChiefNode, onAction: (String) -> Unit) {
                 style = MaterialTheme.typography.labelSmall,
                 color = scheme.onSurfaceVariant,
             )
+            if (latestStep != null && node.status != ChiefStatus.REVIEW && node.status != ChiefStatus.DONE) {
+                Text(
+                    latestStep.take(160),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
             if (node.report.isNotBlank()) {
                 Text(
                     node.report.take(240),
