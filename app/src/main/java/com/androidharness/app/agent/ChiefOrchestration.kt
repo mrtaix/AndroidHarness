@@ -4,6 +4,9 @@ import kotlinx.serialization.Serializable
 
 /** State of one node in the orchestration tree. */
 @Serializable
+enum class ChiefRole { CHIEF, LEAD, WORKER }
+
+@Serializable
 enum class ChiefStatus {
     QUEUED, RUNNING, REVIEW, APPROVED, DONE, FAILED, CANCELLED, INTERRUPTED;
     val active: Boolean get() = this == QUEUED || this == RUNNING || this == REVIEW
@@ -32,6 +35,7 @@ data class ChiefNode(
     val feedback: List<String> = emptyList(),
     val report: String = "",
     val delegateId: String? = null,
+    val role: ChiefRole = ChiefRole.WORKER,
 )
 
 /**
@@ -65,6 +69,7 @@ class ChiefTree(
             title = goal,
             prompt = goal,
             status = ChiefStatus.RUNNING,
+            role = ChiefRole.CHIEF,
         )
         nodes[node.id] = node
         node
@@ -78,8 +83,11 @@ class ChiefTree(
         scope: List<String> = emptyList(),
         budget: ChiefBudget = ChiefBudget(),
         permissions: Set<String> = setOf("read", "write", "run"),
+        role: ChiefRole = ChiefRole.WORKER,
     ): ChiefNode = synchronized(this) {
         val parent = node(parentId)
+        require(parent.role != ChiefRole.WORKER) { "worker cannot delegate" }
+        require(role != ChiefRole.LEAD || parent.role == ChiefRole.CHIEF) { "role: only chief can create a lead" }
         require(parent.depth + 1 < maxDepth) { "depth limit reached" }
         require(nodes.values.count { it.status.active } < maxNodes) { "live node limit reached" }
         val childScope = scope.flatMap { it.trim('/').split('/') }.filter { it.isNotEmpty() }
@@ -98,6 +106,7 @@ class ChiefTree(
             scope = scope,
             budget = budget,
             permissions = permissions,
+            role = role,
         )
         nodes[node.id] = node
         node

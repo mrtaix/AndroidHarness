@@ -29,6 +29,7 @@ fun chiefTools(logic: ChiefToolLogic): List<Tool> {
                 "acceptance" to strings,
                 "scope" to strings,
                 "max_tokens" to Schema.integer("Token budget for this node, default 20000."),
+                "role" to Schema.string("LEAD or WORKER. Only the chief may create a LEAD; workers cannot delegate."),
             ), listOf("parent_id", "title", "prompt")),
             readOnly = false,
         ) { args -> logic.assign(
@@ -38,6 +39,7 @@ fun chiefTools(logic: ChiefToolLogic): List<Tool> {
             acceptance = args.strings("acceptance"),
             scope = args.strings("scope"),
             maxTokens = args.int("max_tokens", 20_000),
+            role = args.str("role", "WORKER"),
         ).let { "Assigned $it" } },
         chiefTool(
             name = "chief_status",

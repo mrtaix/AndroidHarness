@@ -51,6 +51,14 @@ class ChiefToolLogicTest {
         assertEquals(2, latest?.nodes?.size)
     }
 
+    @Test fun `assign forwards role and scope into the node`() = runBlocking {
+        val (tree, _, logic) = setup()
+        val root = tree.all().first().id
+        val node = logic.assign(root, "lead", "do lead", emptyList(), listOf("src/lead"), role = "LEAD")
+        assertEquals(ChiefRole.LEAD, tree.get(node)?.role)
+        assertEquals(listOf("src/lead"), tree.get(node)?.scope)
+    }
+
     @Test fun `finished delegate report attaches to its node`() = runBlocking {
         val (tree, _, logic) = setup()
         val root = tree.all().first().id
@@ -64,7 +72,7 @@ class ChiefToolLogicTest {
     @Test fun `chief_status renders indentation by depth`() = runBlocking {
         val (tree, _, logic) = setup()
         val root = tree.all().first().id
-        val lead = logic.assign(root, "lead", "do work", emptyList(), listOf("src/lead"))
+        val lead = logic.assign(root, "lead", "do work", emptyList(), listOf("src/lead"), role = "LEAD")
         logic.assign(lead, "worker", "do work", emptyList(), listOf("src/worker"))
         val text = logic.status()
         assertTrue(text.contains("  lead"))
@@ -84,7 +92,7 @@ class ChiefToolLogicTest {
     @Test fun `chief_stop cascades before delegating stop`() = runBlocking {
         val (tree, delegate, logic) = setup()
         val root = tree.all().first().id
-        val lead = logic.assign(root, "lead", "do work", emptyList(), listOf("src/lead"))
+        val lead = logic.assign(root, "lead", "do work", emptyList(), listOf("src/lead"), role = "LEAD")
         val worker = logic.assign(lead, "worker", "do work", emptyList(), listOf("src/worker"))
         logic.stop(lead)
         assertTrue(delegate.stops.contains("task-1"))

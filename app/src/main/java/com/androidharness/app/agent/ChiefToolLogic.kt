@@ -31,6 +31,7 @@ class ChiefToolLogic(
         scope: List<String> = emptyList(),
         maxTokens: Int = 20_000,
         permissions: Set<String> = setOf("read", "write", "run"),
+        role: String = "WORKER",
     ): String {
         val node = tree.assign(
             parentId = parentId,
@@ -40,6 +41,7 @@ class ChiefToolLogic(
             scope = scope,
             budget = ChiefBudget(maxTokens = maxTokens),
             permissions = permissions,
+            role = runCatching { ChiefRole.valueOf(role.uppercase()) }.getOrDefault(ChiefRole.WORKER),
         )
         val fullPrompt = buildString {
             append(prompt)

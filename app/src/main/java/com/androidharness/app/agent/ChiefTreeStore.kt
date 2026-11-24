@@ -49,6 +49,7 @@ class ChiefTreeStore(private val file: File) {
                         putJsonArray("feedback") { node.feedback.forEach { add(it) } }
                         put("report", node.report)
                         node.delegateId?.let { put("delegateId", it) }
+                        put("role", node.role.name)
                     }
                 }
             }
@@ -85,6 +86,8 @@ class ChiefTreeStore(private val file: File) {
                 feedback = node.strings("feedback"),
                 report = node.str("report"),
                 delegateId = node["delegateId"]?.jsonPrimitive?.contentOrNull,
+                role = runCatching { ChiefRole.valueOf(node.str("role", "WORKER")) }
+                    .getOrDefault(ChiefRole.WORKER),
             )
         }
         val snapshot = ChiefSnapshot(nodes, root.int("sequence"))

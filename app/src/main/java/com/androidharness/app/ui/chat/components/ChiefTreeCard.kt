@@ -71,7 +71,7 @@ private fun ChiefTreeNode(node: ChiefNode, onAction: (String) -> Unit) {
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                listOf(node.status.name, node.delegateId?.let { "task" } ?: "local")
+                listOf(node.role.name, node.status.name, node.delegateId?.let { "task" } ?: "local")
                     .joinToString(" · "),
                 style = MaterialTheme.typography.labelSmall,
                 color = scheme.onSurfaceVariant,

@@ -10,17 +10,39 @@ import org.junit.Test
 class ChiefOrchestrationTest {
 
     private fun tree(): ChiefTree = ChiefTree()
-    private fun assign(tree: ChiefTree, parent: String, name: String, scope: String): String =
-        tree.assign(parentId = parent, title = name, prompt = "do $name", acceptance = listOf("done"), scope = listOf(scope)).id
+    private fun assign(tree: ChiefTree, parent: String, name: String, scope: String, role: ChiefRole = ChiefRole.WORKER): String =
+        tree.assign(parentId = parent, title = name, prompt = "do $name", acceptance = listOf("done"), scope = listOf(scope), role = role).id
 
     @Test fun `assign rejects a fourth level`() {
         val tree = tree()
         val root = tree.plan("ship feature").id
-        val lead = assign(tree, root, "lead", "src/lead")
+        val lead = assign(tree, root, "lead", "src/lead", ChiefRole.LEAD)
         val worker = assign(tree, lead, "worker", "src/worker")
         val err = runCatching { assign(tree, worker, "deep", "src/deep") }.exceptionOrNull()
-        assertTrue(err?.message.orEmpty().contains("depth"))
+        assertTrue(err?.message.orEmpty().contains("worker"))
         assertEquals(3, tree.all().size)
+    }
+
+    @Test fun `worker cannot delegate`() {
+        val tree = tree()
+        val root = tree.plan("ship feature").id
+        val lead = tree.assign(root, "lead", "do lead", role = ChiefRole.LEAD, scope = listOf("src/lead")).id
+        val worker = tree.assign(lead, "worker", "do work", role = ChiefRole.WORKER, scope = listOf("src/w")).id
+        val err = runCatching {
+            tree.assign(worker, "deep", "do more", role = ChiefRole.WORKER, scope = listOf("src/deep"))
+        }.exceptionOrNull()
+        assertTrue(err?.message.orEmpty().contains("worker"))
+        assertEquals(3, tree.all().size)
+    }
+
+    @Test fun `only chief can create a lead`() {
+        val tree = tree()
+        val root = tree.plan("ship feature").id
+        val lead = tree.assign(root, "lead", "do lead", role = ChiefRole.LEAD, scope = listOf("src/lead")).id
+        val err = runCatching {
+            tree.assign(lead, "nested", "do more", role = ChiefRole.LEAD, scope = listOf("src/nested"))
+        }.exceptionOrNull()
+        assertTrue(err?.message.orEmpty().contains("role"))
     }
 
     @Test fun `assign rejects ninth live node`() {
@@ -86,7 +108,7 @@ class ChiefOrchestrationTest {
     @Test fun `stop cascades to descendants`() {
         val tree = tree()
         val root = tree.plan("ship feature").id
-        val lead = assign(tree, root, "lead", "src/lead")
+        val lead = assign(tree, root, "lead", "src/lead", ChiefRole.LEAD)
         val worker = assign(tree, lead, "worker", "src/worker")
         tree.stop(lead)
         assertEquals(ChiefStatus.CANCELLED, tree.get(lead)?.status)
@@ -119,7 +141,7 @@ class ChiefOrchestrationTest {
     @Test fun `status renders indentation by depth`() {
         val tree = tree()
         val root = tree.plan("ship feature").id
-        val lead = assign(tree, root, "lead", "src/lead")
+        val lead = assign(tree, root, "lead", "src/lead", ChiefRole.LEAD)
         val worker = assign(tree, lead, "worker", "src/worker")
         val text = tree.status()
         assertTrue(text.contains("ship feature"))

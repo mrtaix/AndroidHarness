@@ -63,3 +63,11 @@ Ruling: inside `channelFlow` use the imported `launch` extension (ProducerScope 
 
 Ruling: the engine watches each spawned background run with `waitFor(30s)` and calls `attachFinished`, which moves the node to REVIEW with the report. The chief still reviews before merge.
 | CI run 45457502033 | `6a22cb06` | unit tests PASS, debug PASS, release PASS, success | PASS | final |
+
+## Increment 4 — role gating
+
+| Task | Files | Test | Result |
+|---|---|---|---|
+| Role enum + assign rules | `ChiefOrchestration.kt`, `ChiefTreeStore.kt`, `ChiefToolLogic.kt`, `ChiefTools.kt`, `ChiefTreeCard.kt`, 2 tests | RED unresolved `ChiefRole`/`role`; GREEN OK (29 pure tests), wrappers smoke-compiled | PASS |
+
+Ruling: WORKER cannot delegate at all; only CHIEF may create a LEAD. Tool schema exposes `role` with that contract. This closes the reviewer’s "permissions stored but unused" finding at the delegation layer; commit/push/deploy remain unavailable to every child because chief delegates run background/read-only.
