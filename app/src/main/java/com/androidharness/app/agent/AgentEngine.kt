@@ -23,6 +23,7 @@ import com.androidharness.app.workspace.workspacePaths
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -445,7 +446,7 @@ class AgentEngine(
         val requestOptions = options.copy(cacheKey = sessionId)
         val chiefEnabled = cavemanSettings().chiefHierarchy && subagentRuns != null
         val chiefEvents = kotlinx.coroutines.channels.Channel<com.androidharness.app.agent.ChiefSnapshot>(kotlinx.coroutines.channels.Channel.UNLIMITED)
-        kotlinx.coroutines.launch {
+        launch {
             for (snapshot in chiefEvents) emit(com.androidharness.app.agent.AgentEvent.ChiefTreeChanged(snapshot))
         }
         var chiefRunRegistry: com.androidharness.app.tools.ToolRegistry? = null

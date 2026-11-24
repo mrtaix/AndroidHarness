@@ -49,3 +49,6 @@ Ruling: 5 new UI strings are `translatable="false"` to keep the 21-locale parity
 | CI run 45444250163 | `2861e3af` | FAIL: `AgentEngine.kt:479 Suspension functions can only be called within coroutine body` (onChange called `emit`) | FAIL -> fixed | - |
 
 Ruling: `ChiefToolLogic.onChange` is synchronous; AgentEngine bridges it to the flow with an unlimited `Channel` and a coroutine that calls `emit`. Cost: one extra channel per run.
+| CI run 45446192982 | `7fe43909` | FAIL: deprecated `kotlinx.coroutines.launch` called without receiver scope | FAIL -> fixed | - |
+
+Ruling: inside `channelFlow` use the imported `launch` extension (ProducerScope is a CoroutineScope), not the top-level fully-qualified function.
