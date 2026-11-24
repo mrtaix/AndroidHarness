@@ -35,3 +35,4 @@ Final review (fresh subagent) findings and rulings:
 - REJECTED: missing `Charsets` import — Kotlin default-imports `kotlin.text.*`.
 - REJECTED: empty-scope overlap is intentional: a child without an explicit scope cannot be assigned beside a scoped active node.
 | CI run 45426163974 | old commit `420a7a33` | FAIL: `AgentEngine.kt:460 Unresolved reference agentMode` (run-scope variable is `mode`) | FAIL -> fixed | - |
+| CI run 45431689787 | `57bb49b4` | unit tests PASS, debug APK PASS, release APK PASS, final conclusion success | PASS | final |
