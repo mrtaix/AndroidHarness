@@ -49,7 +49,7 @@ object ChatGptProtocol {
             .addQueryParameter("nonce", nonce)
             .addQueryParameter("code_challenge_method", "S256")
             .addQueryParameter("code_challenge", challenge(verifier))
-        if (account == null) builder.addQueryParameter("agent_name_hint", "AndroidHarness")
+        if (account == null) builder.addQueryParameter("agent_name_hint", "CT Harness")
         else {
             account.idToken?.let { builder.addQueryParameter("id_token_hint", it) }
             account.email?.let { builder.addQueryParameter("login_hint", it) }
