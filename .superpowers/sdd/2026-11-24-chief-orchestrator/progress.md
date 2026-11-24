@@ -52,3 +52,4 @@ Ruling: `ChiefToolLogic.onChange` is synchronous; AgentEngine bridges it to the 
 | CI run 45446192982 | `7fe43909` | FAIL: deprecated `kotlinx.coroutines.launch` called without receiver scope | FAIL -> fixed | - |
 
 Ruling: inside `channelFlow` use the imported `launch` extension (ProducerScope is a CoroutineScope), not the top-level fully-qualified function.
+| CI run 45447719721 | `0aa9ac1f` | unit tests PASS, debug PASS, release PASS, success | PASS | final |
