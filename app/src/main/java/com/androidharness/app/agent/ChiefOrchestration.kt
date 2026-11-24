@@ -1,17 +1,22 @@
 package com.androidharness.app.agent
 
+import kotlinx.serialization.Serializable
+
 /** State of one node in the orchestration tree. */
+@Serializable
 enum class ChiefStatus {
-    QUEUED, RUNNING, REVIEW, APPROVED, DONE, FAILED, CANCELLED;
+    QUEUED, RUNNING, REVIEW, APPROVED, DONE, FAILED, CANCELLED, INTERRUPTED;
     val active: Boolean get() = this == QUEUED || this == RUNNING || this == REVIEW
 }
 
+@Serializable
 data class ChiefBudget(
     val maxTokens: Int = 20_000,
     val maxCostUsd: Double = 0.5,
     val deadlineMs: Long? = null,
 )
 
+@Serializable
 data class ChiefNode(
     val id: String,
     val parentId: String?,
@@ -32,13 +37,24 @@ data class ChiefNode(
  * Pure state machine for a bounded hierarchy of agents. No Android or coroutine
  * dependencies so the transition rules can be tested on the JVM.
  */
+@Serializable
+data class ChiefSnapshot(val nodes: List<ChiefNode>, val sequence: Int)
+
 class ChiefTree(
     private val maxDepth: Int = 3,
     private val maxNodes: Int = 8,
     private val maxRetries: Int = 2,
+    initial: ChiefSnapshot? = null,
 ) {
     private val nodes = LinkedHashMap<String, ChiefNode>()
     private var sequence = 0
+
+    init {
+        if (initial != null) {
+            initial.nodes.forEach { nodes[it.id] = it }
+            sequence = initial.sequence
+        }
+    }
 
     fun plan(goal: String): ChiefNode {
         val node = ChiefNode(
@@ -123,6 +139,7 @@ class ChiefTree(
 
     fun get(id: String): ChiefNode? = nodes[id]
     fun all(): List<ChiefNode> = nodes.values.toList()
+    fun snapshot(): ChiefSnapshot = ChiefSnapshot(all(), sequence)
 
     fun status(): String = buildString {
         fun walk(id: String) {

@@ -13,3 +13,6 @@ Pre-flight: Task 2 stores the `ChiefTree` produced by Task 1; Task 3 consumes bo
 | Task | Files | Test command | Result | Commit |
 |---|---|---|---|---|
 | 1 state machine | `ChiefOrchestration.kt`, `ChiefOrchestrationTest.kt` | JVM runner, `org.junit.runner.JUnitCore com.androidharness.app.agent.ChiefOrchestrationTest` RED: unresolved `ChiefTree`; GREEN: OK (9 tests); mutation `maxRetries 2→3` caught by `third rejection fails the node`, restored | PASS | pending |
+| 2 JSON store | `ChiefTreeStore.kt`, `ChiefTreeStoreTest.kt`, `ChiefOrchestration.kt` (snapshot/INTERRUPTED) | JVM JUnitCore both suites: RED unresolved store/snapshot/INTERRUPTED; GREEN OK (12 tests); mutation `active -> false` caught by `active nodes become interrupted after reload`, restored | PASS | pending |
+
+Ruling: plan file lives under `docs/superpowers/`, which `.gitignore` ignores; spec text was committed with the design doc under `.agent/` instead.
