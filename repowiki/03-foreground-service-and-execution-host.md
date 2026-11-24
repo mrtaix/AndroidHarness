@@ -147,16 +147,16 @@ The manifest declares `RECEIVE_BOOT_COMPLETED`, but no receiver starts `AgentSer
 - `NotificationActionReceiver` and alert buttons depend on `RunManager` state held in the same process. If the process is gone, the pending alert cannot restore the run, only reopen the chat.
 - The 12 hour wake lock ceiling is a hard limit. A run that exceeds it loses the CPU guarantee even though the foreground service remains.
 
-Sources: [app/src/main/java/com/androidharness/app/AgentService.kt](../app/src/main/java/com/androidharness/app/AgentService.kt)#L36-L571), [app/src/main/java/com/androidharness/app/AppRuntimePolicy.kt](../app/src/main/java/com/androidharness/app/AppRuntimePolicy.kt)#L13-L106), [app/src/main/java/com/androidharness/app/agent/KeepaliveTracker.kt](../app/src/main/java/com/androidharness/app/agent/KeepaliveTracker.kt)#L1-L30), [app/src/main/java/com/androidharness/app/agent/RunManager.kt](../app/src/main/java/com/androidharness/app/agent/RunManager.kt)#L47-L100), [app/src/main/java/com/androidharness/app/agent/RunManager.kt](../app/src/main/java/com/androidharness/app/agent/RunManager.kt)#L355-L770), [app/src/main/java/com/androidharness/app/agent/RunManager.kt](../app/src/main/java/com/androidharness/app/agent/RunManager.kt)#L1561-L1576), [app/src/main/java/com/androidharness/app/data/TerminalManager.kt](../app/src/main/java/com/androidharness/app/data/TerminalManager.kt)#L132-L192), [app/src/main/AndroidManifest.xml](../app/src/main/AndroidManifest.xml)#L1-L185)
+Sources: [app/src/main/java/com/ctharness/app/AgentService.kt](../app/src/main/java/com/ctharness/app/AgentService.kt)#L36-L571), [app/src/main/java/com/ctharness/app/AppRuntimePolicy.kt](../app/src/main/java/com/ctharness/app/AppRuntimePolicy.kt)#L13-L106), [app/src/main/java/com/ctharness/app/agent/KeepaliveTracker.kt](../app/src/main/java/com/ctharness/app/agent/KeepaliveTracker.kt)#L1-L30), [app/src/main/java/com/ctharness/app/agent/RunManager.kt](../app/src/main/java/com/ctharness/app/agent/RunManager.kt)#L47-L100), [app/src/main/java/com/ctharness/app/agent/RunManager.kt](../app/src/main/java/com/ctharness/app/agent/RunManager.kt)#L355-L770), [app/src/main/java/com/ctharness/app/agent/RunManager.kt](../app/src/main/java/com/ctharness/app/agent/RunManager.kt)#L1561-L1576), [app/src/main/java/com/ctharness/app/data/TerminalManager.kt](../app/src/main/java/com/ctharness/app/data/TerminalManager.kt)#L132-L192), [app/src/main/AndroidManifest.xml](../app/src/main/AndroidManifest.xml)#L1-L185)
 
 ## Source files
 
-- `app/src/main/java/com/androidharness/app/AgentService.kt`
-- `app/src/main/java/com/androidharness/app/AppRuntimePolicy.kt`
-- `app/src/main/java/com/androidharness/app/agent/KeepaliveTracker.kt`
-- `app/src/main/java/com/androidharness/app/agent/RunManager.kt`
-- `app/src/main/java/com/androidharness/app/agent/TaskControl.kt`
-- `app/src/main/java/com/androidharness/app/agent/NotificationActionReceiver.kt`
-- `app/src/main/java/com/androidharness/app/data/TerminalManager.kt`
-- `app/src/main/java/com/androidharness/app/terminal/InteractiveTerminalManager.kt`
+- `app/src/main/java/com/ctharness/app/AgentService.kt`
+- `app/src/main/java/com/ctharness/app/AppRuntimePolicy.kt`
+- `app/src/main/java/com/ctharness/app/agent/KeepaliveTracker.kt`
+- `app/src/main/java/com/ctharness/app/agent/RunManager.kt`
+- `app/src/main/java/com/ctharness/app/agent/TaskControl.kt`
+- `app/src/main/java/com/ctharness/app/agent/NotificationActionReceiver.kt`
+- `app/src/main/java/com/ctharness/app/data/TerminalManager.kt`
+- `app/src/main/java/com/ctharness/app/terminal/InteractiveTerminalManager.kt`
 - `app/src/main/AndroidManifest.xml`

@@ -80,13 +80,13 @@ Resolution and traversal are separate contracts. `resolve` returns a node even f
 - `WorkspaceIgnore` does not read `.gitignore`, `.harnessignore`, or any per-project ignore file. The deny set is hard-coded. No parsing code was found in `workspace/` or `tools/`.
 - `FileFs` does not call `isSymbolicLink` during traversal or resolution. Symlink refusal exists in `SshFs.checked` and in `ShellPolicy` for shell-created links, not in the local VFS.
 
-Sources: [app/src/main/java/com/androidharness/app/workspace/WorkspaceFs.kt](../app/src/main/java/com/androidharness/app/workspace/WorkspaceFs.kt)#L13-L571), [app/src/main/java/com/androidharness/app/workspace/SafPathResolver.kt](../app/src/main/java/com/androidharness/app/workspace/SafPathResolver.kt)#L15-L51), [app/src/main/java/com/androidharness/app/workspace/WorkspaceIgnore.kt](../app/src/main/java/com/androidharness/app/workspace/WorkspaceIgnore.kt)#L7-L48), [app/src/main/java/com/androidharness/app/tools/FileTools.kt](../app/src/main/java/com/androidharness/app/tools/FileTools.kt)#L115-L140), [app/src/main/java/com/androidharness/app/workspace/SshFs.kt](../app/src/main/java/com/androidharness/app/workspace/SshFs.kt)#L12-L55)
+Sources: [app/src/main/java/com/ctharness/app/workspace/WorkspaceFs.kt](../app/src/main/java/com/ctharness/app/workspace/WorkspaceFs.kt)#L13-L571), [app/src/main/java/com/ctharness/app/workspace/SafPathResolver.kt](../app/src/main/java/com/ctharness/app/workspace/SafPathResolver.kt)#L15-L51), [app/src/main/java/com/ctharness/app/workspace/WorkspaceIgnore.kt](../app/src/main/java/com/ctharness/app/workspace/WorkspaceIgnore.kt)#L7-L48), [app/src/main/java/com/ctharness/app/tools/FileTools.kt](../app/src/main/java/com/ctharness/app/tools/FileTools.kt)#L115-L140), [app/src/main/java/com/ctharness/app/workspace/SshFs.kt](../app/src/main/java/com/ctharness/app/workspace/SshFs.kt)#L12-L55)
 
 ## Source files
 
-- `app/src/main/java/com/androidharness/app/workspace/WorkspaceFs.kt`
-- `app/src/main/java/com/androidharness/app/workspace/SafPathResolver.kt`
-- `app/src/main/java/com/androidharness/app/workspace/WorkspaceIgnore.kt`
-- `app/src/main/java/com/androidharness/app/workspace/SshFs.kt`
-- `app/src/main/java/com/androidharness/app/tools/FileTools.kt`
-- `app/src/main/java/com/androidharness/app/workspace/WorkspaceManager.kt`
+- `app/src/main/java/com/ctharness/app/workspace/WorkspaceFs.kt`
+- `app/src/main/java/com/ctharness/app/workspace/SafPathResolver.kt`
+- `app/src/main/java/com/ctharness/app/workspace/WorkspaceIgnore.kt`
+- `app/src/main/java/com/ctharness/app/workspace/SshFs.kt`
+- `app/src/main/java/com/ctharness/app/tools/FileTools.kt`
+- `app/src/main/java/com/ctharness/app/workspace/WorkspaceManager.kt`

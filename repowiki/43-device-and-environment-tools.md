@@ -44,8 +44,8 @@ The routing decision in `EnvProbes.probeRoot` runs before any binary check. `Env
 
 ## Invocation Chain
 
-1. `ToolRegistry.default(...)` constructs the environment tools at `app/src/main/java/com/androidharness/app/tools/Tool.kt:114-120`, passing `shizuku`, `linuxEnv`, `shellRouter`, and `httpClient`.
-2. `AgentEngine` filters schemas through `WorkspaceToolRouting.available` and `restrictedTo`, then injects `HarnessEnvironmentPrompt.toolIndex(tools)` at `app/src/main/java/com/androidharness/app/agent/AgentEngine.kt:2402`. The skill guide is appended around lines 2277-2278 and 2393-2402, together with the app prefix, deployed prefix, scratch, and cache paths.
+1. `ToolRegistry.default(...)` constructs the environment tools at `app/src/main/java/com/ctharness/app/tools/Tool.kt:114-120`, passing `shizuku`, `linuxEnv`, `shellRouter`, and `httpClient`.
+2. `AgentEngine` filters schemas through `WorkspaceToolRouting.available` and `restrictedTo`, then injects `HarnessEnvironmentPrompt.toolIndex(tools)` at `app/src/main/java/com/ctharness/app/agent/AgentEngine.kt:2402`. The skill guide is appended around lines 2277-2278 and 2393-2402, together with the app prefix, deployed prefix, scratch, and cache paths.
 3. `EnvStatusTool.execute` (`tools/EnvStatusTool.kt:31`) short-circuits for `SshFs` workspaces (lines 32-35), otherwise calls `router.deviceAccess.report()` and maps the Shizuku state.
 4. Toolchain presence: `EnvProbes.probeRoot` (`tools/EnvProbes.kt:33`), then `EnvProbes.commandPresence` (`EnvProbes.kt:78`) with the headline list `bash, git, gh, python3, node, npm, pip` (`EnvStatusTool.kt:81`).
 5. `DoctorTool.execute` (`tools/DoctorTool.kt:53`) calls `checkApiUser` (123), `checkTokenFile` (160), `checkGitTransport` (176), and `checkFreePlanTrap` (237). The token file mode comes back through `EnvProbes.fileMode` (49).
@@ -86,19 +86,19 @@ The routing decision in `EnvProbes.probeRoot` runs before any binary check. `Env
 - `doctor` advertises a `github` parameter but its description states it is "the only check set in this build" (`DoctorTool.kt:41-44`). No other check families were found.
 - The free-plan probe inspects whichever private repository was pushed most recently plus one org repository. It is not a dedicated probe target, and results are labelled that way in the output.
 
-Sources: [app/src/main/java/com/androidharness/app/tools/EnvProbes.kt](../app/src/main/java/com/androidharness/app/tools/EnvProbes.kt)#L17-L100), [app/src/main/java/com/androidharness/app/tools/EnvStatusTool.kt](../app/src/main/java/com/androidharness/app/tools/EnvStatusTool.kt)#L17-L176), [app/src/main/java/com/androidharness/app/tools/DoctorTool.kt](../app/src/main/java/com/androidharness/app/tools/DoctorTool.kt)#L27-L296), [app/src/main/java/com/androidharness/app/tools/LogcatTool.kt](../app/src/main/java/com/androidharness/app/tools/LogcatTool.kt)#L21-L324), [app/src/main/java/com/androidharness/app/tools/PkgTools.kt](../app/src/main/java/com/androidharness/app/tools/PkgTools.kt)#L10-L173), [app/src/main/java/com/androidharness/app/tools/AndroidSdkTools.kt](../app/src/main/java/com/androidharness/app/tools/AndroidSdkTools.kt)#L24-L139), [app/src/main/java/com/androidharness/app/agent/HarnessEnvironmentPrompt.kt](../app/src/main/java/com/androidharness/app/agent/HarnessEnvironmentPrompt.kt)#L7-L35)
+Sources: [app/src/main/java/com/ctharness/app/tools/EnvProbes.kt](../app/src/main/java/com/ctharness/app/tools/EnvProbes.kt)#L17-L100), [app/src/main/java/com/ctharness/app/tools/EnvStatusTool.kt](../app/src/main/java/com/ctharness/app/tools/EnvStatusTool.kt)#L17-L176), [app/src/main/java/com/ctharness/app/tools/DoctorTool.kt](../app/src/main/java/com/ctharness/app/tools/DoctorTool.kt)#L27-L296), [app/src/main/java/com/ctharness/app/tools/LogcatTool.kt](../app/src/main/java/com/ctharness/app/tools/LogcatTool.kt)#L21-L324), [app/src/main/java/com/ctharness/app/tools/PkgTools.kt](../app/src/main/java/com/ctharness/app/tools/PkgTools.kt)#L10-L173), [app/src/main/java/com/ctharness/app/tools/AndroidSdkTools.kt](../app/src/main/java/com/ctharness/app/tools/AndroidSdkTools.kt)#L24-L139), [app/src/main/java/com/ctharness/app/agent/HarnessEnvironmentPrompt.kt](../app/src/main/java/com/ctharness/app/agent/HarnessEnvironmentPrompt.kt)#L7-L35)
 
 ## Source files
 
-- `app/src/main/java/com/androidharness/app/tools/EnvProbes.kt`
-- `app/src/main/java/com/androidharness/app/tools/EnvStatusTool.kt`
-- `app/src/main/java/com/androidharness/app/tools/DoctorTool.kt`
-- `app/src/main/java/com/androidharness/app/tools/LogcatTool.kt`
-- `app/src/main/java/com/androidharness/app/tools/PkgTools.kt`
-- `app/src/main/java/com/androidharness/app/tools/AndroidSdkTools.kt`
-- `app/src/main/java/com/androidharness/app/agent/HarnessEnvironmentPrompt.kt`
-- `app/src/main/java/com/androidharness/app/data/env/LinuxEnvironment.kt`
-- `app/src/main/java/com/androidharness/app/data/env/AndroidSdk.kt`
-- `app/src/main/java/com/androidharness/app/data/env/AndroidBuildToolchain.kt`
-- `app/src/main/java/com/androidharness/app/data/env/PackageInstallStatus.kt`
-- `app/src/main/java/com/androidharness/app/data/env/ShellTierRouter.kt`
+- `app/src/main/java/com/ctharness/app/tools/EnvProbes.kt`
+- `app/src/main/java/com/ctharness/app/tools/EnvStatusTool.kt`
+- `app/src/main/java/com/ctharness/app/tools/DoctorTool.kt`
+- `app/src/main/java/com/ctharness/app/tools/LogcatTool.kt`
+- `app/src/main/java/com/ctharness/app/tools/PkgTools.kt`
+- `app/src/main/java/com/ctharness/app/tools/AndroidSdkTools.kt`
+- `app/src/main/java/com/ctharness/app/agent/HarnessEnvironmentPrompt.kt`
+- `app/src/main/java/com/ctharness/app/data/env/LinuxEnvironment.kt`
+- `app/src/main/java/com/ctharness/app/data/env/AndroidSdk.kt`
+- `app/src/main/java/com/ctharness/app/data/env/AndroidBuildToolchain.kt`
+- `app/src/main/java/com/ctharness/app/data/env/PackageInstallStatus.kt`
+- `app/src/main/java/com/ctharness/app/data/env/ShellTierRouter.kt`

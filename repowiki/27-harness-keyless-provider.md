@@ -173,18 +173,18 @@ The dialog is `ProviderFailureNotice` (`ProviderFailureNotice.kt#L22`). It looks
 - The `kilo-auto/free` behavior itself is owned by Kilo. The app only routes the id to `KILO_BASE_URL` and treats its thinking spec as automatic; it cannot report which backing model answered.
 - The live catalog is fetched when the catalog refresh runs and restored from DataStore at startup. Offline on first launch, only the two fallback entries exist until a refresh succeeds.
 
-Sources: [app/src/main/java/com/androidharness/app/llm/HarnessProvider.kt](../app/src/main/java/com/androidharness/app/llm/HarnessProvider.kt)#L22-L259), [app/src/main/java/com/androidharness/app/llm/HarnessFreeLimit.kt](../app/src/main/java/com/androidharness/app/llm/HarnessFreeLimit.kt)#L3-L57), [app/src/main/java/com/androidharness/app/llm/ModelCatalog.kt](../app/src/main/java/com/androidharness/app/llm/ModelCatalog.kt)#L73-L146), [app/src/main/java/com/androidharness/app/data/ProviderRepository.kt](../app/src/main/java/com/androidharness/app/data/ProviderRepository.kt)#L42-L56), [app/src/main/java/com/androidharness/app/data/ProviderRepository.kt](../app/src/main/java/com/androidharness/app/data/ProviderRepository.kt)#L225-L238), [app/src/main/java/com/androidharness/app/data/ProviderRepository.kt](../app/src/main/java/com/androidharness/app/data/ProviderRepository.kt)#L339-L372), [app/src/main/java/com/androidharness/app/ui/chat/components/ProviderFailureNotice.kt](../app/src/main/java/com/androidharness/app/ui/chat/components/ProviderFailureNotice.kt)#L20-L67), [app/src/main/java/com/androidharness/app/agent/ThinkingSpecs.kt](../app/src/main/java/com/androidharness/app/agent/ThinkingSpecs.kt)#L91-L134)
+Sources: [app/src/main/java/com/ctharness/app/llm/HarnessProvider.kt](../app/src/main/java/com/ctharness/app/llm/HarnessProvider.kt)#L22-L259), [app/src/main/java/com/ctharness/app/llm/HarnessFreeLimit.kt](../app/src/main/java/com/ctharness/app/llm/HarnessFreeLimit.kt)#L3-L57), [app/src/main/java/com/ctharness/app/llm/ModelCatalog.kt](../app/src/main/java/com/ctharness/app/llm/ModelCatalog.kt)#L73-L146), [app/src/main/java/com/ctharness/app/data/ProviderRepository.kt](../app/src/main/java/com/ctharness/app/data/ProviderRepository.kt)#L42-L56), [app/src/main/java/com/ctharness/app/data/ProviderRepository.kt](../app/src/main/java/com/ctharness/app/data/ProviderRepository.kt)#L225-L238), [app/src/main/java/com/ctharness/app/data/ProviderRepository.kt](../app/src/main/java/com/ctharness/app/data/ProviderRepository.kt)#L339-L372), [app/src/main/java/com/ctharness/app/ui/chat/components/ProviderFailureNotice.kt](../app/src/main/java/com/ctharness/app/ui/chat/components/ProviderFailureNotice.kt)#L20-L67), [app/src/main/java/com/ctharness/app/agent/ThinkingSpecs.kt](../app/src/main/java/com/ctharness/app/agent/ThinkingSpecs.kt)#L91-L134)
 
 ## Source files
 
-- `app/src/main/java/com/androidharness/app/llm/HarnessProvider.kt`
-- `app/src/main/java/com/androidharness/app/llm/HarnessFreeLimit.kt`
-- `app/src/main/java/com/androidharness/app/llm/ModelCatalog.kt`
-- `app/src/main/java/com/androidharness/app/llm/OpenAiCompatProvider.kt`
-- `app/src/main/java/com/androidharness/app/data/ProviderRepository.kt`
-- `app/src/main/java/com/androidharness/app/agent/ThinkingSpecs.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/components/ProviderFailureNotice.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/ChatScreen.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/ChatViewModel.kt`
-- `app/src/main/java/com/androidharness/app/llm/FallbackProvider.kt`
+- `app/src/main/java/com/ctharness/app/llm/HarnessProvider.kt`
+- `app/src/main/java/com/ctharness/app/llm/HarnessFreeLimit.kt`
+- `app/src/main/java/com/ctharness/app/llm/ModelCatalog.kt`
+- `app/src/main/java/com/ctharness/app/llm/OpenAiCompatProvider.kt`
+- `app/src/main/java/com/ctharness/app/data/ProviderRepository.kt`
+- `app/src/main/java/com/ctharness/app/agent/ThinkingSpecs.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/components/ProviderFailureNotice.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/ChatScreen.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/ChatViewModel.kt`
+- `app/src/main/java/com/ctharness/app/llm/FallbackProvider.kt`
 - `app/src/main/res/values/strings.xml`

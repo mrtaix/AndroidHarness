@@ -161,15 +161,15 @@ A cancellation before commit writes "Compaction stopped. History was kept." A fa
 - `ContextHygiene.shrinkToolResults` accepts `recentFull`, `maxChars`, and `maxImages` overrides for tests or future policies.
 - `AgentEngine.estimateFor` is public and used by the `/compact` path to recompute the panel estimate.
 
-Sources: [app/src/main/java/com/androidharness/app/agent/ContextHygiene.kt](../app/src/main/java/com/androidharness/app/agent/ContextHygiene.kt)#L11-L128)
+Sources: [app/src/main/java/com/ctharness/app/agent/ContextHygiene.kt](../app/src/main/java/com/ctharness/app/agent/ContextHygiene.kt)#L11-L128)
 
 ## Source files
 
-- `app/src/main/java/com/androidharness/app/agent/ContextHygiene.kt`
-- `app/src/main/java/com/androidharness/app/agent/HistoryCompactor.kt`
-- `app/src/main/java/com/androidharness/app/agent/AutoCompaction.kt`
-- `app/src/main/java/com/androidharness/app/agent/ChatContextPolicy.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/ContextPanel.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/components/ChatThinkingMetrics.kt`
-- `app/src/main/java/com/androidharness/app/core/ChatThinkingMetrics.kt`
-- `app/src/main/java/com/androidharness/app/data/SessionRepository.kt`
+- `app/src/main/java/com/ctharness/app/agent/ContextHygiene.kt`
+- `app/src/main/java/com/ctharness/app/agent/HistoryCompactor.kt`
+- `app/src/main/java/com/ctharness/app/agent/AutoCompaction.kt`
+- `app/src/main/java/com/ctharness/app/agent/ChatContextPolicy.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/ContextPanel.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/components/ChatThinkingMetrics.kt`
+- `app/src/main/java/com/ctharness/app/core/ChatThinkingMetrics.kt`
+- `app/src/main/java/com/ctharness/app/data/SessionRepository.kt`

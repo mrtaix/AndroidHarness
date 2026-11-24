@@ -104,21 +104,21 @@ Nothing is persisted except usage. `RunManager.askAside` records usage under `SI
 - `TodoStore` is injected into `RunManager` and `AgentEngine`, so alternative stores can be supplied in tests.
 - `SideQuestionSheet` receives plain callbacks (`onAsk`, `onStop`, `onDismiss`, `onOpenUrl`), so another surface can host the same state machine.
 
-Sources: [app/src/main/java/com/androidharness/app/agent/SideQuestions.kt](../app/src/main/java/com/androidharness/app/agent/SideQuestions.kt)#L19-L151)
+Sources: [app/src/main/java/com/ctharness/app/agent/SideQuestions.kt](../app/src/main/java/com/ctharness/app/agent/SideQuestions.kt)#L19-L151)
 
 ## Source files
 
-- `app/src/main/java/com/androidharness/app/agent/TodoStore.kt`
-- `app/src/main/java/com/androidharness/app/agent/TodoPrompt.kt`
-- `app/src/main/java/com/androidharness/app/tools/MoreTools.kt`
-- `app/src/main/java/com/androidharness/app/agent/Steering.kt`
-- `app/src/main/java/com/androidharness/app/data/SteeringMode.kt`
-- `app/src/main/java/com/androidharness/app/agent/SideQuestions.kt`
-- `app/src/main/java/com/androidharness/app/agent/AgentEngine.kt`
-- `app/src/main/java/com/androidharness/app/agent/RunManager.kt`
-- `app/src/main/java/com/androidharness/app/agent/RunFollowUps.kt`
-- `app/src/main/java/com/androidharness/app/agent/TaskControl.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/SideQuestionState.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/components/SideQuestionSheet.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/ChatViewModel.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/TaskControls.kt`
+- `app/src/main/java/com/ctharness/app/agent/TodoStore.kt`
+- `app/src/main/java/com/ctharness/app/agent/TodoPrompt.kt`
+- `app/src/main/java/com/ctharness/app/tools/MoreTools.kt`
+- `app/src/main/java/com/ctharness/app/agent/Steering.kt`
+- `app/src/main/java/com/ctharness/app/data/SteeringMode.kt`
+- `app/src/main/java/com/ctharness/app/agent/SideQuestions.kt`
+- `app/src/main/java/com/ctharness/app/agent/AgentEngine.kt`
+- `app/src/main/java/com/ctharness/app/agent/RunManager.kt`
+- `app/src/main/java/com/ctharness/app/agent/RunFollowUps.kt`
+- `app/src/main/java/com/ctharness/app/agent/TaskControl.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/SideQuestionState.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/components/SideQuestionSheet.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/ChatViewModel.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/TaskControls.kt`

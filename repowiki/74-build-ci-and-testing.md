@@ -197,5 +197,5 @@ Sources: [app/build.gradle.kts:8-327](../app/build.gradle.kts)#L8-L327), [build.
 - `scripts/test_legacy_storage.sh`
 - `scripts/test_message_truncation.py`
 - `app/src/androidTest/AndroidManifest.xml`
-- `app/src/test/java/com/androidharness/app/LiveUpdateVendorTest.kt`
-- `app/src/androidTest/java/com/androidharness/app/LiveUpdateDeviceTest.kt`
+- `app/src/test/java/com/ctharness/app/LiveUpdateVendorTest.kt`
+- `app/src/androidTest/java/com/ctharness/app/LiveUpdateDeviceTest.kt`

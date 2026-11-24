@@ -71,11 +71,11 @@ Repository instructions, model replies, web pages, command output, and MCP tool
 results can contain malicious instructions. Review proposed actions rather than
 assuming AI-generated commands or third-party instructions are safe.
 
-Relevant code: [workspace access](app/src/main/java/com/androidharness/app/workspace/WorkspaceFs.kt),
-[tool routing](app/src/main/java/com/androidharness/app/tools/WorkspaceToolRouting.kt),
-[shell policy](app/src/main/java/com/androidharness/app/tools/ShellPolicy.kt),
-[permission checks](app/src/main/java/com/androidharness/app/agent/AgentEngine.kt), and
-[device access](app/src/main/java/com/androidharness/app/data/env/DeviceAccessPolicy.kt).
+Relevant code: [workspace access](app/src/main/java/com/ctharness/app/workspace/WorkspaceFs.kt),
+[tool routing](app/src/main/java/com/ctharness/app/tools/WorkspaceToolRouting.kt),
+[shell policy](app/src/main/java/com/ctharness/app/tools/ShellPolicy.kt),
+[permission checks](app/src/main/java/com/ctharness/app/agent/AgentEngine.kt), and
+[device access](app/src/main/java/com/ctharness/app/data/env/DeviceAccessPolicy.kt).
 
 ## Credentials, Local Data, and Backups
 
@@ -92,9 +92,9 @@ App locking and screenshot protections reduce casual exposure; they do not
 replace device security, file encryption, or careful handling of exports. Avoid
 putting secrets in prompts, project instructions, command arguments, or logs.
 
-Relevant code: [credential storage](app/src/main/java/com/androidharness/app/data/KeyStoreManager.kt),
-[backup encryption](app/src/main/java/com/androidharness/app/data/BackupEncryption.kt),
-[settings backups](app/src/main/java/com/androidharness/app/data/SettingsBackup.kt),
+Relevant code: [credential storage](app/src/main/java/com/ctharness/app/data/KeyStoreManager.kt),
+[backup encryption](app/src/main/java/com/ctharness/app/data/BackupEncryption.kt),
+[settings backups](app/src/main/java/com/ctharness/app/data/SettingsBackup.kt),
 [backup rules](app/src/main/res/xml/backup_rules.xml), and
 [device-transfer rules](app/src/main/res/xml/data_extraction_rules.xml).
 
@@ -124,10 +124,10 @@ Relevant code: [credential storage](app/src/main/java/com/androidharness/app/dat
   paths. An enabled connection is not a reason to trust untrusted code. Revoke
   grants and debugging pairings in the appropriate app or Android settings.
 
-Relevant code: [MCP](app/src/main/java/com/androidharness/app/tools/mcp/),
-[SSH](app/src/main/java/com/androidharness/app/workspace/SshConnections.kt),
-[file transfers](app/src/main/java/com/androidharness/app/data/transfer/), and
-[Telegram](app/src/main/java/com/androidharness/app/telegram/).
+Relevant code: [MCP](app/src/main/java/com/ctharness/app/tools/mcp/),
+[SSH](app/src/main/java/com/ctharness/app/workspace/SshConnections.kt),
+[file transfers](app/src/main/java/com/ctharness/app/data/transfer/), and
+[Telegram](app/src/main/java/com/ctharness/app/telegram/).
 
 ## Browser, Previews, and Local Models
 
@@ -146,10 +146,10 @@ sources you trust. Catalog checksums detect mismatched bytes where an expected
 checksum exists; they do not independently prove a model publisher is trustworthy.
 CPU and experimental GPU execution are not additional security sandboxes.
 
-Relevant code: [browser](app/src/main/java/com/androidharness/app/browser/),
-[artifact renderer](app/src/main/java/com/androidharness/app/artifacts/ArtifactWebView.kt),
-[editor service](app/src/main/java/com/androidharness/app/ui/files/SmartEditorEngine.kt), and
-[local inference](app/src/main/java/com/androidharness/app/local/).
+Relevant code: [browser](app/src/main/java/com/ctharness/app/browser/),
+[artifact renderer](app/src/main/java/com/ctharness/app/artifacts/ArtifactWebView.kt),
+[editor service](app/src/main/java/com/ctharness/app/ui/files/SmartEditorEngine.kt), and
+[local inference](app/src/main/java/com/ctharness/app/local/).
 
 ## Updates and Supply Chain
 
@@ -164,8 +164,8 @@ upstream services are part of the trust boundary. Package or version pinning and
 checksums do not replace dependency advisory review. Keep Android and WebView
 updated, and use the least CI and account permissions needed.
 
-Relevant code: [update validation](app/src/main/java/com/androidharness/app/data/update/),
-[toolchain downloads](app/src/main/java/com/androidharness/app/data/env/LinuxEnvironment.kt),
+Relevant code: [update validation](app/src/main/java/com/ctharness/app/data/update/),
+[toolchain downloads](app/src/main/java/com/ctharness/app/data/env/LinuxEnvironment.kt),
 [native build](app/src/main/cpp/CMakeLists.txt), and
 [CI workflow](.github/workflows/nightly.yml).
 

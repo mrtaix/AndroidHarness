@@ -103,21 +103,21 @@ A mutating tool call is wrapped in snapshot work. `AgentEngine` iterates `checkp
 - **`RewindPreview`**: The UI can add per-file labels or counts without changing the rewind implementation.
 - **`SessionFileChangeEntity` and `FileEditEntity` flows**: Room invalidation drives live badges; any new consumer can collect the same flows.
 
-Sources: [app/src/main/java/com/androidharness/app/data/CheckpointStore.kt](../app/src/main/java/com/androidharness/app/data/CheckpointStore.kt)#L13-L122), [app/src/main/java/com/androidharness/app/data/WorkspaceFileHistory.kt](../app/src/main/java/com/androidharness/app/data/WorkspaceFileHistory.kt)#L20-L148), [app/src/main/java/com/androidharness/app/ui/files/ChangesScreen.kt](../app/src/main/java/com/androidharness/app/ui/files/ChangesScreen.kt)#L72-L382), [app/src/main/java/com/androidharness/app/agent/RunManager.kt](../app/src/main/java/com/androidharness/app/agent/RunManager.kt)#L1314-L1399)
+Sources: [app/src/main/java/com/ctharness/app/data/CheckpointStore.kt](../app/src/main/java/com/ctharness/app/data/CheckpointStore.kt)#L13-L122), [app/src/main/java/com/ctharness/app/data/WorkspaceFileHistory.kt](../app/src/main/java/com/ctharness/app/data/WorkspaceFileHistory.kt)#L20-L148), [app/src/main/java/com/ctharness/app/ui/files/ChangesScreen.kt](../app/src/main/java/com/ctharness/app/ui/files/ChangesScreen.kt)#L72-L382), [app/src/main/java/com/ctharness/app/agent/RunManager.kt](../app/src/main/java/com/ctharness/app/agent/RunManager.kt)#L1314-L1399)
 
 ## Source files
 
-- `app/src/main/java/com/androidharness/app/data/CheckpointStore.kt`
-- `app/src/main/java/com/androidharness/app/data/WorkspaceFileHistory.kt`
-- `app/src/main/java/com/androidharness/app/data/db/Database.kt`
-- `app/src/main/java/com/androidharness/app/data/SessionRepository.kt`
-- `app/src/main/java/com/androidharness/app/agent/AgentEngine.kt`
-- `app/src/main/java/com/androidharness/app/agent/RunManager.kt`
-- `app/src/main/java/com/androidharness/app/ui/files/ChangesScreen.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/ChatScreen.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/ChatViewModel.kt`
-- `app/src/main/java/com/androidharness/app/ui/chat/components/Bubbles.kt`
-- `app/src/main/java/com/androidharness/app/core/Diff.kt`
-- `app/src/main/java/com/androidharness/app/core/ChangeQuestion.kt`
-- `app/src/main/java/com/androidharness/app/tools/FileHistoryTools.kt`
-- `app/src/main/java/com/androidharness/app/HarnessApp.kt`
+- `app/src/main/java/com/ctharness/app/data/CheckpointStore.kt`
+- `app/src/main/java/com/ctharness/app/data/WorkspaceFileHistory.kt`
+- `app/src/main/java/com/ctharness/app/data/db/Database.kt`
+- `app/src/main/java/com/ctharness/app/data/SessionRepository.kt`
+- `app/src/main/java/com/ctharness/app/agent/AgentEngine.kt`
+- `app/src/main/java/com/ctharness/app/agent/RunManager.kt`
+- `app/src/main/java/com/ctharness/app/ui/files/ChangesScreen.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/ChatScreen.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/ChatViewModel.kt`
+- `app/src/main/java/com/ctharness/app/ui/chat/components/Bubbles.kt`
+- `app/src/main/java/com/ctharness/app/core/Diff.kt`
+- `app/src/main/java/com/ctharness/app/core/ChangeQuestion.kt`
+- `app/src/main/java/com/ctharness/app/tools/FileHistoryTools.kt`
+- `app/src/main/java/com/ctharness/app/HarnessApp.kt`

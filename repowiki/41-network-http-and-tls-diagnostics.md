@@ -90,13 +90,13 @@ Nothing here persists in memory. The CA bundle persists on disk inside the app p
 - `FEATURES.md` does not claim certificate inspection. A page titled TLS diagnostics therefore describes provisioning and HTTP restrictions, not a live handshake report.
 - `NetTls.envVars` does not include `JAVAX_NET_SSL_TRUSTSTORE`, although the class comment mentions a JKS store provisioned separately. No such provisioning exists in the files read for this page.
 
-Sources: [app/src/main/java/com/androidharness/app/tools/NetTools.kt](../app/src/main/java/com/androidharness/app/tools/NetTools.kt)#L276-L396), [app/src/main/java/com/androidharness/app/tools/PublicHttpAddresses.kt](../app/src/main/java/com/androidharness/app/tools/PublicHttpAddresses.kt)#L6-L35), [app/src/main/java/com/androidharness/app/tools/NetTls.kt](../app/src/main/java/com/androidharness/app/tools/NetTls.kt)#L20-L108), [app/src/main/java/com/androidharness/app/data/env/LinuxEnvironment.kt](../app/src/main/java/com/androidharness/app/data/env/LinuxEnvironment.kt)#L1000-L1014)
+Sources: [app/src/main/java/com/ctharness/app/tools/NetTools.kt](../app/src/main/java/com/ctharness/app/tools/NetTools.kt)#L276-L396), [app/src/main/java/com/ctharness/app/tools/PublicHttpAddresses.kt](../app/src/main/java/com/ctharness/app/tools/PublicHttpAddresses.kt)#L6-L35), [app/src/main/java/com/ctharness/app/tools/NetTls.kt](../app/src/main/java/com/ctharness/app/tools/NetTls.kt)#L20-L108), [app/src/main/java/com/ctharness/app/data/env/LinuxEnvironment.kt](../app/src/main/java/com/ctharness/app/data/env/LinuxEnvironment.kt)#L1000-L1014)
 
 ## Source files
 
-- `app/src/main/java/com/androidharness/app/tools/NetTools.kt`
-- `app/src/main/java/com/androidharness/app/tools/NetTls.kt`
-- `app/src/main/java/com/androidharness/app/tools/PublicHttpAddresses.kt`
-- `app/src/main/java/com/androidharness/app/tools/EnvStatusTool.kt`
-- `app/src/main/java/com/androidharness/app/data/env/LinuxEnvironment.kt`
-- `app/src/main/java/com/androidharness/app/HarnessApp.kt`
+- `app/src/main/java/com/ctharness/app/tools/NetTools.kt`
+- `app/src/main/java/com/ctharness/app/tools/NetTls.kt`
+- `app/src/main/java/com/ctharness/app/tools/PublicHttpAddresses.kt`
+- `app/src/main/java/com/ctharness/app/tools/EnvStatusTool.kt`
+- `app/src/main/java/com/ctharness/app/data/env/LinuxEnvironment.kt`
+- `app/src/main/java/com/ctharness/app/HarnessApp.kt`

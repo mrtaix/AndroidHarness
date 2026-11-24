@@ -166,13 +166,13 @@ The repair is request-scoped. Stored history, the chat transcript, and the datab
 - `parseChunk` contains a `println("HarnessUsage: ...")` diagnostic at `OpenAiCompatProvider.kt#L297`. It prints the raw usage object on every request that reports usage, so log output can be noisy in debug builds.
 - Responses has no `CompatHistory` equivalent. A malformed tool exchange from an older chat may be sent as-is to `/responses`, which relies on `function_call_output` pairing.
 
-Sources: [app/src/main/java/com/androidharness/app/llm/OpenAiCompatProvider.kt](../app/src/main/java/com/androidharness/app/llm/OpenAiCompatProvider.kt)#L39-L575), [app/src/main/java/com/androidharness/app/llm/OpenAiResponsesProvider.kt](../app/src/main/java/com/androidharness/app/llm/OpenAiResponsesProvider.kt)#L31-L353), [app/src/main/java/com/androidharness/app/llm/CompatHistory.kt](../app/src/main/java/com/androidharness/app/llm/CompatHistory.kt)#L8-L41), [app/src/main/java/com/androidharness/app/llm/PromptCachePolicy.kt](../app/src/main/java/com/androidharness/app/llm/PromptCachePolicy.kt)#L5-L15), [app/src/main/java/com/androidharness/app/llm/ProviderHeaders.kt](../app/src/main/java/com/androidharness/app/llm/ProviderHeaders.kt)#L13-L55)
+Sources: [app/src/main/java/com/ctharness/app/llm/OpenAiCompatProvider.kt](../app/src/main/java/com/ctharness/app/llm/OpenAiCompatProvider.kt)#L39-L575), [app/src/main/java/com/ctharness/app/llm/OpenAiResponsesProvider.kt](../app/src/main/java/com/ctharness/app/llm/OpenAiResponsesProvider.kt)#L31-L353), [app/src/main/java/com/ctharness/app/llm/CompatHistory.kt](../app/src/main/java/com/ctharness/app/llm/CompatHistory.kt)#L8-L41), [app/src/main/java/com/ctharness/app/llm/PromptCachePolicy.kt](../app/src/main/java/com/ctharness/app/llm/PromptCachePolicy.kt)#L5-L15), [app/src/main/java/com/ctharness/app/llm/ProviderHeaders.kt](../app/src/main/java/com/ctharness/app/llm/ProviderHeaders.kt)#L13-L55)
 
 ## Source files
 
-- `app/src/main/java/com/androidharness/app/llm/OpenAiCompatProvider.kt`
-- `app/src/main/java/com/androidharness/app/llm/OpenAiResponsesProvider.kt`
-- `app/src/main/java/com/androidharness/app/llm/CompatHistory.kt`
-- `app/src/main/java/com/androidharness/app/llm/PromptCachePolicy.kt`
-- `app/src/main/java/com/androidharness/app/llm/ProviderHeaders.kt`
-- `app/src/main/java/com/androidharness/app/llm/ProviderNetwork.kt`
+- `app/src/main/java/com/ctharness/app/llm/OpenAiCompatProvider.kt`
+- `app/src/main/java/com/ctharness/app/llm/OpenAiResponsesProvider.kt`
+- `app/src/main/java/com/ctharness/app/llm/CompatHistory.kt`
+- `app/src/main/java/com/ctharness/app/llm/PromptCachePolicy.kt`
+- `app/src/main/java/com/ctharness/app/llm/ProviderHeaders.kt`
+- `app/src/main/java/com/ctharness/app/llm/ProviderNetwork.kt`

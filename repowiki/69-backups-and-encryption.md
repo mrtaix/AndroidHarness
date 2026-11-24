@@ -134,15 +134,15 @@ Export and unlock errors are mapped, never passed through raw. `settingsBackupEx
 - The settings backup does not include chat history, and the chat backup does not include settings. Moving a full install requires both files.
 - `SettingsBackup.restore` imports MCP servers with `enabled = false`; the user must re-enable each one after restore (`SettingsBackup.kt:285`).
 
-Sources: [data/SettingsBackup.kt](../app/src/main/java/com/androidharness/app/data/SettingsBackup.kt)#L17-L304), [data/BackupEncryption.kt](../app/src/main/java/com/androidharness/app/data/BackupEncryption.kt)#L10-L50), [data/ChatBackup.kt](../app/src/main/java/com/androidharness/app/data/ChatBackup.kt)#L24-L318), [data/MemoryBackup.kt](../app/src/main/java/com/androidharness/app/data/MemoryBackup.kt)#L7-L145), [ui/settings/SettingsBackupSection.kt](../app/src/main/java/com/androidharness/app/ui/settings/SettingsBackupSection.kt)#L42-L219), [ui/settings/ChatRestoreDialog.kt](../app/src/main/java/com/androidharness/app/ui/settings/ChatRestoreDialog.kt)#L23-L83)
+Sources: [data/SettingsBackup.kt](../app/src/main/java/com/ctharness/app/data/SettingsBackup.kt)#L17-L304), [data/BackupEncryption.kt](../app/src/main/java/com/ctharness/app/data/BackupEncryption.kt)#L10-L50), [data/ChatBackup.kt](../app/src/main/java/com/ctharness/app/data/ChatBackup.kt)#L24-L318), [data/MemoryBackup.kt](../app/src/main/java/com/ctharness/app/data/MemoryBackup.kt)#L7-L145), [ui/settings/SettingsBackupSection.kt](../app/src/main/java/com/ctharness/app/ui/settings/SettingsBackupSection.kt)#L42-L219), [ui/settings/ChatRestoreDialog.kt](../app/src/main/java/com/ctharness/app/ui/settings/ChatRestoreDialog.kt)#L23-L83)
 
 ## Source files
 
-- `app/src/main/java/com/androidharness/app/data/SettingsBackup.kt`
-- `app/src/main/java/com/androidharness/app/data/BackupEncryption.kt`
-- `app/src/main/java/com/androidharness/app/data/ChatBackup.kt`
-- `app/src/main/java/com/androidharness/app/data/MemoryBackup.kt`
-- `app/src/main/java/com/androidharness/app/data/KeyStoreManager.kt`
-- `app/src/main/java/com/androidharness/app/ui/settings/SettingsBackupSection.kt`
-- `app/src/main/java/com/androidharness/app/ui/settings/ChatRestoreDialog.kt`
-- `app/src/main/java/com/androidharness/app/ui/settings/SettingsScreen.kt`
+- `app/src/main/java/com/ctharness/app/data/SettingsBackup.kt`
+- `app/src/main/java/com/ctharness/app/data/BackupEncryption.kt`
+- `app/src/main/java/com/ctharness/app/data/ChatBackup.kt`
+- `app/src/main/java/com/ctharness/app/data/MemoryBackup.kt`
+- `app/src/main/java/com/ctharness/app/data/KeyStoreManager.kt`
+- `app/src/main/java/com/ctharness/app/ui/settings/SettingsBackupSection.kt`
+- `app/src/main/java/com/ctharness/app/ui/settings/ChatRestoreDialog.kt`
+- `app/src/main/java/com/ctharness/app/ui/settings/SettingsScreen.kt`

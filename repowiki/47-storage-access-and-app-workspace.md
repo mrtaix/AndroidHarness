@@ -140,19 +140,19 @@ The setting is stored per device, not in portable settings, in the `device_acces
 - CodeGraph, package and other tools that run commands through `ShellTierRouter` directly are not hard blocked on a shared root; they get the router note only.
 - `StorageManager` never scans SAF tree contents, so storage totals exclude picked-folder usage by design. The UI labels this as a scan gap, not an error.
 
-Sources: [app/src/main/java/com/androidharness/app/data/env/StorageAccess.kt](../app/src/main/java/com/androidharness/app/data/env/StorageAccess.kt)#L11-L38), [app/src/main/java/com/androidharness/app/data/env/LinuxEnvironment.kt](../app/src/main/java/com/androidharness/app/data/env/LinuxEnvironment.kt)#L305-L351), [app/src/main/java/com/androidharness/app/workspace/WorkspaceManager.kt](../app/src/main/java/com/androidharness/app/workspace/WorkspaceManager.kt)#L44-L181), [app/src/main/java/com/androidharness/app/data/env/DeviceAccessManager.kt](../app/src/main/java/com/androidharness/app/data/env/DeviceAccessManager.kt)#L172-L188), [app/src/main/java/com/androidharness/app/data/env/DeviceAccessStore.kt](../app/src/main/java/com/androidharness/app/data/env/DeviceAccessStore.kt)#L13-L31), [app/src/main/java/com/androidharness/app/data/storage/StorageManager.kt](../app/src/main/java/com/androidharness/app/data/storage/StorageManager.kt)#L24-L163), [app/src/main/java/com/androidharness/app/ui/common/StorageAccessState.kt](../app/src/main/java/com/androidharness/app/ui/common/StorageAccessState.kt)#L31-L75), [app/src/main/AndroidManifest.xml](../app/src/main/AndroidManifest.xml)#L54-L68)
+Sources: [app/src/main/java/com/ctharness/app/data/env/StorageAccess.kt](../app/src/main/java/com/ctharness/app/data/env/StorageAccess.kt)#L11-L38), [app/src/main/java/com/ctharness/app/data/env/LinuxEnvironment.kt](../app/src/main/java/com/ctharness/app/data/env/LinuxEnvironment.kt)#L305-L351), [app/src/main/java/com/ctharness/app/workspace/WorkspaceManager.kt](../app/src/main/java/com/ctharness/app/workspace/WorkspaceManager.kt)#L44-L181), [app/src/main/java/com/ctharness/app/data/env/DeviceAccessManager.kt](../app/src/main/java/com/ctharness/app/data/env/DeviceAccessManager.kt)#L172-L188), [app/src/main/java/com/ctharness/app/data/env/DeviceAccessStore.kt](../app/src/main/java/com/ctharness/app/data/env/DeviceAccessStore.kt)#L13-L31), [app/src/main/java/com/ctharness/app/data/storage/StorageManager.kt](../app/src/main/java/com/ctharness/app/data/storage/StorageManager.kt)#L24-L163), [app/src/main/java/com/ctharness/app/ui/common/StorageAccessState.kt](../app/src/main/java/com/ctharness/app/ui/common/StorageAccessState.kt)#L31-L75), [app/src/main/AndroidManifest.xml](../app/src/main/AndroidManifest.xml)#L54-L68)
 
 ## Source files
 
-- `app/src/main/java/com/androidharness/app/data/env/StorageAccess.kt`
-- `app/src/main/java/com/androidharness/app/data/storage/StorageManager.kt`
-- `app/src/main/java/com/androidharness/app/data/env/LinuxEnvironment.kt`
-- `app/src/main/java/com/androidharness/app/data/env/ShellTierRouter.kt`
-- `app/src/main/java/com/androidharness/app/data/env/DeviceAccessManager.kt`
-- `app/src/main/java/com/androidharness/app/data/env/DeviceAccessPolicy.kt`
-- `app/src/main/java/com/androidharness/app/data/env/DeviceAccessStore.kt`
-- `app/src/main/java/com/androidharness/app/workspace/WorkspaceManager.kt`
-- `app/src/main/java/com/androidharness/app/ui/common/StorageAccessState.kt`
-- `app/src/main/java/com/androidharness/app/ui/common/SystemGrants.kt`
-- `app/src/main/java/com/androidharness/app/ui/settings/RootAccessSection.kt`
+- `app/src/main/java/com/ctharness/app/data/env/StorageAccess.kt`
+- `app/src/main/java/com/ctharness/app/data/storage/StorageManager.kt`
+- `app/src/main/java/com/ctharness/app/data/env/LinuxEnvironment.kt`
+- `app/src/main/java/com/ctharness/app/data/env/ShellTierRouter.kt`
+- `app/src/main/java/com/ctharness/app/data/env/DeviceAccessManager.kt`
+- `app/src/main/java/com/ctharness/app/data/env/DeviceAccessPolicy.kt`
+- `app/src/main/java/com/ctharness/app/data/env/DeviceAccessStore.kt`
+- `app/src/main/java/com/ctharness/app/workspace/WorkspaceManager.kt`
+- `app/src/main/java/com/ctharness/app/ui/common/StorageAccessState.kt`
+- `app/src/main/java/com/ctharness/app/ui/common/SystemGrants.kt`
+- `app/src/main/java/com/ctharness/app/ui/settings/RootAccessSection.kt`
 - `app/src/main/AndroidManifest.xml`
