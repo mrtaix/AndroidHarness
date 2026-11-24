@@ -46,3 +46,6 @@ Final review (fresh subagent) findings and rulings:
 
 Ruling: action buttons prefill the composer with `chief_review`/`chief_stop` commands instead of injecting tool calls directly. Safer and matches existing composer patterns; user reviews before sending.
 Ruling: 5 new UI strings are `translatable="false"` to keep the 21-locale parity test green.
+| CI run 45444250163 | `2861e3af` | FAIL: `AgentEngine.kt:479 Suspension functions can only be called within coroutine body` (onChange called `emit`) | FAIL -> fixed | - |
+
+Ruling: `ChiefToolLogic.onChange` is synchronous; AgentEngine bridges it to the flow with an unlimited `Channel` and a coroutine that calls `emit`. Cost: one extra channel per run.

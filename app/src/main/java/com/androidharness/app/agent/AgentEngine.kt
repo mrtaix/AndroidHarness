@@ -444,6 +444,10 @@ class AgentEngine(
         // Stable per-session cache routing for providers that support it.
         val requestOptions = options.copy(cacheKey = sessionId)
         val chiefEnabled = cavemanSettings().chiefHierarchy && subagentRuns != null
+        val chiefEvents = kotlinx.coroutines.channels.Channel<com.androidharness.app.agent.ChiefSnapshot>(kotlinx.coroutines.channels.Channel.UNLIMITED)
+        kotlinx.coroutines.launch {
+            for (snapshot in chiefEvents) emit(com.androidharness.app.agent.AgentEvent.ChiefTreeChanged(snapshot))
+        }
         var chiefRunRegistry: com.androidharness.app.tools.ToolRegistry? = null
         val chiefStoreForRun = if (chiefEnabled) chiefStore(sessionId) else null
         val chiefTree = com.androidharness.app.agent.ChiefTree(initial = chiefStoreForRun?.load())
@@ -476,7 +480,7 @@ class AgentEngine(
         val chiefNames = com.androidharness.app.agent.ChiefToolAvailability.toolNames(chiefEnabled, 0)
         val effectiveExtraTools = if (chiefEnabled) extraTools +
             com.androidharness.app.tools.chiefTools(chiefTree, chiefStoreForRun, chiefDelegate,
-                onChange = { emit(com.androidharness.app.agent.AgentEvent.ChiefTreeChanged(it)) }).filter { it.name in chiefNames } +
+                onChange = { chiefEvents.trySend(it) }).filter { it.name in chiefNames } +
             listOf(object : com.androidharness.app.tools.Tool by com.androidharness.app.tools.TaskTool() {
                 override val description: String =
                     "Run a nested agent inside the chief hierarchy. Subagents may delegate further until depth 3. " +
