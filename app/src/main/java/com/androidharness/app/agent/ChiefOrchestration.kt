@@ -31,6 +31,7 @@ data class ChiefNode(
     val retries: Int = 0,
     val feedback: List<String> = emptyList(),
     val report: String = "",
+    val delegateId: String? = null,
 )
 
 /**
@@ -101,6 +102,12 @@ class ChiefTree(
         nodes[node.id] = node
         return node
     }
+
+    fun setDelegate(id: String, delegateId: String): ChiefNode = change(id) {
+        it.copy(delegateId = delegateId)
+    }
+
+    fun descendantIds(id: String): List<String> = descendants(id)
 
     fun complete(id: String, report: String): ChiefNode = change(id) {
         it.copy(status = ChiefStatus.REVIEW, report = report)

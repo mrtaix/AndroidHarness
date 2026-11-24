@@ -48,6 +48,7 @@ class ChiefTreeStore(private val file: File) {
                         put("retries", node.retries)
                         putJsonArray("feedback") { node.feedback.forEach { add(it) } }
                         put("report", node.report)
+                        node.delegateId?.let { put("delegateId", it) }
                     }
                 }
             }
@@ -83,6 +84,7 @@ class ChiefTreeStore(private val file: File) {
                 retries = node.int("retries"),
                 feedback = node.strings("feedback"),
                 report = node.str("report"),
+                delegateId = node["delegateId"]?.jsonPrimitive?.contentOrNull,
             )
         }
         val snapshot = ChiefSnapshot(nodes, root.int("sequence"))

@@ -16,3 +16,6 @@ Pre-flight: Task 2 stores the `ChiefTree` produced by Task 1; Task 3 consumes bo
 | 2 JSON store | `ChiefTreeStore.kt`, `ChiefTreeStoreTest.kt`, `ChiefOrchestration.kt` (snapshot/INTERRUPTED) | JVM JUnitCore both suites: RED unresolved store/snapshot/INTERRUPTED; GREEN OK (12 tests); mutation `active -> false` caught by `active nodes become interrupted after reload`, restored | PASS | pending |
 
 Ruling: plan file lives under `docs/superpowers/`, which `.gitignore` ignores; spec text was committed with the design doc under `.agent/` instead.
+| 3 chief_* tools | `ChiefToolLogic.kt`, `ChiefTools.kt`, `ChiefOrchestration.kt` (delegateId/descendantIds), `ChiefTreeStore.kt` (delegateId), `ChiefToolLogicTest.kt` | RED unresolved ChiefDelegate/SpawnRequest/ChiefToolLogic; GREEN OK (17 tests); mutation `setDelegate -> no-op` caught; tool wrappers smoke-compiled against stub Tool/Schema | PASS | pending |
+
+Ruling: `Tool`/`ToolContext` pull in Android and workspace types that the local JVM runner cannot compile. Behavior lives in pure `ChiefToolLogic.kt`; `ChiefTools.kt` is a thin wrapper. Cost: two files instead of one; CI still checks the real interface.
