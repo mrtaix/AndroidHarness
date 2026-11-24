@@ -17,6 +17,12 @@ class ChiefToolAvailabilityTest {
         assertEquals(setOf("chief_status"), ChiefToolAvailability.toolNames(enabled = true, depth = 3))
     }
 
+    @Test fun `subagent never sees chief tools`() {
+        assertFalse(ChiefToolAvailability.visibleToSubagent("chief_assign"))
+        assertFalse(ChiefToolAvailability.visibleToSubagent("chief_status"))
+        assertTrue(ChiefToolAvailability.visibleToSubagent("shell"))
+    }
+
     @Test fun `nested delegation allowed under limit`() {
         assertTrue(ChiefToolAvailability.canDelegate(enabled = true, depth = 2))
         assertFalse(ChiefToolAvailability.canDelegate(enabled = true, depth = 3))

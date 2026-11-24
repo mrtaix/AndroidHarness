@@ -88,12 +88,14 @@ class ChiefTreeStore(private val file: File) {
             )
         }
         val snapshot = ChiefSnapshot(nodes, root.int("sequence"))
-        return snapshot.copy(nodes = snapshot.nodes.map { node ->
+        val recovered = snapshot.copy(nodes = snapshot.nodes.map { node ->
             if (node.status.active) node.copy(
                 status = ChiefStatus.INTERRUPTED,
                 feedback = node.feedback + "Interrupted when the app process stopped.",
             ) else node
         })
+        if (recovered != snapshot) save(recovered)
+        return recovered
     }
 
     private fun JsonObject.str(key: String, default: String = ""): String =

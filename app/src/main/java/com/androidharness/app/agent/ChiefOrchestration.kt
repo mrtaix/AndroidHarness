@@ -57,7 +57,7 @@ class ChiefTree(
         }
     }
 
-    fun plan(goal: String): ChiefNode {
+    fun plan(goal: String): ChiefNode = synchronized(this) {
         val node = ChiefNode(
             id = "chief-${++sequence}",
             parentId = null,
@@ -67,7 +67,7 @@ class ChiefTree(
             status = ChiefStatus.RUNNING,
         )
         nodes[node.id] = node
-        return node
+        node
     }
 
     fun assign(
@@ -78,7 +78,7 @@ class ChiefTree(
         scope: List<String> = emptyList(),
         budget: ChiefBudget = ChiefBudget(),
         permissions: Set<String> = setOf("read", "write", "run"),
-    ): ChiefNode {
+    ): ChiefNode = synchronized(this) {
         val parent = node(parentId)
         require(parent.depth + 1 < maxDepth) { "depth limit reached" }
         require(nodes.values.count { it.status.active } < maxNodes) { "live node limit reached" }
@@ -100,63 +100,62 @@ class ChiefTree(
             permissions = permissions,
         )
         nodes[node.id] = node
-        return node
+        node
     }
 
-    fun setDelegate(id: String, delegateId: String): ChiefNode = change(id) {
-        it.copy(delegateId = delegateId)
+    fun setDelegate(id: String, delegateId: String): ChiefNode = synchronized(this) {
+        change(id) { it.copy(delegateId = delegateId) }
     }
 
-    fun descendantIds(id: String): List<String> = descendants(id)
+    fun descendantIds(id: String): List<String> = synchronized(this) { descendants(id) }
 
-    fun complete(id: String, report: String): ChiefNode = change(id) {
-        it.copy(status = ChiefStatus.REVIEW, report = report)
+    fun complete(id: String, report: String): ChiefNode = synchronized(this) {
+        change(id) { it.copy(status = ChiefStatus.REVIEW, report = report) }
     }
 
-    fun review(id: String, approved: Boolean, feedback: String = ""): ChiefNode {
+    fun review(id: String, approved: Boolean, feedback: String = ""): ChiefNode = synchronized(this) {
         val current = node(id)
         require(current.status == ChiefStatus.REVIEW || current.status == ChiefStatus.RUNNING) {
             "Node is not awaiting review"
         }
-        if (approved) return change(id) { it.copy(status = ChiefStatus.APPROVED) }
-        if (current.retries >= maxRetries) {
-            return change(id) {
-                it.copy(status = ChiefStatus.FAILED, feedback = it.feedback + feedback)
-            }
-        }
-        return change(id) {
+        if (approved) change(id) { it.copy(status = ChiefStatus.APPROVED) }
+        else if (current.retries >= maxRetries) change(id) {
+            it.copy(status = ChiefStatus.FAILED, feedback = it.feedback + feedback)
+        } else change(id) {
             it.copy(status = ChiefStatus.RUNNING, retries = it.retries + 1, feedback = it.feedback + feedback)
         }
     }
 
-    fun merge(id: String): ChiefNode {
+    fun merge(id: String): ChiefNode = synchronized(this) {
         require(node(id).status == ChiefStatus.APPROVED) { "Node has not been approved" }
-        return change(id) { it.copy(status = ChiefStatus.DONE) }
+        change(id) { it.copy(status = ChiefStatus.DONE) }
     }
 
-    fun stop(id: String) {
+    fun stop(id: String) = synchronized(this) {
         node(id)
         val targets = descendants(id) + id
         targets.forEach { target -> change(target) { it.copy(status = ChiefStatus.CANCELLED) } }
     }
 
-    fun markBudgetExceeded(id: String): ChiefNode = change(id) {
-        it.copy(status = ChiefStatus.CANCELLED)
+    fun markBudgetExceeded(id: String): ChiefNode = synchronized(this) {
+        change(id) { it.copy(status = ChiefStatus.CANCELLED) }
     }
 
-    fun get(id: String): ChiefNode? = nodes[id]
-    fun all(): List<ChiefNode> = nodes.values.toList()
-    fun snapshot(): ChiefSnapshot = ChiefSnapshot(all(), sequence)
+    fun get(id: String): ChiefNode? = synchronized(this) { nodes[id] }
+    fun all(): List<ChiefNode> = synchronized(this) { nodes.values.toList() }
+    fun snapshot(): ChiefSnapshot = synchronized(this) { ChiefSnapshot(nodes.values.toList(), sequence) }
 
-    fun status(): String = buildString {
-        fun walk(id: String) {
-            val node = nodes[id] ?: return
-            append("  ".repeat(node.depth)).append(node.title)
-                .append(" [").append(node.status.name.lowercase()).append("]\n")
-            nodes.values.filter { it.parentId == id }.forEach { walk(it.id) }
-        }
-        nodes.values.filter { it.parentId == null }.forEach { walk(it.id) }
-    }.trimEnd()
+    fun status(): String = synchronized(this) {
+        buildString {
+            fun walk(id: String) {
+                val node = nodes[id] ?: return
+                append("  ".repeat(node.depth)).append(node.title)
+                    .append(" [").append(node.status.name.lowercase()).append("]\n")
+                nodes.values.filter { it.parentId == id }.forEach { walk(it.id) }
+            }
+            nodes.values.filter { it.parentId == null }.forEach { walk(it.id) }
+        }.trimEnd()
+    }
 
     private fun descendants(id: String): List<String> = buildList {
         nodes.values.filter { it.parentId == id }.forEach { child ->

@@ -23,3 +23,14 @@ Ruling: `Tool`/`ToolContext` pull in Android and workspace types that the local 
 
 Ruling: new setting title is `translatable="false"` so the 21-locale parity test does not need 21 translations. This is an experimental hidden flag, not user-facing copy.
 Known gap for increment 2: finished subagents are not yet auto-attached to `ChiefNode.report`; `chief_wait` returns the live SubagentRuns report and the chief then reviews/merges. No UI tree yet.
+| Review fixes | `ChiefToolAvailability.kt`, `ChiefOrchestration.kt`, `ChiefTreeStore.kt`, `AgentEngine.kt`, 3 tests | RED: unresolved visibleToSubagent + interrupted-not-persisted; GREEN OK (24 tests) | PASS | pending |
+
+Final review (fresh subagent) findings and rulings:
+- FIXED: `chief_*` tools could reach subagents. Added `ChiefToolAvailability.visibleToSubagent` and applied it in `AgentEngine.subagentTools`.
+- FIXED: INTERRUPTED statuses were not written back. `ChiefTreeStore.load()` now saves the recovered snapshot.
+- FIXED: `ChiefTree` map/counter were unsynchronized. All public entry points use `synchronized(this)`; parallel-assign test added.
+- ACCEPTED: `ChiefNode.permissions` is stored but not enforced — all chief children are background/read-only, which is stricter than the design. Per-role grants deferred to increment 2.
+- ACCEPTED: `AgentEngine` fallback store path is relative `.`; only device tests use the default and the flag is off there. HarnessApp supplies `noBackupFilesDir`.
+- ACCEPTED: rename-without-fallback matches the existing `SubagentRuns.save()` pattern.
+- REJECTED: missing `Charsets` import — Kotlin default-imports `kotlin.text.*`.
+- REJECTED: empty-scope overlap is intentional: a child without an explicit scope cannot be assigned beside a scoped active node.

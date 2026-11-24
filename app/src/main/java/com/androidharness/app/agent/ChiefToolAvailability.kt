@@ -17,4 +17,7 @@ object ChiefToolAvailability {
 
     fun canDelegate(enabled: Boolean, depth: Int): Boolean =
         enabled && depth < DEPTH_LIMIT
+
+    /** Subordinates never receive orchestration tools, even at a shallower depth. */
+    fun visibleToSubagent(name: String): Boolean = !name.startsWith("chief_")
 }

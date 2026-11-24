@@ -2196,7 +2196,9 @@ class AgentEngine(
         actionTools: Boolean,
     ): List<com.androidharness.app.llm.ToolSchema> =
         registry.schemas(readOnlyOnly = !actionTools, context = ctx).filter {
-            it.name != "ask_user" && it.name != "task" && it.name != "remember" && !it.name.startsWith("subagent_")
+            it.name != "ask_user" && it.name != "task" && it.name != "remember" &&
+                !it.name.startsWith("subagent_") &&
+                com.androidharness.app.agent.ChiefToolAvailability.visibleToSubagent(it.name)
         }
 
     /**

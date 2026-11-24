@@ -43,6 +43,15 @@ class ChiefTreeStoreTest {
         assertEquals(ChiefStatus.INTERRUPTED, loaded.nodes.first { it.id == node.id }.status)
     }
 
+    @Test fun `interrupted snapshot is persisted after reload`() {
+        val tree = ChiefTree()
+        tree.plan("ship feature")
+        val store = store()
+        store.save(tree.snapshot())
+        store.load()
+        assertTrue(File(tmp.root, "tree.json").readText().contains("INTERRUPTED"))
+    }
+
     @Test fun `save uses atomic rename`() {
         val tree = ChiefTree()
         tree.plan("ship feature")

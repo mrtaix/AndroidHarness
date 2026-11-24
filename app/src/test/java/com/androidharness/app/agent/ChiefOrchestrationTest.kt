@@ -1,5 +1,9 @@
 package com.androidharness.app.agent
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -97,6 +101,19 @@ class ChiefOrchestrationTest {
         tree.markBudgetExceeded(node)
         assertEquals(ChiefStatus.CANCELLED, tree.get(node)?.status)
         assertNotNull(runCatching { tree.merge(node) }.exceptionOrNull())
+    }
+
+    @Test fun `parallel assigns keep unique ids and every node`() = runBlocking {
+        val tree = ChiefTree()
+        val root = tree.plan("ship feature").id
+        val jobs = (0 until 7).map { i ->
+            launch(Dispatchers.Default) {
+                tree.assign(root, "n$i", "do $i", scope = listOf("src/n$i"))
+            }
+        }
+        jobs.joinAll()
+        assertEquals(8, tree.all().size)
+        assertEquals(8, tree.all().map { it.id }.toSet().size)
     }
 
     @Test fun `status renders indentation by depth`() {
