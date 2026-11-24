@@ -259,6 +259,10 @@ class AgentEngine(
     private val todoStore: TodoStore? = null,
     private val repoMap: com.androidharness.app.repomap.RepoMapCache? = null,
     private val cavemanSettings: suspend () -> com.androidharness.app.data.AppSettings = { com.androidharness.app.data.AppSettings() },
+    /** Per-session chief tree storage; only used when the experimental hierarchy is on. */
+    private val chiefStore: (String) -> com.androidharness.app.agent.ChiefTreeStore = { sid ->
+        com.androidharness.app.agent.ChiefTreeStore(java.io.File(".", "chief-tree-$sid.json"))
+    },
     private val configuredSubagent: suspend () -> SubagentConnection? = { null },
     private val prepareGitHub: suspend () -> Unit = {},
     private val deviceAccess: com.androidharness.app.data.env.DeviceAccessManager? = null,
@@ -434,11 +438,50 @@ class AgentEngine(
         }
         val turnImages = com.androidharness.app.tools.ChatImageTurnInventory(working)
         var visionAvailable = imageCapable
-        val runRegistry = runRegistry(conversation, searchDepth, projectConfig, extraTools, subagentRuns, sessionId,
-            imageCapable, memoryOn, turnImages, listOfNotNull(scopedSearch, scopedFetch, scopedBrowser?.forImageInput { visionAvailable })) { working.toList() }
-        val provider = providerFactory(config)
         // Stable per-session cache routing for providers that support it.
         val requestOptions = options.copy(cacheKey = sessionId)
+        val chiefEnabled = cavemanSettings().chiefHierarchy && subagentRuns != null
+        var chiefRunRegistry: com.androidharness.app.tools.ToolRegistry? = null
+        val chiefStoreForRun = if (chiefEnabled) chiefStore(sessionId) else null
+        val chiefTree = com.androidharness.app.agent.ChiefTree(initial = chiefStoreForRun?.load())
+        val chiefDelegate = object : com.androidharness.app.agent.ChiefDelegate {
+            override suspend fun spawn(request: com.androidharness.app.agent.SpawnRequest): String {
+                val registry = chiefRunRegistry ?: error("Chief tool registry is not ready.")
+                val args = kotlinx.serialization.json.buildJsonObject {
+                    put("name", request.node.title.take(40))
+                    put("title", request.node.title.take(40))
+                    put("prompt", request.prompt)
+                    put("background", true)
+                }
+                val call = com.androidharness.app.core.ToolCallData(
+                    id = "chief-${java.util.UUID.randomUUID()}", name = "task", argumentsJson = args.toString(),
+                )
+                val result = performWithPermission(call, permissionMode(), sessionAllowedTools, workspace, sessionId, turnId,
+                    agentMode, requestOptions, config, apiKey, registry, resolveSubagentModel, { emit(it) }, subagentRuns)
+                if (!result.ok) error(result.output)
+                return Regex("task_id=([^\\s]+)").find(result.output)?.groupValues?.get(1)
+                    ?: error("Chief delegate did not return a task id")
+            }
+
+            override suspend fun waitFor(delegateId: String, timeoutSeconds: Int): String? =
+                subagentRuns?.waitFor(sessionId, delegateId, timeoutSeconds * 1000L)?.report()
+
+            override suspend fun stop(delegateId: String) {
+                subagentRuns?.stop(sessionId, delegateId)
+            }
+        }
+        val chiefNames = com.androidharness.app.agent.ChiefToolAvailability.toolNames(chiefEnabled, 0)
+        val effectiveExtraTools = if (chiefEnabled) extraTools +
+            com.androidharness.app.tools.chiefTools(chiefTree, chiefStoreForRun, chiefDelegate).filter { it.name in chiefNames } +
+            listOf(object : com.androidharness.app.tools.Tool by com.androidharness.app.tools.TaskTool() {
+                override val description: String =
+                    "Run a nested agent inside the chief hierarchy. Subagents may delegate further until depth 3. " +
+                        "Use chief_status to inspect the tree."
+            }) else extraTools
+        val runRegistry = runRegistry(conversation, searchDepth, projectConfig, effectiveExtraTools, subagentRuns, sessionId,
+            imageCapable, memoryOn, turnImages, listOfNotNull(scopedSearch, scopedFetch, scopedBrowser?.forImageInput { visionAvailable })) { working.toList() }
+        chiefRunRegistry = runRegistry
+        val provider = providerFactory(config)
         var iterations = 0
         val deterministicFailures = java.util.concurrent.ConcurrentHashMap<String, String>()
         // Termination code of the most recent streamed request, and how many
@@ -1607,7 +1650,8 @@ class AgentEngine(
                 ?: return ToolResult(false, "task requires a prompt.")
             val title = (args["name"] ?: args["title"])?.jsonPrimitive?.contentOrNull?.trim()?.takeIf { it.isNotBlank() }?.take(40)
             val background = args["background"]?.jsonPrimitive?.booleanOrNull == true
-            if (background && (subagentRuns == null || !cavemanSettings().backgroundSubagents)) {
+            if (background && (subagentRuns == null ||
+                (!cavemanSettings().backgroundSubagents && !cavemanSettings().chiefHierarchy))) {
                 return ToolResult(false, "Background delegation is disabled. The user can enable Allow background delegation in Sub-Agent settings. Use a foreground task instead.")
             }
             val childContext = try { args["agent"]?.jsonPrimitive?.contentOrNull?.takeIf(String::isNotBlank)?.let { runConfig?.child(it) } ?: runConfig }

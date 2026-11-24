@@ -30,6 +30,8 @@ data class AppSettings(
     val autoApproveAll: Boolean = false,
     val subagentFullAccess: Boolean = false,
     val backgroundSubagents: Boolean = false,
+    /** Experimental bounded chief/lead/worker hierarchy. Off by default. */
+    val chiefHierarchy: Boolean = false,
     val subagentCompletionNotifications: Boolean = true,
     val subagentProviderId: String? = null,
     val subagentModel: String? = null,
@@ -357,6 +359,7 @@ class SettingsRepository(private val context: Context) {
         val AUTO_APPROVE_ALL = booleanPreferencesKey("auto_approve_all")
         val SUBAGENT_FULL_ACCESS = booleanPreferencesKey("subagent_full_access")
         val BACKGROUND_SUBAGENTS = booleanPreferencesKey("background_subagents")
+        val CHIEF_HIERARCHY = booleanPreferencesKey("chief_hierarchy")
         val SUBAGENT_COMPLETION_NOTIFICATIONS = booleanPreferencesKey("subagent_completion_notifications")
         val SUBAGENT_PROVIDER = stringPreferencesKey("subagent_provider_id")
         val SUBAGENT_MODEL = stringPreferencesKey("subagent_model")
@@ -515,6 +518,7 @@ class SettingsRepository(private val context: Context) {
             autoApproveAll = prefs[Keys.AUTO_APPROVE_ALL] ?: false,
             subagentFullAccess = prefs[Keys.SUBAGENT_FULL_ACCESS] ?: false,
             backgroundSubagents = prefs[Keys.BACKGROUND_SUBAGENTS] ?: false,
+            chiefHierarchy = prefs[Keys.CHIEF_HIERARCHY] ?: false,
             subagentCompletionNotifications = prefs[Keys.SUBAGENT_COMPLETION_NOTIFICATIONS] ?: true,
             themeMode = prefs[Keys.THEME_MODE]
                 ?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
@@ -721,6 +725,7 @@ class SettingsRepository(private val context: Context) {
             p[Keys.AUTO_APPROVE_ALL] = s.autoApproveAll
             p[Keys.SUBAGENT_FULL_ACCESS] = s.subagentFullAccess
             p[Keys.BACKGROUND_SUBAGENTS] = s.backgroundSubagents
+            p[Keys.CHIEF_HIERARCHY] = s.chiefHierarchy
             p[Keys.SUBAGENT_COMPLETION_NOTIFICATIONS] = s.subagentCompletionNotifications
             p[Keys.DISABLED_SKILLS] = s.disabledSkills
             p[Keys.WEB_SEARCH_PROVIDER] = s.webSearchProvider
@@ -901,6 +906,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setBackgroundSubagents(enabled: Boolean) {
         context.settingsStore.edit { it[Keys.BACKGROUND_SUBAGENTS] = enabled }
+    }
+
+    suspend fun setChiefHierarchy(enabled: Boolean) {
+        context.settingsStore.edit { it[Keys.CHIEF_HIERARCHY] = enabled }
     }
 
     suspend fun setSubagentCompletionNotifications(enabled: Boolean) {

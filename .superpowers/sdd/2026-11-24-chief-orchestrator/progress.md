@@ -19,3 +19,7 @@ Ruling: plan file lives under `docs/superpowers/`, which `.gitignore` ignores; s
 | 3 chief_* tools | `ChiefToolLogic.kt`, `ChiefTools.kt`, `ChiefOrchestration.kt` (delegateId/descendantIds), `ChiefTreeStore.kt` (delegateId), `ChiefToolLogicTest.kt` | RED unresolved ChiefDelegate/SpawnRequest/ChiefToolLogic; GREEN OK (17 tests); mutation `setDelegate -> no-op` caught; tool wrappers smoke-compiled against stub Tool/Schema | PASS | pending |
 
 Ruling: `Tool`/`ToolContext` pull in Android and workspace types that the local JVM runner cannot compile. Behavior lives in pure `ChiefToolLogic.kt`; `ChiefTools.kt` is a thin wrapper. Cost: two files instead of one; CI still checks the real interface.
+| 4 wiring + flag | `ChiefToolAvailability.kt`/Test, `SettingsRepository.kt`, `AgentSettingsCatalog.kt`, `ui_extra_strings.xml`, `AgentEngine.kt`, `HarnessApp.kt` | RED unresolved `ChiefToolAvailability`; GREEN OK (21 tests). Device test NOT RUN locally; CI will build | PASS (unit), device NOT RUN | pending |
+
+Ruling: new setting title is `translatable="false"` so the 21-locale parity test does not need 21 translations. This is an experimental hidden flag, not user-facing copy.
+Known gap for increment 2: finished subagents are not yet auto-attached to `ChiefNode.report`; `chief_wait` returns the live SubagentRuns report and the chief then reviews/merges. No UI tree yet.
