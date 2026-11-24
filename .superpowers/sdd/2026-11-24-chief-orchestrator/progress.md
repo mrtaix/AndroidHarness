@@ -83,3 +83,4 @@ Ruling: WORKER cannot delegate at all; only CHIEF may create a LEAD. Tool schema
 
 Ruling: scratch contains only the node's `scope` paths, copied at assign time. SAF workspaces and empty scopes fall back to the shared workspace; no merge-back happens automatically — the chief reviews the report/diff and merges through tools.
 | CI run 45479629853 | `02be81e0` | FAIL: `AgentEngine.kt:272` inferred type on constructor property rejected; cascaded `effectiveWorkspace` type errors | FAIL -> fixed | - |
+| CI run 45482158604 | `041c4be5` | unit tests PASS, debug PASS, release PASS, success | PASS | final |
