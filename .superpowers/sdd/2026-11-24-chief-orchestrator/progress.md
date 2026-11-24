@@ -71,3 +71,5 @@ Ruling: the engine watches each spawned background run with `waitFor(30s)` and c
 | Role enum + assign rules | `ChiefOrchestration.kt`, `ChiefTreeStore.kt`, `ChiefToolLogic.kt`, `ChiefTools.kt`, `ChiefTreeCard.kt`, 2 tests | RED unresolved `ChiefRole`/`role`; GREEN OK (29 pure tests), wrappers smoke-compiled | PASS |
 
 Ruling: WORKER cannot delegate at all; only CHIEF may create a LEAD. Tool schema exposes `role` with that contract. This closes the reviewer’s "permissions stored but unused" finding at the delegation layer; commit/push/deploy remain unavailable to every child because chief delegates run background/read-only.
+| CI run 45468379316 | `ac2c1fc7` | FAIL unrelated flake: `GroqWhisperClientTest` TimeoutException (2562 tests, 1 failed) | FAIL (flake) | - |
+| CI run 45470503836 | `ac2c1fc7` | unit tests PASS, debug PASS, release PASS, success | PASS | final |
