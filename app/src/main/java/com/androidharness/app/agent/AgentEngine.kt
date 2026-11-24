@@ -452,6 +452,7 @@ class AgentEngine(
         var chiefRunRegistry: com.androidharness.app.tools.ToolRegistry? = null
         val chiefStoreForRun = if (chiefEnabled) chiefStore(sessionId) else null
         val chiefTree = com.androidharness.app.agent.ChiefTree(initial = chiefStoreForRun?.load())
+        var chiefLogic: com.androidharness.app.agent.ChiefToolLogic? = null
         val chiefDelegate = object : com.androidharness.app.agent.ChiefDelegate {
             override suspend fun spawn(request: com.androidharness.app.agent.SpawnRequest): String {
                 val registry = chiefRunRegistry ?: error("Chief tool registry is not ready.")
@@ -467,8 +468,18 @@ class AgentEngine(
                 val result = performWithPermission(call, permissionMode(), sessionAllowedTools, workspace, sessionId, turnId,
                     mode, requestOptions, config, apiKey, registry, resolveSubagentModel, { emit(it) }, subagentRuns)
                 if (!result.ok) error(result.output)
-                return Regex("task_id=([^\\s]+)").find(result.output)?.groupValues?.get(1)
+                val delegateId = Regex("task_id=([^\\s]+)").find(result.output)?.groupValues?.get(1)
                     ?: error("Chief delegate did not return a task id")
+                launch {
+                    while (true) {
+                        val run = subagentRuns?.waitFor(sessionId, delegateId, 30_000) ?: break
+                        if (!run.status.active) {
+                            chiefLogic?.attachFinished(delegateId, run.report())
+                            break
+                        }
+                    }
+                }
+                return delegateId
             }
 
             override suspend fun waitFor(delegateId: String, timeoutSeconds: Int): String? =
@@ -478,10 +489,11 @@ class AgentEngine(
                 subagentRuns?.stop(sessionId, delegateId)
             }
         }
+        chiefLogic = com.androidharness.app.agent.ChiefToolLogic(
+            chiefTree, chiefStoreForRun, chiefDelegate, onChange = { chiefEvents.trySend(it) })
         val chiefNames = com.androidharness.app.agent.ChiefToolAvailability.toolNames(chiefEnabled, 0)
         val effectiveExtraTools = if (chiefEnabled) extraTools +
-            com.androidharness.app.tools.chiefTools(chiefTree, chiefStoreForRun, chiefDelegate,
-                onChange = { chiefEvents.trySend(it) }).filter { it.name in chiefNames } +
+            com.androidharness.app.tools.chiefTools(chiefLogic!!).filter { it.name in chiefNames } +
             listOf(object : com.androidharness.app.tools.Tool by com.androidharness.app.tools.TaskTool() {
                 override val description: String =
                     "Run a nested agent inside the chief hierarchy. Subagents may delegate further until depth 3. " +

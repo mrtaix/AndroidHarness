@@ -107,6 +107,13 @@ class ChiefToolLogic(
         persist()
     }
 
+    /** Finds the node owning a finished subagent and attaches its report for review. */
+    suspend fun attachFinished(delegateId: String, report: String): ChiefNode? {
+        val node = tree.findByDelegate(delegateId) ?: return null
+        complete(node.id, report)
+        return tree.get(node.id)
+    }
+
     private fun persist() {
         val snapshot = tree.snapshot()
         store?.save(snapshot)

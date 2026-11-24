@@ -142,6 +142,9 @@ class ChiefTree(
     }
 
     fun get(id: String): ChiefNode? = synchronized(this) { nodes[id] }
+    fun findByDelegate(delegateId: String): ChiefNode? = synchronized(this) {
+        nodes.values.firstOrNull { it.delegateId == delegateId }
+    }
     fun all(): List<ChiefNode> = synchronized(this) { nodes.values.toList() }
     fun snapshot(): ChiefSnapshot = synchronized(this) { ChiefSnapshot(nodes.values.toList(), sequence) }
 

@@ -76,6 +76,15 @@ private fun ChiefTreeNode(node: ChiefNode, onAction: (String) -> Unit) {
                 style = MaterialTheme.typography.labelSmall,
                 color = scheme.onSurfaceVariant,
             )
+            if (node.report.isNotBlank()) {
+                Text(
+                    node.report.take(240),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
         if (node.status == ChiefStatus.REVIEW || node.status == ChiefStatus.RUNNING) {
             TextButton(onClick = {

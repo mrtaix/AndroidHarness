@@ -51,6 +51,16 @@ class ChiefToolLogicTest {
         assertEquals(2, latest?.nodes?.size)
     }
 
+    @Test fun `finished delegate report attaches to its node`() = runBlocking {
+        val (tree, _, logic) = setup()
+        val root = tree.all().first().id
+        val node = logic.assign(root, "worker", "do work", emptyList(), listOf("src/w"))
+        val attached = logic.attachFinished("task-1", "tests passed")
+        assertEquals(node, attached?.id)
+        assertEquals(ChiefStatus.REVIEW, tree.get(node)?.status)
+        assertEquals("tests passed", tree.get(node)?.report)
+    }
+
     @Test fun `chief_status renders indentation by depth`() = runBlocking {
         val (tree, _, logic) = setup()
         val root = tree.all().first().id

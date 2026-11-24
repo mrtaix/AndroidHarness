@@ -53,3 +53,12 @@ Ruling: `ChiefToolLogic.onChange` is synchronous; AgentEngine bridges it to the 
 
 Ruling: inside `channelFlow` use the imported `launch` extension (ProducerScope is a CoroutineScope), not the top-level fully-qualified function.
 | CI run 45447719721 | `0aa9ac1f` | unit tests PASS, debug PASS, release PASS, success | PASS | final |
+
+## Increment 3 — auto report
+
+| Task | Files | Test | Result |
+|---|---|---|---|
+| Attach finished report | `ChiefOrchestration.kt`, `ChiefToolLogic.kt`, `ChiefTools.kt`, `AgentEngine.kt`, `ChiefToolLogicTest.kt` | RED unresolved `attachFinished`; GREEN OK (26 pure tests), tool wrappers smoke-compiled | PASS |
+| Show report | `ChiefTreeCard.kt` | CI build pending | NOT RUN locally |
+
+Ruling: the engine watches each spawned background run with `waitFor(30s)` and calls `attachFinished`, which moves the node to REVIEW with the report. The chief still reviews before merge.

@@ -1,10 +1,6 @@
 package com.androidharness.app.tools
 
-import com.androidharness.app.agent.ChiefDelegate
-import com.androidharness.app.agent.ChiefSnapshot
 import com.androidharness.app.agent.ChiefToolLogic
-import com.androidharness.app.agent.ChiefTree
-import com.androidharness.app.agent.ChiefTreeStore
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
@@ -13,13 +9,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 
 /** Seven tools that expose the bounded chief hierarchy to the model. */
-fun chiefTools(
-    tree: ChiefTree,
-    store: ChiefTreeStore?,
-    delegate: ChiefDelegate,
-    onChange: (ChiefSnapshot) -> Unit = {},
-): List<Tool> {
-    val logic = ChiefToolLogic(tree, store, delegate, onChange)
+fun chiefTools(logic: ChiefToolLogic): List<Tool> {
     val string = Schema.string("")
     val strings = Schema.array(Schema.string(""), "")
     return listOf(
