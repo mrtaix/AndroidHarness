@@ -90,3 +90,4 @@ Ruling: scratch contains only the node's `scope` paths, copied at assign time. S
 Root cause: `SettingsPage.SUBAGENT` renders the hand-written `SubagentSettingsSection`; adding a row to `AgentSettingsCatalog` only affected settings search and agent tools, not the page. The chief toggle therefore never appeared.
 Fix: `SubagentSettingsSection` now renders a catalog fallback for every SUBAGENT toggle not in `wiredSubagentKeys`; future catalog entries appear without another hand edit.
 Ruling: explicit `onChiefHierarchy` row removed to avoid duplicates; `SettingsScreen` writes catalog toggles through `setting.write`.
+| CI run 45493404655 | `20c8d950` | FAIL: default lambda arity for `onCatalogToggle` | FAIL -> fixed | - |

@@ -24,7 +24,7 @@ internal fun SubagentSettingsSection(
     onCompletionNotifications: (Boolean) -> Unit = {},
     onOpenBackgroundSettings: () -> Unit = {},
     onSubagentsEnabled: (Boolean) -> Unit = {},
-    onCatalogToggle: (AgentSetting, Boolean) -> Unit = {},
+    onCatalogToggle: (AgentSetting, Boolean) -> Unit = { _, _ -> },
 ) {
     val uiContext = androidx.compose.ui.platform.LocalContext.current
     val on = settings.subagentsEnabled
