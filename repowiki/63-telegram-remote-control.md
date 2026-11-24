@@ -150,18 +150,18 @@ The label combines setup, runtime and pairing state: pairing candidate, waiting 
 - There is no attachment, image or voice message support in either direction; Telegram is text, buttons and callback queries only.
 - The runtime label is derived from text matching on `action` ("approval", "answer"), not from a typed enum (`TelegramGateway.kt:13-15`).
 
-Sources: [telegram/TelegramGateway.kt](../app/src/main/java/com/ctharness/app/telegram/TelegramGateway.kt)#L19-L433), [telegram/TelegramGatewayStore.kt](../app/src/main/java/com/ctharness/app/telegram/TelegramGatewayStore.kt)#L53-L145), [telegram/TelegramManager.kt](../app/src/main/java/com/ctharness/app/telegram/TelegramManager.kt)#L14-L179), [telegram/TelegramSetupRepository.kt](../app/src/main/java/com/ctharness/app/telegram/TelegramSetupRepository.kt)#L12-L169), [telegram/TelegramBotClient.kt](../app/src/main/java/com/ctharness/app/telegram/TelegramBotClient.kt)#L37-L171), [telegram/TelegramAgentBridge.kt](../app/src/main/java/com/ctharness/app/telegram/TelegramAgentBridge.kt)#L21-L156), [telegram/TelegramService.kt](../app/src/main/java/com/ctharness/app/telegram/TelegramService.kt)#L19-L98), [ui/settings/TelegramSection.kt](../app/src/main/java/com/ctharness/app/ui/settings/TelegramSection.kt)#L66-L334)
+Sources: [telegram/TelegramGateway.kt](../app/src/main/java/com/androidharness/app/telegram/TelegramGateway.kt)#L19-L433), [telegram/TelegramGatewayStore.kt](../app/src/main/java/com/androidharness/app/telegram/TelegramGatewayStore.kt)#L53-L145), [telegram/TelegramManager.kt](../app/src/main/java/com/androidharness/app/telegram/TelegramManager.kt)#L14-L179), [telegram/TelegramSetupRepository.kt](../app/src/main/java/com/androidharness/app/telegram/TelegramSetupRepository.kt)#L12-L169), [telegram/TelegramBotClient.kt](../app/src/main/java/com/androidharness/app/telegram/TelegramBotClient.kt)#L37-L171), [telegram/TelegramAgentBridge.kt](../app/src/main/java/com/androidharness/app/telegram/TelegramAgentBridge.kt)#L21-L156), [telegram/TelegramService.kt](../app/src/main/java/com/androidharness/app/telegram/TelegramService.kt)#L19-L98), [ui/settings/TelegramSection.kt](../app/src/main/java/com/androidharness/app/ui/settings/TelegramSection.kt)#L66-L334)
 
 ## Source files
 
-- `app/src/main/java/com/ctharness/app/telegram/TelegramGateway.kt`
-- `app/src/main/java/com/ctharness/app/telegram/TelegramGatewayStore.kt`
-- `app/src/main/java/com/ctharness/app/telegram/TelegramManager.kt`
-- `app/src/main/java/com/ctharness/app/telegram/TelegramSetupRepository.kt`
-- `app/src/main/java/com/ctharness/app/telegram/TelegramBotClient.kt`
-- `app/src/main/java/com/ctharness/app/telegram/TelegramAgentBridge.kt`
-- `app/src/main/java/com/ctharness/app/telegram/TelegramService.kt`
-- `app/src/main/java/com/ctharness/app/telegram/TelegramFormatting.kt`
-- `app/src/main/java/com/ctharness/app/ui/settings/TelegramSection.kt`
-- `app/src/main/java/com/ctharness/app/data/KeyStoreManager.kt`
+- `app/src/main/java/com/androidharness/app/telegram/TelegramGateway.kt`
+- `app/src/main/java/com/androidharness/app/telegram/TelegramGatewayStore.kt`
+- `app/src/main/java/com/androidharness/app/telegram/TelegramManager.kt`
+- `app/src/main/java/com/androidharness/app/telegram/TelegramSetupRepository.kt`
+- `app/src/main/java/com/androidharness/app/telegram/TelegramBotClient.kt`
+- `app/src/main/java/com/androidharness/app/telegram/TelegramAgentBridge.kt`
+- `app/src/main/java/com/androidharness/app/telegram/TelegramService.kt`
+- `app/src/main/java/com/androidharness/app/telegram/TelegramFormatting.kt`
+- `app/src/main/java/com/androidharness/app/ui/settings/TelegramSection.kt`
+- `app/src/main/java/com/androidharness/app/data/KeyStoreManager.kt`
 - `app/src/main/AndroidManifest.xml`

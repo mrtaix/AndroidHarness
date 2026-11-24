@@ -161,17 +161,17 @@ All token requests share `tokenRequest`, which applies a 30 second `callTimeout`
 - `McpManager.startAuthentication` searches only the app-side `_servers` list, so a server that exists only in `harness.json` or a plugin cannot use the Authenticate button.
 - The OAuth access token is only used for `http` and `sse` transports; stdio servers have no token path.
 
-Sources: [app/src/main/java/com/ctharness/app/tools/mcp/McpTransport.kt](../app/src/main/java/com/ctharness/app/tools/mcp/McpTransport.kt)#L122-L176), [app/src/main/java/com/ctharness/app/tools/mcp/McpConnection.kt](../app/src/main/java/com/ctharness/app/tools/mcp/McpConnection.kt)#L77-L169), [app/src/main/java/com/ctharness/app/tools/mcp/McpOAuth.kt](../app/src/main/java/com/ctharness/app/tools/mcp/McpOAuth.kt)#L92-L133), [app/src/main/java/com/ctharness/app/tools/mcp/McpToolAdapter.kt](../app/src/main/java/com/ctharness/app/tools/mcp/McpToolAdapter.kt)#L18-L68)
+Sources: [app/src/main/java/com/androidharness/app/tools/mcp/McpTransport.kt](../app/src/main/java/com/androidharness/app/tools/mcp/McpTransport.kt)#L122-L176), [app/src/main/java/com/androidharness/app/tools/mcp/McpConnection.kt](../app/src/main/java/com/androidharness/app/tools/mcp/McpConnection.kt)#L77-L169), [app/src/main/java/com/androidharness/app/tools/mcp/McpOAuth.kt](../app/src/main/java/com/androidharness/app/tools/mcp/McpOAuth.kt)#L92-L133), [app/src/main/java/com/androidharness/app/tools/mcp/McpToolAdapter.kt](../app/src/main/java/com/androidharness/app/tools/mcp/McpToolAdapter.kt)#L18-L68)
 
 ## Source files
 
-- `app/src/main/java/com/ctharness/app/tools/mcp/McpTransport.kt`
-- `app/src/main/java/com/ctharness/app/tools/mcp/McpConnection.kt`
-- `app/src/main/java/com/ctharness/app/tools/mcp/McpOAuth.kt`
-- `app/src/main/java/com/ctharness/app/tools/mcp/McpToolAdapter.kt`
-- `app/src/main/java/com/ctharness/app/tools/mcp/McpModels.kt`
-- `app/src/main/java/com/ctharness/app/tools/mcp/McpManager.kt`
-- `app/src/main/java/com/ctharness/app/ui/common/OAuthBrowser.kt`
-- `app/src/main/java/com/ctharness/app/MainActivity.kt`
-- `app/src/main/java/com/ctharness/app/data/KeyStoreManager.kt`
+- `app/src/main/java/com/androidharness/app/tools/mcp/McpTransport.kt`
+- `app/src/main/java/com/androidharness/app/tools/mcp/McpConnection.kt`
+- `app/src/main/java/com/androidharness/app/tools/mcp/McpOAuth.kt`
+- `app/src/main/java/com/androidharness/app/tools/mcp/McpToolAdapter.kt`
+- `app/src/main/java/com/androidharness/app/tools/mcp/McpModels.kt`
+- `app/src/main/java/com/androidharness/app/tools/mcp/McpManager.kt`
+- `app/src/main/java/com/androidharness/app/ui/common/OAuthBrowser.kt`
+- `app/src/main/java/com/androidharness/app/MainActivity.kt`
+- `app/src/main/java/com/androidharness/app/data/KeyStoreManager.kt`
 - `app/src/main/AndroidManifest.xml`

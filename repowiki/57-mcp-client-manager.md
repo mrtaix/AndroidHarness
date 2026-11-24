@@ -97,16 +97,16 @@ Connection identity is `config.name` for app-side servers, or `name + "_ws_" + s
 - `unapprovedWorkspaceServers` appends a synthetic `Plugin: <name>` entry for every plugin when the workspace is unapproved (`McpManager.kt:289-L290`), so the chat prompt can list names that are not real servers.
 - `workspaceUsers` is a plain `HashMap` keyed by connection name while `connections` is guarded by `synchronized(connections)`; the two use the same monitor, which is correct but easy to break in a refactor.
 
-Sources: [app/src/main/java/com/ctharness/app/tools/mcp/McpManager.kt](../app/src/main/java/com/ctharness/app/tools/mcp/McpManager.kt)#L319-L377), [app/src/main/java/com/ctharness/app/tools/mcp/McpModels.kt](../app/src/main/java/com/ctharness/app/tools/mcp/McpModels.kt)#L83-L211), [app/src/main/java/com/ctharness/app/ui/settings/SettingsScreen.kt](../app/src/main/java/com/ctharness/app/ui/settings/SettingsScreen.kt)#L1747-L1891), [app/src/main/java/com/ctharness/app/agent/RunManager.kt](../app/src/main/java/com/ctharness/app/agent/RunManager.kt)#L586-L619)
+Sources: [app/src/main/java/com/androidharness/app/tools/mcp/McpManager.kt](../app/src/main/java/com/androidharness/app/tools/mcp/McpManager.kt)#L319-L377), [app/src/main/java/com/androidharness/app/tools/mcp/McpModels.kt](../app/src/main/java/com/androidharness/app/tools/mcp/McpModels.kt)#L83-L211), [app/src/main/java/com/androidharness/app/ui/settings/SettingsScreen.kt](../app/src/main/java/com/androidharness/app/ui/settings/SettingsScreen.kt)#L1747-L1891), [app/src/main/java/com/androidharness/app/agent/RunManager.kt](../app/src/main/java/com/androidharness/app/agent/RunManager.kt)#L586-L619)
 
 ## Source files
 
-- `app/src/main/java/com/ctharness/app/tools/mcp/McpManager.kt`
-- `app/src/main/java/com/ctharness/app/tools/mcp/McpModels.kt`
-- `app/src/main/java/com/ctharness/app/tools/mcp/McpReconnectPolicy.kt`
-- `app/src/main/java/com/ctharness/app/ui/settings/SettingsScreen.kt`
-- `app/src/main/java/com/ctharness/app/ui/settings/PluginMcpServersSection.kt`
-- `app/src/main/java/com/ctharness/app/ui/settings/TroubleshootingSection.kt`
-- `app/src/main/java/com/ctharness/app/ui/chat/ChatViewModel.kt`
-- `app/src/main/java/com/ctharness/app/agent/RunManager.kt`
-- `app/src/main/java/com/ctharness/app/data/SettingsBackup.kt`
+- `app/src/main/java/com/androidharness/app/tools/mcp/McpManager.kt`
+- `app/src/main/java/com/androidharness/app/tools/mcp/McpModels.kt`
+- `app/src/main/java/com/androidharness/app/tools/mcp/McpReconnectPolicy.kt`
+- `app/src/main/java/com/androidharness/app/ui/settings/SettingsScreen.kt`
+- `app/src/main/java/com/androidharness/app/ui/settings/PluginMcpServersSection.kt`
+- `app/src/main/java/com/androidharness/app/ui/settings/TroubleshootingSection.kt`
+- `app/src/main/java/com/androidharness/app/ui/chat/ChatViewModel.kt`
+- `app/src/main/java/com/androidharness/app/agent/RunManager.kt`
+- `app/src/main/java/com/androidharness/app/data/SettingsBackup.kt`

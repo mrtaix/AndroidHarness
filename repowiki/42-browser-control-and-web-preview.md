@@ -45,7 +45,7 @@ flowchart TD
     C --> W[DisposableEffect -> adoptWebView]
 ```
 
-The two entry points share one controller and therefore one page. When the user taps Watch, `ChatScreen.watchBrowser` sets `webPreviewUrl` from the tool's target or from `browser.getActiveUrl()` and opens the sheet (`ui/chat/ChatScreen.kt:309`). The sheet binds its WebView with `browserController.bindActiveWebView(this)`, so agent actions now run against the visible view. On dispose it calls `adoptWebView`, which keeps the page, scroll position and back/forward list alive in a headless view instead of destroying them (`app/src/main/java/com/ctharness/app/browser/BrowserController.kt:257`). A blank or uninitialized view is destroyed rather than adopted.
+The two entry points share one controller and therefore one page. When the user taps Watch, `ChatScreen.watchBrowser` sets `webPreviewUrl` from the tool's target or from `browser.getActiveUrl()` and opens the sheet (`ui/chat/ChatScreen.kt:309`). The sheet binds its WebView with `browserController.bindActiveWebView(this)`, so agent actions now run against the visible view. On dispose it calls `adoptWebView`, which keeps the page, scroll position and back/forward list alive in a headless view instead of destroying them (`app/src/main/java/com/androidharness/app/browser/BrowserController.kt:257`). A blank or uninitialized view is destroyed rather than adopted.
 
 Every action captures a baseline before it runs and waits for a real document afterward. `PageLoadTracker` increments a generation on `onPageStarted`, marks the finished generation only while a load is in flight, and records errors and downloads. `awaitNavigation` first waits for the generation to move or the in-page document to change, then waits for the new document to report complete. When the WebView's client is not the controller's, `readDocumentProbe` asks the page for `location.href` and `readyState`, because `WebView.url` becomes provisional as soon as a navigation starts (`browser/PageLoadTracker.kt:143`). This is what stops a slow page from being reported as loaded with the previous document's URL and DOM.
 
@@ -110,21 +110,21 @@ Console logs, the action trail and the DOM state are in memory only. Screenshots
 - History, console logs and the action trail do not survive process death. Only screenshots and workspace files persist.
 - `browser_screenshot` cannot capture a headless page. It intentionally fails unless the preview is open and visible, which means an agent cannot take a screenshot without user-visible UI.
 
-Sources: [app/src/main/java/com/ctharness/app/browser/BrowserController.kt](../app/src/main/java/com/ctharness/app/browser/BrowserController.kt)#L175-L360), [app/src/main/java/com/ctharness/app/tools/BrowserTools.kt](../app/src/main/java/com/ctharness/app/tools/BrowserTools.kt)#L241-L378), [app/src/main/java/com/ctharness/app/ui/chat/components/WebPreviewSheet.kt](../app/src/main/java/com/ctharness/app/ui/chat/components/WebPreviewSheet.kt)#L178-L309), [app/src/main/java/com/ctharness/app/browser/HistoryStep.kt](../app/src/main/java/com/ctharness/app/browser/HistoryStep.kt)#L44-L108)
+Sources: [app/src/main/java/com/androidharness/app/browser/BrowserController.kt](../app/src/main/java/com/androidharness/app/browser/BrowserController.kt)#L175-L360), [app/src/main/java/com/androidharness/app/tools/BrowserTools.kt](../app/src/main/java/com/androidharness/app/tools/BrowserTools.kt)#L241-L378), [app/src/main/java/com/androidharness/app/ui/chat/components/WebPreviewSheet.kt](../app/src/main/java/com/androidharness/app/ui/chat/components/WebPreviewSheet.kt)#L178-L309), [app/src/main/java/com/androidharness/app/browser/HistoryStep.kt](../app/src/main/java/com/androidharness/app/browser/HistoryStep.kt)#L44-L108)
 
 ## Source files
 
-- `app/src/main/java/com/ctharness/app/tools/BrowserTools.kt`
-- `app/src/main/java/com/ctharness/app/tools/BrowserOpenExternalTool.kt`
-- `app/src/main/java/com/ctharness/app/browser/BrowserController.kt`
-- `app/src/main/java/com/ctharness/app/browser/PageLoadTracker.kt`
-- `app/src/main/java/com/ctharness/app/browser/HistoryStep.kt`
-- `app/src/main/java/com/ctharness/app/browser/PreviewSelection.kt`
-- `app/src/main/java/com/ctharness/app/browser/BrowserToolActivity.kt`
-- `app/src/main/java/com/ctharness/app/browser/WorkspacePathHandler.kt`
-- `app/src/main/java/com/ctharness/app/ui/chat/components/WebPreviewSheet.kt`
-- `app/src/main/java/com/ctharness/app/ui/chat/components/BrowserToolCard.kt`
-- `app/src/main/java/com/ctharness/app/ui/chat/WebPreviewAvailability.kt`
-- `app/src/main/java/com/ctharness/app/ui/chat/ChatScreen.kt`
-- `app/src/main/java/com/ctharness/app/core/LocalPortProbe.kt`
-- `app/src/main/java/com/ctharness/app/tools/Tool.kt`
+- `app/src/main/java/com/androidharness/app/tools/BrowserTools.kt`
+- `app/src/main/java/com/androidharness/app/tools/BrowserOpenExternalTool.kt`
+- `app/src/main/java/com/androidharness/app/browser/BrowserController.kt`
+- `app/src/main/java/com/androidharness/app/browser/PageLoadTracker.kt`
+- `app/src/main/java/com/androidharness/app/browser/HistoryStep.kt`
+- `app/src/main/java/com/androidharness/app/browser/PreviewSelection.kt`
+- `app/src/main/java/com/androidharness/app/browser/BrowserToolActivity.kt`
+- `app/src/main/java/com/androidharness/app/browser/WorkspacePathHandler.kt`
+- `app/src/main/java/com/androidharness/app/ui/chat/components/WebPreviewSheet.kt`
+- `app/src/main/java/com/androidharness/app/ui/chat/components/BrowserToolCard.kt`
+- `app/src/main/java/com/androidharness/app/ui/chat/WebPreviewAvailability.kt`
+- `app/src/main/java/com/androidharness/app/ui/chat/ChatScreen.kt`
+- `app/src/main/java/com/androidharness/app/core/LocalPortProbe.kt`
+- `app/src/main/java/com/androidharness/app/tools/Tool.kt`

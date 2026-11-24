@@ -12,6 +12,6 @@ dependencyResolutionManagement {
         maven("https://jitpack.io") { content { includeGroup("com.github.topjohnwu.libsu") } }
     }
 }
-rootProject.name = "CTHarness"
+rootProject.name = "AndroidHarness"
 include(":app")
 if (providers.gradleProperty("distribution").orNull == "play") include(":local_gpu")

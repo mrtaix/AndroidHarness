@@ -129,19 +129,19 @@ Apply never deletes. A target that exists is either skipped (when the replace to
 - `SyncManager.preview` requires `fs.shellRoot`, so SAF-only workspaces cannot sync even though the UI shows a "local workspace required" warning; this is stated in `FEATURES.md:97` only indirectly.
 - The FTP server reports a client count through `clientsChanged`, but the count is incremented per accepted socket, not per authenticated session (`FtpShareServer.kt:49-51`).
 
-Sources: [data/transfer/SyncConnections.kt](../app/src/main/java/com/ctharness/app/data/transfer/SyncConnections.kt)#L18-L187), [data/transfer/SyncManager.kt](../app/src/main/java/com/ctharness/app/data/transfer/SyncManager.kt)#L12-L75), [data/transfer/TransferFiles.kt](../app/src/main/java/com/ctharness/app/data/transfer/TransferFiles.kt)#L11-L184), [data/transfer/FtpShareManager.kt](../app/src/main/java/com/ctharness/app/data/transfer/FtpShareManager.kt)#L14-L59), [data/transfer/FtpShareServer.kt](../app/src/main/java/com/ctharness/app/data/transfer/FtpShareServer.kt)#L16-L214), [data/transfer/FtpShareService.kt](../app/src/main/java/com/ctharness/app/data/transfer/FtpShareService.kt)#L10-L31), [ui/transfer/TransferSettings.kt](../app/src/main/java/com/ctharness/app/ui/transfer/TransferSettings.kt)#L39-L239)
+Sources: [data/transfer/SyncConnections.kt](../app/src/main/java/com/androidharness/app/data/transfer/SyncConnections.kt)#L18-L187), [data/transfer/SyncManager.kt](../app/src/main/java/com/androidharness/app/data/transfer/SyncManager.kt)#L12-L75), [data/transfer/TransferFiles.kt](../app/src/main/java/com/androidharness/app/data/transfer/TransferFiles.kt)#L11-L184), [data/transfer/FtpShareManager.kt](../app/src/main/java/com/androidharness/app/data/transfer/FtpShareManager.kt)#L14-L59), [data/transfer/FtpShareServer.kt](../app/src/main/java/com/androidharness/app/data/transfer/FtpShareServer.kt)#L16-L214), [data/transfer/FtpShareService.kt](../app/src/main/java/com/androidharness/app/data/transfer/FtpShareService.kt)#L10-L31), [ui/transfer/TransferSettings.kt](../app/src/main/java/com/androidharness/app/ui/transfer/TransferSettings.kt)#L39-L239)
 
 ## Source files
 
-- `app/src/main/java/com/ctharness/app/data/transfer/SyncConnections.kt`
-- `app/src/main/java/com/ctharness/app/data/transfer/SyncManager.kt`
-- `app/src/main/java/com/ctharness/app/data/transfer/TransferFiles.kt`
-- `app/src/main/java/com/ctharness/app/data/transfer/TransferSockets.kt`
-- `app/src/main/java/com/ctharness/app/data/transfer/TransferSockets.kt`
-- `app/src/main/java/com/ctharness/app/data/transfer/FtpShareManager.kt`
-- `app/src/main/java/com/ctharness/app/data/transfer/FtpShareServer.kt`
-- `app/src/main/java/com/ctharness/app/data/transfer/FtpShareService.kt`
-- `app/src/main/java/com/ctharness/app/ui/transfer/TransferSettings.kt`
-- `app/src/main/java/com/ctharness/app/agent/RunManager.kt`
-- `app/src/main/java/com/ctharness/app/HarnessApp.kt`
+- `app/src/main/java/com/androidharness/app/data/transfer/SyncConnections.kt`
+- `app/src/main/java/com/androidharness/app/data/transfer/SyncManager.kt`
+- `app/src/main/java/com/androidharness/app/data/transfer/TransferFiles.kt`
+- `app/src/main/java/com/androidharness/app/data/transfer/TransferSockets.kt`
+- `app/src/main/java/com/androidharness/app/data/transfer/TransferSockets.kt`
+- `app/src/main/java/com/androidharness/app/data/transfer/FtpShareManager.kt`
+- `app/src/main/java/com/androidharness/app/data/transfer/FtpShareServer.kt`
+- `app/src/main/java/com/androidharness/app/data/transfer/FtpShareService.kt`
+- `app/src/main/java/com/androidharness/app/ui/transfer/TransferSettings.kt`
+- `app/src/main/java/com/androidharness/app/agent/RunManager.kt`
+- `app/src/main/java/com/androidharness/app/HarnessApp.kt`
 - `app/src/main/AndroidManifest.xml`

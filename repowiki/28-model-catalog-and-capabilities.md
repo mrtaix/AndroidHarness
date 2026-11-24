@@ -94,18 +94,18 @@ The models.dev merge happens at read time, not at fetch time. `ModelCapabilities
 - No "model_usage" style table is involved here. Catalog persistence is DataStore JSON, not Room.
 - `ModelsDev.speakableProviders` is a curated list of hosts and IDs intended for the add-provider directory. This page does not cover the directory UI beyond that filter.
 
-Sources: [app/src/main/java/com/ctharness/app/llm/ModelCatalog.kt](../app/src/main/java/com/ctharness/app/llm/ModelCatalog.kt)#L20-L222), [app/src/main/java/com/ctharness/app/llm/ModelCapabilities.kt](../app/src/main/java/com/ctharness/app/llm/ModelCapabilities.kt)#L3-L38), [app/src/main/java/com/ctharness/app/llm/ModelReasoning.kt](../app/src/main/java/com/ctharness/app/llm/ModelReasoning.kt)#L3-L18), [app/src/main/java/com/ctharness/app/llm/ModelsDev.kt](../app/src/main/java/com/ctharness/app/llm/ModelsDev.kt)#L141-L249), [app/src/main/java/com/ctharness/app/data/ModelVisibility.kt](../app/src/main/java/com/ctharness/app/data/ModelVisibility.kt)#L10-L50), [app/src/main/java/com/ctharness/app/data/ModelShortcuts.kt](../app/src/main/java/com/ctharness/app/data/ModelShortcuts.kt)#L10-L49), [app/src/main/java/com/ctharness/app/llm/ProviderModelSearch.kt](../app/src/main/java/com/ctharness/app/llm/ProviderModelSearch.kt)#L10-L45), [app/src/main/java/com/ctharness/app/ui/settings/ModelVisibilitySheet.kt](../app/src/main/java/com/ctharness/app/ui/settings/ModelVisibilitySheet.kt)#L37-L139), [app/src/main/java/com/ctharness/app/data/ProviderRepository.kt](../app/src/main/java/com/ctharness/app/data/ProviderRepository.kt)#L73-L154), [app/src/main/java/com/ctharness/app/ui/chat/components/ModelPickerSheet.kt](../app/src/main/java/com/ctharness/app/ui/chat/components/ModelPickerSheet.kt)#L140-L170)
+Sources: [app/src/main/java/com/androidharness/app/llm/ModelCatalog.kt](../app/src/main/java/com/androidharness/app/llm/ModelCatalog.kt)#L20-L222), [app/src/main/java/com/androidharness/app/llm/ModelCapabilities.kt](../app/src/main/java/com/androidharness/app/llm/ModelCapabilities.kt)#L3-L38), [app/src/main/java/com/androidharness/app/llm/ModelReasoning.kt](../app/src/main/java/com/androidharness/app/llm/ModelReasoning.kt)#L3-L18), [app/src/main/java/com/androidharness/app/llm/ModelsDev.kt](../app/src/main/java/com/androidharness/app/llm/ModelsDev.kt)#L141-L249), [app/src/main/java/com/androidharness/app/data/ModelVisibility.kt](../app/src/main/java/com/androidharness/app/data/ModelVisibility.kt)#L10-L50), [app/src/main/java/com/androidharness/app/data/ModelShortcuts.kt](../app/src/main/java/com/androidharness/app/data/ModelShortcuts.kt)#L10-L49), [app/src/main/java/com/androidharness/app/llm/ProviderModelSearch.kt](../app/src/main/java/com/androidharness/app/llm/ProviderModelSearch.kt)#L10-L45), [app/src/main/java/com/androidharness/app/ui/settings/ModelVisibilitySheet.kt](../app/src/main/java/com/androidharness/app/ui/settings/ModelVisibilitySheet.kt)#L37-L139), [app/src/main/java/com/androidharness/app/data/ProviderRepository.kt](../app/src/main/java/com/androidharness/app/data/ProviderRepository.kt)#L73-L154), [app/src/main/java/com/androidharness/app/ui/chat/components/ModelPickerSheet.kt](../app/src/main/java/com/androidharness/app/ui/chat/components/ModelPickerSheet.kt)#L140-L170)
 
 ## Source files
 
-- `app/src/main/java/com/ctharness/app/llm/ModelCatalog.kt`
-- `app/src/main/java/com/ctharness/app/llm/ModelCapabilities.kt`
-- `app/src/main/java/com/ctharness/app/llm/ModelReasoning.kt`
-- `app/src/main/java/com/ctharness/app/llm/ModelsDev.kt`
-- `app/src/main/java/com/ctharness/app/data/ModelVisibility.kt`
-- `app/src/main/java/com/ctharness/app/data/ModelShortcuts.kt`
-- `app/src/main/java/com/ctharness/app/llm/ProviderModelSearch.kt`
-- `app/src/main/java/com/ctharness/app/ui/settings/ModelVisibilitySheet.kt`
-- `app/src/main/java/com/ctharness/app/data/ProviderRepository.kt`
-- `app/src/main/java/com/ctharness/app/ui/chat/components/ModelPickerSheet.kt`
-- `app/src/main/java/com/ctharness/app/ui/common/ModelReasoningIcon.kt`
+- `app/src/main/java/com/androidharness/app/llm/ModelCatalog.kt`
+- `app/src/main/java/com/androidharness/app/llm/ModelCapabilities.kt`
+- `app/src/main/java/com/androidharness/app/llm/ModelReasoning.kt`
+- `app/src/main/java/com/androidharness/app/llm/ModelsDev.kt`
+- `app/src/main/java/com/androidharness/app/data/ModelVisibility.kt`
+- `app/src/main/java/com/androidharness/app/data/ModelShortcuts.kt`
+- `app/src/main/java/com/androidharness/app/llm/ProviderModelSearch.kt`
+- `app/src/main/java/com/androidharness/app/ui/settings/ModelVisibilitySheet.kt`
+- `app/src/main/java/com/androidharness/app/data/ProviderRepository.kt`
+- `app/src/main/java/com/androidharness/app/ui/chat/components/ModelPickerSheet.kt`
+- `app/src/main/java/com/androidharness/app/ui/common/ModelReasoningIcon.kt`

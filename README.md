@@ -10,7 +10,7 @@ No PC needed. No root needed.
 
 <p>
   <a href="https://github.com/Sanuu7/AndroidHarness/releases/latest"><img src=".github/assets/download-from-github.png" alt="Download from GitHub" height="54"></a>
-  <a href="https://play.google.com/store/apps/details?id=com.ctharness.app"><img src=".github/assets/google-play.png" alt="Get it on Google Play" height="54"></a>
+  <a href="https://play.google.com/store/apps/details?id=com.androidharness.app"><img src=".github/assets/google-play.png" alt="Get it on Google Play" height="54"></a>
   <a href="https://buymeacoffee.com/sanuj7"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy me a coffee" height="54"></a>
   <a href="https://discord.gg/NdC5K3XeWF"><img src=".github/assets/join-discord.png" alt="Join our Discord" height="54"></a>
 </p>
@@ -78,7 +78,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full release notes.
 
 ## Getting started
 
-1. Install the app from [Google Play](https://play.google.com/store/apps/details?id=com.ctharness.app) or [GitHub Releases](https://github.com/Sanuu7/AndroidHarness/releases/latest), or build it from source.
+1. Install the app from [Google Play](https://play.google.com/store/apps/details?id=com.androidharness.app) or [GitHub Releases](https://github.com/Sanuu7/AndroidHarness/releases/latest), or build it from source.
 2. Grant storage access. On Android 11 and newer the app needs All files access so the shell and file tools can use real paths.
 3. Pick a model. Use the built-in keyless provider, add an API key in Settings, or download a model in Settings → Local models.
 4. Recommended: install [Shizuku](https://github.com/RikkaApps/Shizuku), pair Wireless ADB in Settings → Terminal & device, or install the Linux environment from inside the app. This lets shell commands run with proper permissions. Rooted devices can also turn on direct root there.

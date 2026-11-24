@@ -165,17 +165,17 @@ The sidebar's Projects view lists `WorkProjectEntity` rows from `WorkspaceManage
 - **New layout rule**: change `useWorkspacePanes` thresholds or add a `WorkspaceLayoutMode` value and its settings label.
 - **New screen chrome**: use `AppHeader` so back, menu, insets, and divider behavior stay consistent.
 
-Sources: [app/src/main/java/com/ctharness/app/ui/AppNav.kt](../app/src/main/java/com/ctharness/app/ui/AppNav.kt)#L104-L1305), [app/src/main/java/com/ctharness/app/ui/ProjectNavigationSidebar.kt](../app/src/main/java/com/ctharness/app/ui/ProjectNavigationSidebar.kt)#L68-L554), [app/src/main/java/com/ctharness/app/ui/WorkspaceSplitLayout.kt](../app/src/main/java/com/ctharness/app/ui/WorkspaceSplitLayout.kt)#L23-L96), [app/src/main/java/com/ctharness/app/data/WorkspaceLayoutMode.kt](../app/src/main/java/com/ctharness/app/data/WorkspaceLayoutMode.kt)#L5-L29), [app/src/main/java/com/ctharness/app/ui/DesktopUi.kt](../app/src/main/java/com/ctharness/app/ui/DesktopUi.kt)#L6-L27), [app/src/main/java/com/ctharness/app/ui/theme/Theme.kt](../app/src/main/java/com/ctharness/app/ui/theme/Theme.kt)#L30-L85), [app/src/main/java/com/ctharness/app/MainActivity.kt](../app/src/main/java/com/ctharness/app/MainActivity.kt)#L68-L336)
+Sources: [app/src/main/java/com/androidharness/app/ui/AppNav.kt](../app/src/main/java/com/androidharness/app/ui/AppNav.kt)#L104-L1305), [app/src/main/java/com/androidharness/app/ui/ProjectNavigationSidebar.kt](../app/src/main/java/com/androidharness/app/ui/ProjectNavigationSidebar.kt)#L68-L554), [app/src/main/java/com/androidharness/app/ui/WorkspaceSplitLayout.kt](../app/src/main/java/com/androidharness/app/ui/WorkspaceSplitLayout.kt)#L23-L96), [app/src/main/java/com/androidharness/app/data/WorkspaceLayoutMode.kt](../app/src/main/java/com/androidharness/app/data/WorkspaceLayoutMode.kt)#L5-L29), [app/src/main/java/com/androidharness/app/ui/DesktopUi.kt](../app/src/main/java/com/androidharness/app/ui/DesktopUi.kt)#L6-L27), [app/src/main/java/com/androidharness/app/ui/theme/Theme.kt](../app/src/main/java/com/androidharness/app/ui/theme/Theme.kt)#L30-L85), [app/src/main/java/com/androidharness/app/MainActivity.kt](../app/src/main/java/com/androidharness/app/MainActivity.kt)#L68-L336)
 
 ## Source files
 
-- `app/src/main/java/com/ctharness/app/ui/AppNav.kt`
-- `app/src/main/java/com/ctharness/app/ui/ProjectNavigationSidebar.kt`
-- `app/src/main/java/com/ctharness/app/ui/WorkspaceSplitLayout.kt`
-- `app/src/main/java/com/ctharness/app/ui/DesktopUi.kt`
-- `app/src/main/java/com/ctharness/app/ui/NavigationGestures.kt`
-- `app/src/main/java/com/ctharness/app/ui/ChatWorkspaceScreen.kt`
-- `app/src/main/java/com/ctharness/app/ui/common/AppHeader.kt`
-- `app/src/main/java/com/ctharness/app/ui/theme/Theme.kt`
-- `app/src/main/java/com/ctharness/app/ui/theme/HarnessGlass.kt`
-- `app/src/main/java/com/ctharness/app/data/WorkspaceLayoutMode.kt`
+- `app/src/main/java/com/androidharness/app/ui/AppNav.kt`
+- `app/src/main/java/com/androidharness/app/ui/ProjectNavigationSidebar.kt`
+- `app/src/main/java/com/androidharness/app/ui/WorkspaceSplitLayout.kt`
+- `app/src/main/java/com/androidharness/app/ui/DesktopUi.kt`
+- `app/src/main/java/com/androidharness/app/ui/NavigationGestures.kt`
+- `app/src/main/java/com/androidharness/app/ui/ChatWorkspaceScreen.kt`
+- `app/src/main/java/com/androidharness/app/ui/common/AppHeader.kt`
+- `app/src/main/java/com/androidharness/app/ui/theme/Theme.kt`
+- `app/src/main/java/com/androidharness/app/ui/theme/HarnessGlass.kt`
+- `app/src/main/java/com/androidharness/app/data/WorkspaceLayoutMode.kt`
