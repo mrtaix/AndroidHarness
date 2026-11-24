@@ -269,7 +269,8 @@ class AgentEngine(
     },
     /** Base for per-node scratch workspaces; device runs pass noBackupFilesDir. */
     private val chiefWorkspaceBase: () -> java.io.File = { java.io.File(".") },
-    private val chiefWorkspaces = java.util.concurrent.ConcurrentHashMap<String, com.androidharness.app.workspace.WorkspaceFs>(),
+    private val chiefWorkspaces: java.util.concurrent.ConcurrentHashMap<String, com.androidharness.app.workspace.WorkspaceFs> =
+        java.util.concurrent.ConcurrentHashMap(),
     private val configuredSubagent: suspend () -> SubagentConnection? = { null },
     private val prepareGitHub: suspend () -> Unit = {},
     private val deviceAccess: com.androidharness.app.data.env.DeviceAccessManager? = null,
