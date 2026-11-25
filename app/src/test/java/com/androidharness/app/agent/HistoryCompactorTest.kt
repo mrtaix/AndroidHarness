@@ -83,7 +83,7 @@ class HistoryCompactorTest {
         }
     }
 
-    @Test fun `output limit is not retried under the v4.1 single-budget policy`() = runBlocking {
+    @Test fun `output limit is not retried under the v41 single budget policy`() = runBlocking {
         for (reason in listOf("length", "MAX_TOKENS", "max_output_tokens")) {
             val budgets = mutableListOf<Int>()
             val calls = mutableListOf<String>()
