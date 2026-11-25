@@ -59,19 +59,30 @@ class ChiefToolLogic(
 
     fun status(nodeId: String? = null): String {
         if (nodeId == null) return tree.status()
-        val node = tree.get(nodeId) ?: error("Unknown chief node $nodeId")
+        val root = tree.get(nodeId) ?: error("Unknown chief node $nodeId")
+        val all = tree.all()
         return buildString {
-            append(node.title).append(" [").append(node.status.name.lowercase()).append("]\n")
-            append("Task: ").append(node.prompt).append('\n')
-            if (node.acceptance.isNotEmpty()) {
-                append("Acceptance:\n")
-                node.acceptance.forEach { append("- ").append(it).append('\n') }
+            fun render(node: ChiefNode, depth: Int) {
+                append("  ".repeat(depth)).append(node.title)
+                    .append(" [").append(node.status.name.lowercase()).append("]\n")
+                append("  ".repeat(depth)).append("Task: ").append(node.prompt).append('\n')
+                if (node.acceptance.isNotEmpty()) {
+                    append("  ".repeat(depth)).append("Acceptance:\n")
+                    node.acceptance.forEach { append("  ".repeat(depth)).append("- ").append(it).append('\n') }
+                }
+                if (node.feedback.isNotEmpty()) {
+                    append("  ".repeat(depth)).append("Feedback:\n")
+                    node.feedback.forEach { append("  ".repeat(depth)).append("- ").append(it).append('\n') }
+                }
+                if (node.evidence.isNotBlank()) {
+                    append("  ".repeat(depth)).append("Evidence: ").append(node.evidence).append('\n')
+                }
+                if (node.report.isNotBlank()) {
+                    append("  ".repeat(depth)).append("Report: ").append(node.report).append('\n')
+                }
+                all.filter { it.parentId == node.id }.forEach { render(it, depth + 1) }
             }
-            if (node.feedback.isNotEmpty()) {
-                append("Feedback:\n")
-                node.feedback.forEach { append("- ").append(it).append('\n') }
-            }
-            if (node.report.isNotBlank()) append("Report: ").append(node.report)
+            render(root, 0)
         }.trimEnd()
     }
 
@@ -81,9 +92,18 @@ class ChiefToolLogic(
         return delegate.waitFor(id, timeoutSeconds) ?: "No result yet for ${node.title}"
     }
 
-    suspend fun review(nodeId: String, approved: Boolean, feedback: String = ""): String {
+    suspend fun review(
+        nodeId: String,
+        approved: Boolean,
+        feedback: String = "",
+        evidence: String = "",
+    ): String {
         val before = tree.get(nodeId) ?: error("Unknown chief node $nodeId")
+        if (approved && before.acceptance.isNotEmpty() && evidence.isBlank()) {
+            error("Approval requires evidence for ${before.acceptance.size} acceptance criterion/criteria")
+        }
         val node = tree.review(nodeId, approved, feedback)
+        if (approved && evidence.isNotBlank()) tree.setEvidence(nodeId, evidence)
         if (!approved && node.status == ChiefStatus.RUNNING && feedback.isNotBlank() && before.delegateId != null) {
             tree.setDelegate(nodeId, delegate.resume(before, feedback))
         }

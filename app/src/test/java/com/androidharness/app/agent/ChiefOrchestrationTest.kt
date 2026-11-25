@@ -105,6 +105,17 @@ class ChiefOrchestrationTest {
         assertEquals(ChiefStatus.DONE, tree.merge(node).status)
     }
 
+    @Test fun `merge twice reports already merged`() {
+        val tree = tree()
+        val root = tree.plan("ship feature").id
+        val node = assign(tree, root, "worker", "src/w")
+        tree.complete(node, "done")
+        tree.review(node, approved = true)
+        tree.merge(node)
+        val err = runCatching { tree.merge(node) }.exceptionOrNull()
+        assertTrue(err?.message.orEmpty().contains("already merged"))
+    }
+
     @Test fun `stop cascades to descendants`() {
         val tree = tree()
         val root = tree.plan("ship feature").id

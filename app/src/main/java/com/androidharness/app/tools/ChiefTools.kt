@@ -63,9 +63,12 @@ fun chiefTools(logic: ChiefToolLogic): List<Tool> {
                 "node_id" to Schema.string("Chief node id."),
                 "approved" to Schema.boolean("True to accept, false to send feedback."),
                 "feedback" to Schema.string("What must change; required when rejected."),
+                "evidence" to Schema.string("Required when approving a node with acceptance criteria: state how the report meets each criterion."),
             ), listOf("node_id", "approved")),
             readOnly = false,
-        ) { args -> logic.review(args.str("node_id"), args.bool("approved"), args.str("feedback")) },
+        ) { args -> logic.review(
+            args.str("node_id"), args.bool("approved"), args.str("feedback"), args.str("evidence"),
+        ) },
         chiefTool(
             name = "chief_merge",
             description = "Merge an approved node's report into the parent. Refuses unreviewed nodes.",

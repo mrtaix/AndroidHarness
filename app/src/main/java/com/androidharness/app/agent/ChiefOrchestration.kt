@@ -36,6 +36,7 @@ data class ChiefNode(
     val report: String = "",
     val delegateId: String? = null,
     val role: ChiefRole = ChiefRole.WORKER,
+    val evidence: String = "",
 )
 
 /**
@@ -135,8 +136,14 @@ class ChiefTree(
         }
     }
 
+    fun setEvidence(id: String, evidence: String): ChiefNode = synchronized(this) {
+        change(id) { it.copy(evidence = evidence) }
+    }
+
     fun merge(id: String): ChiefNode = synchronized(this) {
-        require(node(id).status == ChiefStatus.APPROVED) { "Node has not been approved" }
+        val current = node(id)
+        if (current.status == ChiefStatus.DONE) error("Node already merged")
+        require(current.status == ChiefStatus.APPROVED) { "Node has not been approved" }
         change(id) { it.copy(status = ChiefStatus.DONE) }
     }
 

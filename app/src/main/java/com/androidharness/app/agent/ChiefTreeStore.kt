@@ -50,6 +50,7 @@ class ChiefTreeStore(private val file: File) {
                         put("report", node.report)
                         node.delegateId?.let { put("delegateId", it) }
                         put("role", node.role.name)
+                        put("evidence", node.evidence)
                     }
                 }
             }
@@ -88,6 +89,7 @@ class ChiefTreeStore(private val file: File) {
                 delegateId = node["delegateId"]?.jsonPrimitive?.contentOrNull,
                 role = runCatching { ChiefRole.valueOf(node.str("role", "WORKER")) }
                     .getOrDefault(ChiefRole.WORKER),
+                evidence = node.str("evidence"),
             )
         }
         val snapshot = ChiefSnapshot(nodes, root.int("sequence"))

@@ -34,6 +34,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import kotlinx.serialization.json.add
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.jsonArray
@@ -461,13 +463,16 @@ class AgentEngine(
                 put("prompt", prompt)
                 put("background", true)
                 put("chief_action_tools", "write" in node.permissions || "run" in node.permissions)
+                putJsonArray("chief_scope") { node.scope.forEach { add(it) } }
             }
             val taskId = "chief-${java.util.UUID.randomUUID()}"
             val call = com.androidharness.app.core.ToolCallData(
                 id = taskId, name = "task", argumentsJson = args.toString(),
             )
-            val result = performWithPermission(call, permissionMode(), sessionAllowedTools, workspace, sessionId, turnId,
-                mode, requestOptions, config, apiKey, registry, resolveSubagentModel, { emit(it) }, subagentRuns)
+            val result = withContext(com.androidharness.app.agent.ChiefScopeContext(node.scope)) {
+                performWithPermission(call, permissionMode(), sessionAllowedTools, workspace, sessionId, turnId,
+                    mode, requestOptions, config, apiKey, registry, resolveSubagentModel, { emit(it) }, subagentRuns)
+            }
             if (!result.ok) error(result.output)
             val delegateId = com.androidharness.app.agent.ChiefTaskId.from(result.output)
                 ?: error("Chief delegate did not return a task id")
@@ -1647,6 +1652,11 @@ class AgentEngine(
         val checkpointWorkspace = workspace
         val parsedArgs = try { json.parseToJsonElement(call.argumentsJson).jsonObject }
         catch (e: Exception) { return ToolResult(false, "Invalid tool arguments: ${e.message}") }
+        val chiefScope = kotlin.coroutines.coroutineContext[com.androidharness.app.agent.ChiefScopeContext]?.paths
+            ?: parsedArgs["chief_scope"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }.orEmpty()
+        if (chiefScope.isNotEmpty() && !com.androidharness.app.agent.ChiefScope.allows(chiefScope, parsedArgs)) {
+            return ToolResult(false, "Chief scope denies ${call.name}: path is outside $chiefScope")
+        }
         val route = try { WorkspaceToolRouting.route(tool, parsedArgs, workspace, ToolContext(workspace, mode == PermissionMode.FULL_ACCESS && workspace !is ChatWorkspaceFs, sessionId))
             .also { WorkspaceToolRouting.requireStorage(tool, parsedArgs, it) } }
         catch (e: CancellationException) { throw e }

@@ -85,6 +85,36 @@ class ChiefToolLogicTest {
         assertTrue(text.contains("    worker"))
     }
 
+    @Test fun `status for a node includes its descendants`() = runBlocking {
+        val (tree, _, logic) = setup()
+        val root = tree.all().first().id
+        val lead = logic.assign(root, "lead", "do lead", emptyList(), listOf("src/lead"), role = "LEAD")
+        logic.assign(lead, "worker", "do work", emptyList(), listOf("src/worker"))
+        val text = logic.status(lead)
+        assertTrue(text.contains("lead"))
+        assertTrue(text.contains("  worker"))
+    }
+
+    @Test fun `approve with acceptance requires evidence`() = runBlocking {
+        val (tree, _, logic) = setup()
+        val root = tree.all().first().id
+        val node = logic.assign(root, "worker", "do work", listOf("result must be 7"), listOf("src/w"))
+        tree.complete(node, "SAI")
+        val err = runCatching { logic.review(node, approved = true) }.exceptionOrNull()
+        assertTrue(err?.message.orEmpty().contains("evidence"))
+        assertEquals(ChiefStatus.REVIEW, tree.get(node)?.status)
+    }
+
+    @Test fun `approve stores verification evidence`() = runBlocking {
+        val (tree, _, logic) = setup()
+        val root = tree.all().first().id
+        val node = logic.assign(root, "worker", "do work", listOf("result must be 7"), listOf("src/w"))
+        tree.complete(node, "7")
+        logic.review(node, approved = true, evidence = "wait output = 7, checked against criterion")
+        assertEquals("wait output = 7, checked against criterion", tree.get(node)?.evidence)
+        assertTrue(logic.status(node).contains("Evidence:"))
+    }
+
     @Test fun `chief_review reject resumes the same node with feedback`() = runBlocking {
         val (tree, delegate, logic) = setup()
         val root = tree.all().first().id
