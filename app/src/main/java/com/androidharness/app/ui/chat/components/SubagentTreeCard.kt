@@ -163,6 +163,7 @@ private fun SubagentTreeNode(run: SubagentRun, index: Int, last: Boolean, onOpen
                 }
             }
         }
+        }
         AnimatedVisibility(showResult,
             enter = expandVertically(expressiveSpatialSpec()) + fadeIn(expressiveEffectsSpec()),
             exit = shrinkVertically(expressiveEffectsSpec()) + fadeOut(expressiveEffectsSpec())) {

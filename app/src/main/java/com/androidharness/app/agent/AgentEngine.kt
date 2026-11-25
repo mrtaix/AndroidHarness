@@ -966,6 +966,9 @@ class AgentEngine(
             }
         }
         } finally {
+            // Closing the channel ends the collector coroutine; otherwise the
+            // channelFlow producer never completes and the run stays "working".
+            chiefEvents.close()
             if (hooksActive) withContext(kotlinx.coroutines.NonCancellable) {
                 runCatching { hook(com.androidharness.app.config.HookEvents.SESSION_END, kotlinx.serialization.json.buildJsonObject { put("reason", "other") }) }
             }
