@@ -83,34 +83,31 @@ class HistoryCompactorTest {
         }
     }
 
-    @Test fun `output limit retries with more tokens and discards the partial summary`() = runBlocking {
+    @Test fun `output limit is not retried under the v4.1 single-budget policy`() = runBlocking {
         for (reason in listOf("length", "MAX_TOKENS", "max_output_tokens")) {
             val budgets = mutableListOf<Int>()
-            val inputs = mutableListOf<String>()
-            val usage = mutableListOf<Int>()
+            val calls = mutableListOf<String>()
             val model = provider({ budgets += it.maxOutputTokens }) { messages ->
-                inputs += messages.single().text
-                if (inputs.size == 1) flowOf(StreamEvent.TextDelta("truncated"),
-                    StreamEvent.Usage(20, 1500), StreamEvent.Done(reason))
-                else flowOf(StreamEvent.TextDelta("complete summary"), StreamEvent.Usage(20, 12), StreamEvent.Done("stop"))
+                calls += messages.single().text
+                flowOf(StreamEvent.TextDelta("truncated"), StreamEvent.Done(reason))
             }
-            val summary = HistoryCompactor.summarize(model, config, "key", shortHistory, 32_000, "sid",
-                event = { e, _ -> if (e is StreamEvent.Usage) usage += e.outputTokens }, stallTimeoutMs = 1000)
-            assertEquals("complete summary", summary)
-            assertEquals(listOf(1500, 3000), budgets)
-            assertEquals(inputs[0], inputs[1])
-            assertEquals(listOf(1500, 12), usage)
+            val failure = runCatching {
+                HistoryCompactor.summarize(model, config, "key", shortHistory, 32_000, "sid", stallTimeoutMs = 1000)
+            }.exceptionOrNull()
+            assertEquals(1, calls.size)
+            assertEquals(listOf(4_000), budgets)
+            assertTrue(failure?.message.orEmpty().contains("incomplete summary (${reason})"))
         }
     }
 
-    @Test fun `repeated truncation stops at the context based output ceiling`() = runBlocking {
+    @Test fun `truncated summary never becomes a saved summary`() = runBlocking {
         val budgets = mutableListOf<Int>()
         val failure = runCatching {
             compact(provider({ budgets += it.maxOutputTokens }) {
                 flowOf(StreamEvent.TextDelta("truncated"), StreamEvent.Done("max_output_tokens"))
             }, shortHistory)
         }.exceptionOrNull()
-        assertEquals(listOf(1500, 3000, 4000), budgets)
+        assertEquals(listOf(4_000), budgets)
         assertTrue(failure?.message.orEmpty().contains("incomplete summary (max_output_tokens)"))
     }
 
