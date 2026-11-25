@@ -115,6 +115,11 @@
           "kind": "screen",
           "target": "CODE",
           "label": "Open Code"
+        },
+        {
+          "kind": "settings",
+          "target": "MISSIONS",
+          "label": "Open overnight missions"
         }
       ],
       "sources": [
