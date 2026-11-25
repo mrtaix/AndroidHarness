@@ -373,6 +373,7 @@ class AgentEngine(
         })
         val startNotes = listOf(started.instructions, received.instructions).filter(String::isNotBlank).joinToString("\n").let { if (it.isBlank()) "" else "\n\n$it" }
         var stopHookActive = false
+        val chiefEvents = kotlinx.coroutines.channels.Channel<com.androidharness.app.agent.ChiefSnapshot>(kotlinx.coroutines.channels.Channel.UNLIMITED)
         try {
         var config = config
         // Parallel subagents emit from async children, plain flow{} forbids
@@ -449,7 +450,6 @@ class AgentEngine(
         // Stable per-session cache routing for providers that support it.
         val requestOptions = options.copy(cacheKey = sessionId)
         val chiefEnabled = cavemanSettings().chiefHierarchy && subagentRuns != null
-        val chiefEvents = kotlinx.coroutines.channels.Channel<com.androidharness.app.agent.ChiefSnapshot>(kotlinx.coroutines.channels.Channel.UNLIMITED)
         launch {
             for (snapshot in chiefEvents) emit(com.androidharness.app.agent.AgentEvent.ChiefTreeChanged(snapshot))
         }
