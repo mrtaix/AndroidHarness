@@ -86,7 +86,7 @@ internal object HistoryCompactor {
         suspend fun request(input: String, part: Int, merging: Boolean): String {
             coroutineContext[TaskBudget]?.check()
             progress(if (merging) "Combining summaries · part $part" else "Summarizing chat · part $part")
-            var outputTokens = minOf(1_500, maxOutputTokens)
+            var outputTokens = maxOutputTokens
             while (true) {
                 val (text, finishReason) = requestAttempt(input, outputTokens)
                 val reason = finishReason?.lowercase()
