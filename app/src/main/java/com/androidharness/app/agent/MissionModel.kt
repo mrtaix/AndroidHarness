@@ -37,6 +37,7 @@ data class MissionState(
     val costUsd: Double = 0.0,
     val elapsedMs: Long = 0L,
     val retries: Int = 0,
+    val nextRetryAtMs: Long? = null,
     val watchdogRetries: Int = 0,
     val lastReason: String? = null,
     val prUrl: String? = null,

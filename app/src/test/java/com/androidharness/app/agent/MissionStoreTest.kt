@@ -22,6 +22,7 @@ class MissionStoreTest {
         costUsd = 0.42,
         elapsedMs = 120_000,
         retries = 1,
+        nextRetryAtMs = 999L,
         watchdogRetries = 1,
         lastReason = "503",
         prUrl = "https://github.com/o/r/pull/1",

@@ -32,6 +32,7 @@ class MissionStore(private val directory: File) {
             put("costUsd", mission.costUsd)
             put("elapsedMs", mission.elapsedMs)
             put("retries", mission.retries)
+            mission.nextRetryAtMs?.let { put("nextRetryAtMs", it) }
             put("watchdogRetries", mission.watchdogRetries)
             mission.lastReason?.let { put("lastReason", it) }
             mission.prUrl?.let { put("prUrl", it) }
@@ -86,6 +87,7 @@ class MissionStore(private val directory: File) {
             costUsd = obj.double("costUsd"),
             elapsedMs = obj.long("elapsedMs"),
             retries = obj.int("retries"),
+            nextRetryAtMs = obj["nextRetryAtMs"]?.jsonPrimitive?.longOrNull,
             watchdogRetries = obj.int("watchdogRetries"),
             lastReason = obj.opt("lastReason"),
             prUrl = obj.opt("prUrl"),
