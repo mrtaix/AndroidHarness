@@ -11,19 +11,31 @@ data class ChiefVerdict(
     val model: String = "",
 ) {
     companion object {
-        /** Parses the compact PASS/FAIL first line plus a reason. */
+        private val VERDICT = Regex("\\b(PASS|FAIL)\\b", RegexOption.IGNORE_CASE)
+        private val JSON_PASS = Regex("\"pass\"\\s*:\\s*(true|false)", RegexOption.IGNORE_CASE)
+        private val JSON_REASON = Regex("\"reason\"\\s*:\\s*\"([^\"]*)\"", RegexOption.IGNORE_CASE)
+
+        /**
+         * Accepts the compact first-line form, a JSON object, or prose containing
+         * a PASS/FAIL word. Never throws: an unreadable answer is a FAIL verdict.
+         */
         fun parse(text: String): ChiefVerdict {
-            val lines = text.trim().lineSequence().map { it.trim() }.filter { it.isNotEmpty() }.toList()
-            val first = lines.firstOrNull()?.uppercase()
-                ?: error("Chief verifier returned no verdict")
-            val pass = when (first) {
-                "PASS" -> true
-                "FAIL" -> false
-                else -> error("Chief verifier must answer PASS or FAIL on the first line")
+            val raw = text.trim()
+            if (raw.isEmpty()) return ChiefVerdict(false, "Could not parse verdict: empty output")
+            JSON_PASS.find(raw)?.let { match ->
+                val pass = match.groupValues[1].equals("true", ignoreCase = true)
+                val reason = JSON_REASON.find(raw)?.groupValues?.get(1)?.trim().takeUnless { it.isNullOrEmpty() }
+                    ?: "Verifier gave no reason"
+                return ChiefVerdict(pass, reason.take(300))
             }
-            val reason = lines.drop(1).joinToString("\n").trim()
-            if (reason.isEmpty()) error("Chief verifier gave no reason")
-            return ChiefVerdict(pass, reason)
+            val verdict = VERDICT.find(raw)
+                ?: return ChiefVerdict(false, "Could not parse verdict: ${raw.take(200)}")
+            val pass = verdict.groupValues[1].equals("PASS", ignoreCase = true)
+            val rest = raw.removeRange(verdict.range)
+            var reason = rest.replace("```", " ").replace(Regex("[\\r\\n]+"), " ")
+                .replace(Regex("^[{}\\\"'`\\s:,]+|[{}\\\"'`\\s:,]+$"), "").trim()
+            if (reason.isEmpty()) reason = "Verifier answered ${verdict.value} without a reason"
+            return ChiefVerdict(pass, reason.take(300))
         }
     }
 }

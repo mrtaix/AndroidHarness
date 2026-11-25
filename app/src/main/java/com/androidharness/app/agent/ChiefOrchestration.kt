@@ -88,6 +88,7 @@ class ChiefTree(
         role: ChiefRole = ChiefRole.WORKER,
     ): ChiefNode = synchronized(this) {
         val parent = node(parentId)
+        require(ChiefScope.isValid(scope)) { "scope entries must be relative paths" }
         require(parent.role != ChiefRole.WORKER) { "worker cannot delegate" }
         require(role != ChiefRole.LEAD || parent.role == ChiefRole.CHIEF) { "role: only chief can create a lead" }
         require(parent.depth + 1 < maxDepth) { "depth limit reached" }
@@ -153,12 +154,16 @@ class ChiefTree(
         val current = node(id)
         if (current.status == ChiefStatus.DONE) error("Node already merged")
         require(current.status == ChiefStatus.APPROVED) { "Node has not been approved" }
+        val pending = descendants(id).mapNotNull { nodes[it] }
+            .filter { it.status != ChiefStatus.DONE && it.status != ChiefStatus.CANCELLED }
+        require(pending.isEmpty()) { "child nodes still need review: ${pending.map { it.id }}" }
         change(id) { it.copy(status = ChiefStatus.DONE) }
     }
 
     fun stop(id: String) = synchronized(this) {
-        node(id)
-        val targets = descendants(id) + id
+        val current = node(id)
+        require(current.status.active) { "Node is already finished" }
+        val targets = (descendants(id) + id).filter { nodes[it]?.status?.active == true }
         targets.forEach { target -> change(target) { it.copy(status = ChiefStatus.CANCELLED) } }
     }
 

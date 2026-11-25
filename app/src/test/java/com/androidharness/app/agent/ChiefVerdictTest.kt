@@ -16,7 +16,27 @@ class ChiefVerdictTest {
         assertEquals("worker answered SAI, expected 7", verdict.reason)
     }
 
-    @Test fun `unparseable verdict is rejected`() {
-        assertNotNull(runCatching { ChiefVerdict.parse("looks fine to me") }.exceptionOrNull())
+    @Test fun `parse json shaped verdict`() {
+        val verdict = ChiefVerdict.parse("{\"pass\": true, \"reason\": \"all criteria met\"}")
+        assertTrue(verdict.pass)
+        assertEquals("all criteria met", verdict.reason)
+    }
+
+    @Test fun `parse verdict inside prose and code fences`() {
+        val verdict = ChiefVerdict.parse("Here is my judgement:\n```\nFAIL\nSAI does not equal 7\n```")
+        assertFalse(verdict.pass)
+        assertTrue(verdict.reason.contains("SAI"))
+    }
+
+    @Test fun `parse PASS without reason still yields a reason`() {
+        val verdict = ChiefVerdict.parse("PASS")
+        assertTrue(verdict.pass)
+        assertTrue(verdict.reason.isNotBlank())
+    }
+
+    @Test fun `unparseable output becomes FAIL instead of an error`() {
+        val verdict = ChiefVerdict.parse("")
+        assertFalse(verdict.pass)
+        assertTrue(verdict.reason.contains("parse"))
     }
 }

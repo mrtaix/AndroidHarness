@@ -22,7 +22,7 @@ class ChiefScopeTest {
 
     @Test fun `absolute and root paths are denied under scope`() {
         assertFalse(ChiefScope.allows(fileScope, "/storage/emulated/0/HARNESS/AGENTS.md"))
-        assertFalse(ChiefScope.allows(fileScope, "."))
+        assertTrue(ChiefScope.allows(fileScope, "."))
         assertFalse(ChiefScope.allows(fileScope, "C:/work/AGENTS.md"))
     }
 
@@ -30,6 +30,31 @@ class ChiefScopeTest {
         val scope = listOf("src/")
         assertTrue(ChiefScope.allows(scope, "src/a/A.kt"))
         assertFalse(ChiefScope.allows(scope, "README.md"))
+    }
+
+    @Test fun `root path is allowed so list_dir keeps working`() {
+        assertTrue(ChiefScope.allows(fileScope, "."))
+        assertTrue(ChiefScope.allows(listOf("verify-pass"), "."))
+    }
+
+    @Test fun `bare directory name is a valid path scope`() {
+        assertTrue(ChiefScope.isValid(listOf("verify-pass")))
+        assertTrue(ChiefScope.allows(listOf("verify-pass"), "verify-pass/a.txt"))
+        assertFalse(ChiefScope.allows(listOf("verify-pass"), "other/a.txt"))
+    }
+
+    @Test fun `invalid scope entries are rejected`() {
+        assertFalse(ChiefScope.isValid(listOf("../escape")))
+        assertFalse(ChiefScope.isValid(listOf("/absolute/path")))
+        assertFalse(ChiefScope.isValid(listOf("")))
+        assertFalse(ChiefScope.isValid(listOf(".")))
+    }
+
+    @Test fun `shell command path outside scope is denied`() {
+        val scope = listOf(".harness/chief-scope-bypass.txt")
+        val cmd = "printf BYPASS_SHELL_OK > .harness/chief-scope-bypass-shell.txt"
+        assertFalse(ChiefScope.allows(scope, buildJsonObject { put("command", cmd) }))
+        assertTrue(ChiefScope.allows(scope, buildJsonObject { put("command", "printf ok > .harness/chief-scope-bypass.txt") }))
     }
 
     @Test fun `scope checks all path-like arguments`() {

@@ -116,6 +116,41 @@ class ChiefOrchestrationTest {
         assertTrue(err?.message.orEmpty().contains("already merged"))
     }
 
+    @Test fun `stop rejects a merged node`() {
+        val tree = tree()
+        val root = tree.plan("ship feature").id
+        val node = assign(tree, root, "worker", "src/w")
+        tree.complete(node, "done")
+        tree.review(node, approved = true)
+        tree.merge(node)
+        val err = runCatching { tree.stop(node) }.exceptionOrNull()
+        assertTrue(err?.message.orEmpty().contains("finished"))
+        assertEquals(ChiefStatus.DONE, tree.get(node)?.status)
+    }
+
+    @Test fun `merge parent waits for all children`() {
+        val tree = tree()
+        val root = tree.plan("ship feature").id
+        val lead = assign(tree, root, "lead", "src/lead", ChiefRole.LEAD)
+        val child = assign(tree, lead, "worker", "src/worker")
+        tree.complete(lead, "leader report")
+        tree.review(lead, approved = true)
+        val err = runCatching { tree.merge(lead) }.exceptionOrNull()
+        assertTrue(err?.message.orEmpty().contains("child"))
+        tree.complete(child, "done")
+        tree.review(child, approved = true)
+        tree.merge(child)
+        tree.merge(lead)
+        assertEquals(ChiefStatus.DONE, tree.get(lead)?.status)
+    }
+
+    @Test fun `assign rejects invalid scope`() {
+        val tree = tree()
+        val root = tree.plan("ship feature").id
+        val err = runCatching { tree.assign(root, "worker", "do work", scope = listOf("../escape")) }.exceptionOrNull()
+        assertTrue(err?.message.orEmpty().contains("scope"))
+    }
+
     @Test fun `stop cascades to descendants`() {
         val tree = tree()
         val root = tree.plan("ship feature").id

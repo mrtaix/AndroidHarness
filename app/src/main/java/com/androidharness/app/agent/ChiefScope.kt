@@ -15,11 +15,22 @@ class ChiefScopeContext(val paths: List<String>) : AbstractCoroutineContextEleme
 /** Path allowlist for chief workers. An empty scope is unrestricted. */
 object ChiefScope {
     private val ABSOLUTE = Regex("^(/|[A-Za-z]:/)")
+    private val SHELL_TOKEN = Regex("""[^\s"'<>|;&]+""")
+
+    /** Scope entries must be relative paths without escape segments. */
+    fun isValid(scope: List<String>): Boolean = scope.all { entry ->
+        val raw = entry.trim()
+        raw.isNotEmpty() && raw != "." && !ABSOLUTE.containsMatchIn(raw) &&
+            raw.replace('\\', '/').split('/').none { it == ".." } &&
+            !raw.any { it.isWhitespace() }
+    }
 
     fun allows(scope: List<String>, path: String): Boolean {
         if (scope.isEmpty()) return true
         val raw = path.replace('\\', '/').trim()
-        if (ABSOLUTE.matches(raw)) return false
+        // Listing the workspace root is harmless and keeps search tools usable.
+        if (raw.isEmpty() || raw == ".") return true
+        if (ABSOLUTE.containsMatchIn(raw)) return false
         val parts = segments(raw)
         if (parts.isEmpty()) return false
         return scope.any { entry ->
@@ -36,12 +47,22 @@ object ChiefScope {
             val value = args[key]?.jsonPrimitive?.contentOrNull
             value != null && !allows(scope, value)
         }) return false
+        val command = args["command"]?.jsonPrimitive?.contentOrNull
+        if (command != null && commandPaths(command).any { !allows(scope, it) }) return false
         val paths = args["paths"]?.jsonArray ?: return true
         return paths.all { element ->
             val value = element.jsonPrimitive.contentOrNull
             value == null || allows(scope, value)
         }
     }
+
+    private fun commandPaths(command: String): List<String> = SHELL_TOKEN.findAll(command)
+        .map { it.value.trim('"', '\'') }
+        .filter { token ->
+            (token.contains('/') || ABSOLUTE.containsMatchIn(token)) &&
+                !token.contains("://") && !token.startsWith("-") && !token.contains("=")
+        }
+        .toList()
 
     private fun segments(raw: String): List<String> = raw
         .replace('\\', '/')
