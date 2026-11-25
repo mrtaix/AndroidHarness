@@ -486,7 +486,7 @@ class AppContainer(val appContext: Context) {
         starter = object : com.androidharness.app.agent.MissionRunStarter {
             override suspend fun start(mission: com.androidharness.app.agent.MissionState, prompt: String): String {
                 val saved = settings.settings.first()
-                val all = kotlinx.coroutines.flow.first(providers.providers)
+                val all = providers.providers.first()
                 val provider = all.firstOrNull { it.id == saved.activeProviderId } ?: all.firstOrNull()
                     ?: error("No model provider configured for this mission.")
                 val config = providers.resolveHarnessConfig(provider)
@@ -507,13 +507,15 @@ class AppContainer(val appContext: Context) {
         },
         sideEffects = object : com.androidharness.app.agent.MissionSideEffects {
             override suspend fun onMet(mission: com.androidharness.app.agent.MissionState): String? {
+                val sid = mission.sessionId ?: return null
                 val tool = com.androidharness.app.tools.GitHubCreatePullRequestTool(
-                    githubRepositories, { sid -> sessions.messages(sid) })
+                    { githubRepositories }, { id -> sessions.messages(id) })
                 val args = buildJsonObject {
                     put("title", "Mission: " + mission.goal.take(60))
                     put("summary", "Automated mission ${mission.id}. Goal: ${mission.goal}")
                 }
-                val result = tool.execute(args, com.androidharness.app.tools.ToolContext(workspace, true, mission.sessionId))
+                val result = tool.execute(args, com.androidharness.app.tools.ToolContext(
+                    workspace.forSession(sid), true, sid))
                 if (!result.ok) return null
                 return Regex("url:\\s*(\\S+)").find(result.output)?.groupValues?.get(1)
             }

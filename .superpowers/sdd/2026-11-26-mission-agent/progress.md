@@ -14,3 +14,4 @@ Pre-flight: Task 2 consumes Task 1's `MissionState`/`MissionRetryPolicy`; Task 3
 | 3 manager | `MissionManager.kt`, `MissionManagerTest.kt`, `MissionModel.kt` + `MissionStore.kt` (nextRetryAtMs) | RED unresolved refs; GREEN OK (25 tests) | PASS | pending |
 | 4 bridge + issue | `MissionIssue.kt`, `MissionGoalBridge.kt`, `MissionBridgeTest.kt`, `HarnessApp.kt`, `ChatViewModel.kt` | RED unresolved refs; GREEN OK (31 tests) | PASS (CI pending for wiring) | pending |
 | 5 UI + boot | `MissionScreen.kt`, `SettingsNavigation.kt`, `SettingsHome.kt`, `SettingsScreen.kt`, `HarnessApp.kt`, strings | compile checked by CI; device test NOT RUN locally | NOT RUN | pending |
+| CI run 45708639589 | `e7accb7c` | FAIL wiring: Flow.first qualified, PR publisher lambda, WorkspaceFs vs WorkspaceManager | FAIL -> fixed | - |
