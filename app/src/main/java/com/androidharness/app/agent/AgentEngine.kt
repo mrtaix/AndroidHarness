@@ -471,9 +471,9 @@ class AgentEngine(
             )
             val text = StringBuilder()
             var failure: String? = null
-            provider.streamChat(config, apiKey, system,
+            providerFactory(config).streamChat(config, apiKey, system,
                 listOf(ChatMessage(role = Role.USER, text = input)),
-                emptyList<com.androidharness.app.llm.ToolSchema>(), options).collect { event ->
+                emptyList<com.androidharness.app.llm.ToolSchema>(), options).collect { event: StreamEvent ->
                 when (event) {
                     is StreamEvent.TextDelta -> text.append(event.text)
                     is StreamEvent.Failure -> failure = event.message
