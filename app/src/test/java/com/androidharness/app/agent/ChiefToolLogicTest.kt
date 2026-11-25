@@ -10,6 +10,7 @@ class ChiefToolLogicTest {
         val spawns = mutableListOf<SpawnRequest>()
         val stops = mutableListOf<String>()
         val waits = mutableListOf<Pair<String, Int>>()
+        val resumes = mutableListOf<Pair<String, String>>()
 
         override suspend fun spawn(request: SpawnRequest): String {
             spawns += request
@@ -19,6 +20,11 @@ class ChiefToolLogicTest {
         override suspend fun waitFor(delegateId: String, timeoutSeconds: Int): String? {
             waits += delegateId to timeoutSeconds
             return "result from $delegateId"
+        }
+
+        override suspend fun resume(node: ChiefNode, feedback: String): String {
+            resumes += node.id to feedback
+            return "task-resumed-${resumes.size}"
         }
 
         override suspend fun stop(delegateId: String) {
@@ -79,13 +85,16 @@ class ChiefToolLogicTest {
         assertTrue(text.contains("    worker"))
     }
 
-    @Test fun `chief_review reject does not create a new subagent`() = runBlocking {
+    @Test fun `chief_review reject resumes the same node with feedback`() = runBlocking {
         val (tree, delegate, logic) = setup()
         val root = tree.all().first().id
         val node = logic.assign(root, "worker", "do work", emptyList(), listOf("src/w"))
         tree.complete(node, "draft")
         logic.review(node, approved = false, feedback = "fix X")
         assertEquals(1, delegate.spawns.size)
+        assertEquals(listOf(node to "fix X"), delegate.resumes)
+        assertEquals("task-resumed-1", tree.get(node)?.delegateId)
+        assertEquals(ChiefStatus.RUNNING, tree.get(node)?.status)
         assertEquals(listOf("fix X"), tree.get(node)?.feedback)
     }
 

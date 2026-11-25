@@ -426,7 +426,6 @@ class AppContainer(val appContext: Context) {
         repoMap = repoMap,
         cavemanSettings = { settings.settings.first().also { cavemanSettings.set(it); disabledSkills.set(it.disabledSkills) } },
         chiefStore = { sid -> com.androidharness.app.agent.ChiefTreeStore(java.io.File(appContext.noBackupFilesDir, "chief-tree-$sid.json")) },
-        chiefWorkspaceBase = { appContext.noBackupFilesDir },
         configuredSubagent = {
             com.androidharness.app.agent.SubagentConfiguration.configured(
                 settings.settings.first(), providers.providers.first(), providers::apiKey,

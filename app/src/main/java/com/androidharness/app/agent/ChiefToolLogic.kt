@@ -6,6 +6,7 @@ data class SpawnRequest(val node: ChiefNode, val prompt: String)
 /** Narrow seam so the tool contract can be tested without coroutine/UI plumbing. */
 interface ChiefDelegate {
     suspend fun spawn(request: SpawnRequest): String
+    suspend fun resume(node: ChiefNode, feedback: String): String
     suspend fun waitFor(delegateId: String, timeoutSeconds: Int): String?
     suspend fun stop(delegateId: String)
 }
@@ -81,9 +82,13 @@ class ChiefToolLogic(
     }
 
     suspend fun review(nodeId: String, approved: Boolean, feedback: String = ""): String {
+        val before = tree.get(nodeId) ?: error("Unknown chief node $nodeId")
         val node = tree.review(nodeId, approved, feedback)
+        if (!approved && node.status == ChiefStatus.RUNNING && feedback.isNotBlank() && before.delegateId != null) {
+            tree.setDelegate(nodeId, delegate.resume(before, feedback))
+        }
         persist()
-        return "${node.title}: ${node.status.name.lowercase()}"
+        return "${node.title}: ${tree.get(nodeId)?.status?.name?.lowercase()}"
     }
 
     suspend fun merge(nodeId: String): String {

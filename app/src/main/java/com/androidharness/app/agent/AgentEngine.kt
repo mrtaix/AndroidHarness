@@ -267,10 +267,6 @@ class AgentEngine(
     private val chiefStore: (String) -> com.androidharness.app.agent.ChiefTreeStore = { sid ->
         com.androidharness.app.agent.ChiefTreeStore(java.io.File(".", "chief-tree-$sid.json"))
     },
-    /** Base for per-node scratch workspaces; device runs pass noBackupFilesDir. */
-    private val chiefWorkspaceBase: () -> java.io.File = { java.io.File(".") },
-    private val chiefWorkspaces: java.util.concurrent.ConcurrentHashMap<String, com.androidharness.app.workspace.WorkspaceFs> =
-        java.util.concurrent.ConcurrentHashMap(),
     private val configuredSubagent: suspend () -> SubagentConnection? = { null },
     private val prepareGitHub: suspend () -> Unit = {},
     private val deviceAccess: com.androidharness.app.data.env.DeviceAccessManager? = null,
@@ -457,45 +453,41 @@ class AgentEngine(
         val chiefStoreForRun = if (chiefEnabled) chiefStore(sessionId) else null
         val chiefTree = com.androidharness.app.agent.ChiefTree(initial = chiefStoreForRun?.load())
         var chiefLogic: com.androidharness.app.agent.ChiefToolLogic? = null
-        val chiefDelegate = object : com.androidharness.app.agent.ChiefDelegate {
-            override suspend fun spawn(request: com.androidharness.app.agent.SpawnRequest): String {
-                val registry = chiefRunRegistry ?: error("Chief tool registry is not ready.")
-                val args = kotlinx.serialization.json.buildJsonObject {
-                    put("name", request.node.title.take(40))
-                    put("title", request.node.title.take(40))
-                    put("prompt", request.prompt)
-                    put("background", true)
-                }
-                val taskId = "chief-${java.util.UUID.randomUUID()}"
-                workspace.shellRoot?.let { shellRoot ->
-                    runCatching {
-                        com.androidharness.app.agent.ChiefWorkspace.prepare(
-                            chiefWorkspaceBase(), request.node.id, shellRoot, request.node.scope,
-                        )
-                    }.getOrNull()?.let { scratch ->
-                        chiefWorkspaces[taskId] = com.androidharness.app.workspace.FileFs(scratch)
-                    }
-                }
-                val call = com.androidharness.app.core.ToolCallData(
-                    id = taskId, name = "task", argumentsJson = args.toString(),
-                )
-                val result = performWithPermission(call, permissionMode(), sessionAllowedTools, workspace, sessionId, turnId,
-                    mode, requestOptions, config, apiKey, registry, resolveSubagentModel, { emit(it) }, subagentRuns)
-                if (!result.ok) error(result.output)
-                val delegateId = com.androidharness.app.agent.ChiefTaskId.from(result.output)
-                    ?: error("Chief delegate did not return a task id")
-                launch {
-                    while (true) {
-                        val run = subagentRuns?.waitFor(sessionId, delegateId, 30_000) ?: break
-                        if (!run.status.active) {
-                            chiefLogic?.attachFinished(delegateId, run.report())
-                            chiefWorkspaces.remove(delegateId)
-                            break
-                        }
-                    }
-                }
-                return delegateId
+        suspend fun launchChiefTask(node: com.androidharness.app.agent.ChiefNode, prompt: String): String {
+            val registry = chiefRunRegistry ?: error("Chief tool registry is not ready.")
+            val args = kotlinx.serialization.json.buildJsonObject {
+                put("name", node.title.take(40))
+                put("title", node.title.take(40))
+                put("prompt", prompt)
+                put("background", true)
+                put("chief_action_tools", "write" in node.permissions || "run" in node.permissions)
             }
+            val taskId = "chief-${java.util.UUID.randomUUID()}"
+            val call = com.androidharness.app.core.ToolCallData(
+                id = taskId, name = "task", argumentsJson = args.toString(),
+            )
+            val result = performWithPermission(call, permissionMode(), sessionAllowedTools, workspace, sessionId, turnId,
+                mode, requestOptions, config, apiKey, registry, resolveSubagentModel, { emit(it) }, subagentRuns)
+            if (!result.ok) error(result.output)
+            val delegateId = com.androidharness.app.agent.ChiefTaskId.from(result.output)
+                ?: error("Chief delegate did not return a task id")
+            launch {
+                while (true) {
+                    val run = subagentRuns?.waitFor(sessionId, delegateId, 30_000) ?: break
+                    if (!run.status.active) {
+                        chiefLogic?.attachFinished(delegateId, run.report())
+                        break
+                    }
+                }
+            }
+            return delegateId
+        }
+        val chiefDelegate = object : com.androidharness.app.agent.ChiefDelegate {
+            override suspend fun spawn(request: com.androidharness.app.agent.SpawnRequest): String =
+                launchChiefTask(request.node, request.prompt)
+
+            override suspend fun resume(node: com.androidharness.app.agent.ChiefNode, feedback: String): String =
+                launchChiefTask(node, "${node.prompt}\n\nChief review feedback:\n$feedback")
 
             override suspend fun waitFor(delegateId: String, timeoutSeconds: Int): String? =
                 subagentRuns?.waitFor(sessionId, delegateId, timeoutSeconds * 1000L)?.report()
@@ -1709,16 +1701,16 @@ class AgentEngine(
                 return ToolResult(false, e.message ?: "Could not configure the subagent model.")
             }
             val agentType = childContext?.agent ?: "default"
-            val effectiveWorkspace = chiefWorkspaces[call.id] ?: workspace
             val execute: suspend (suspend (AgentEvent) -> Unit) -> ToolResult = { events ->
                 withContext(childContext ?: kotlin.coroutines.EmptyCoroutineContext) {
                     val hookEvent = kotlinx.serialization.json.buildJsonObject { put("agent_id", call.id); put("agent_type", agentType); put("prompt", prompt) }
                     val start = if (hooked) childContext!!.fire(com.androidharness.app.config.HookEvents.SUBAGENT_START, hookEvent) else null
                     start?.messages?.forEach { events(AgentEvent.Notice(it)) }
                     val fullPrompt = start?.instructions?.takeIf(String::isNotBlank)?.let { "$prompt\n\n$it" } ?: prompt
-                    val outcome = runSubagent(fullPrompt, title, call.id, connection.config, connection.apiKey, effectiveWorkspace, requestOptions, events,
+                    val chiefAction = args?.get("chief_action_tools")?.jsonPrimitive?.booleanOrNull
+                    val outcome = runSubagent(fullPrompt, title, call.id, connection.config, connection.apiKey, workspace, requestOptions, events,
                         registry, mode, sessionAllowedTools, sessionId, turnId,
-                        actionTools = !background && agentMode == AgentMode.ACT && cavemanSettings().subagentFullAccess)
+                        actionTools = chiefAction ?: (!background && agentMode == AgentMode.ACT && cavemanSettings().subagentFullAccess))
                     if (!hooked) outcome else {
                         val stop = childContext!!.fire(com.androidharness.app.config.HookEvents.SUBAGENT_STOP, hookEvent)
                         stop.messages.forEach { events(AgentEvent.Notice(it)) }
@@ -1730,7 +1722,7 @@ class AgentEngine(
             val runs = subagentRuns ?: return execute(emitEvent)
             val run = SubagentRun(sessionId, turnId, call, title ?: "Subagent", prompt,
                 connection.config.model, connection.config.id, background,
-                workspacePaths = effectiveWorkspace.workspacePaths())
+                workspacePaths = workspace.workspacePaths())
             if (background) {
                 runs.background(run, kotlin.coroutines.coroutineContext, execute)
                 return ToolResult(true, "Started ${run.name} in the background. task_id=${run.id}. " +
