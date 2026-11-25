@@ -69,6 +69,8 @@ class GeminiAccounts(
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val lock = Mutex()
+    private val mutableState = MutableStateFlow(GeminiAccountState())
+    val state = mutableState.asStateFlow()
     private var store = read()?.let { runCatching { json.decodeFromString<GeminiProtocol.Store>(it) }.getOrNull() }
         ?: GeminiProtocol.Store("urn:uuid:${UUID.randomUUID()}").also { persist(it) }
 
@@ -76,8 +78,6 @@ class GeminiAccounts(
         // Older sign-ins carry the Gemini CLI scopes, which Antigravity rejects; one fresh sign-in is required.
         if (store.version < 2) persist(store.copy(accounts = emptyList(), version = 2))
     }
-    private val mutableState = MutableStateFlow(GeminiAccountState())
-    val state = mutableState.asStateFlow()
     private var signInJob: Job? = null
     private var listener: Loopback? = null
 

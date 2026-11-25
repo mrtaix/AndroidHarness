@@ -123,7 +123,8 @@ private fun SubagentTreeNode(run: SubagentRun, index: Int, last: Boolean, onOpen
     val ok = run.status == SubagentStatus.COMPLETED
     val nodeColor = if (ok) LocalStatusColors.current.success else if (run.status == SubagentStatus.FAILED) scheme.error else scheme.onSurfaceVariant
     val took = run.startedAt?.let { start -> run.finishedAt?.let { end -> formatDuration(end - start) } }.orEmpty()
-    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+    Column {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
         // Trunk and elbow. The trunk stops at the last child so the tree reads closed.
         Canvas(Modifier.width(ROOT + 6.dp).fillMaxHeight()) {
             val x = ROOT.toPx() / 2
@@ -161,21 +162,21 @@ private fun SubagentTreeNode(run: SubagentRun, index: Int, last: Boolean, onOpen
                         Modifier.size(18.dp).graphicsLayer { rotationZ = chevron }, tint = scheme.onSurfaceVariant)
                 }
             }
-            AnimatedVisibility(showResult,
-                enter = expandVertically(expressiveSpatialSpec()) + fadeIn(expressiveEffectsSpec()),
-                exit = shrinkVertically(expressiveEffectsSpec()) + fadeOut(expressiveEffectsSpec())) {
-                Column(Modifier.padding(start = 10.dp, end = 4.dp, top = 8.dp)) {
-                    val output = run.output.trim()
-                    if (output.isBlank()) Text(stringResource(R.string.subagents_no_output), style = MaterialTheme.typography.bodySmall,
-                        color = scheme.onSurfaceVariant)
-                    else Box(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState())) {
-                        MarkdownText(if (output.length > 4000) output.take(4000) + "…" else output)
-                    }
-                    TextButton(onClick = onOpen) {
-                        Icon(Icons.Outlined.OpenInNew, null, Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.subagents_open_chat))
-                    }
+        }
+        AnimatedVisibility(showResult,
+            enter = expandVertically(expressiveSpatialSpec()) + fadeIn(expressiveEffectsSpec()),
+            exit = shrinkVertically(expressiveEffectsSpec()) + fadeOut(expressiveEffectsSpec())) {
+            Column(Modifier.padding(start = ROOT + 6.dp, end = 4.dp, top = 4.dp, bottom = 6.dp)) {
+                val output = run.output.trim()
+                if (output.isBlank()) Text(stringResource(R.string.subagents_no_output), style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant)
+                else Box(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState())) {
+                    MarkdownText(if (output.length > 4000) output.take(4000) + "…" else output)
+                }
+                TextButton(onClick = onOpen) {
+                    Icon(Icons.Outlined.OpenInNew, null, Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.subagents_open_chat))
                 }
             }
         }
