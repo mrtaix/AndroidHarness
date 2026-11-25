@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
@@ -455,6 +456,34 @@ class AgentEngine(
         val chiefStoreForRun = if (chiefEnabled) chiefStore(sessionId) else null
         val chiefTree = com.androidharness.app.agent.ChiefTree(initial = chiefStoreForRun?.load())
         var chiefLogic: com.androidharness.app.agent.ChiefToolLogic? = null
+        suspend fun verifyChief(node: com.androidharness.app.agent.ChiefNode): com.androidharness.app.agent.ChiefVerdict {
+            val input = buildString {
+                append("Acceptance criteria:\n")
+                node.acceptance.forEach { append("- ").append(it).append('\n') }
+                append("\nWorker report:\n").append(node.report)
+            }
+            val system = "You are a strict acceptance verifier. Decide whether the worker report satisfies every acceptance criterion. " +
+                "Answer with PASS or FAIL on the first line, then one short reason. Do not call tools."
+            val options = requestOptions.copy(
+                maxOutputTokens = 400,
+                thinking = ThinkingLevel.OFF,
+                cacheKey = "$sessionId-chief-verify",
+            )
+            val text = StringBuilder()
+            var failure: String? = null
+            provider.streamChat(config, apiKey, system,
+                listOf(ChatMessage(role = Role.USER, text = input)),
+                emptyList<com.androidharness.app.llm.ToolSchema>(), options).collect { event ->
+                when (event) {
+                    is StreamEvent.TextDelta -> text.append(event.text)
+                    is StreamEvent.Failure -> failure = event.message
+                    else -> Unit
+                }
+            }
+            failure?.let { error(it) }
+            return com.androidharness.app.agent.ChiefVerdict.parse(text.toString()).copy(model = config.model)
+        }
+
         suspend fun launchChiefTask(node: com.androidharness.app.agent.ChiefNode, prompt: String): String {
             val registry = chiefRunRegistry ?: error("Chief tool registry is not ready.")
             val args = kotlinx.serialization.json.buildJsonObject {
@@ -490,6 +519,9 @@ class AgentEngine(
         val chiefDelegate = object : com.androidharness.app.agent.ChiefDelegate {
             override suspend fun spawn(request: com.androidharness.app.agent.SpawnRequest): String =
                 launchChiefTask(request.node, request.prompt)
+
+            override suspend fun verify(node: com.androidharness.app.agent.ChiefNode): com.androidharness.app.agent.ChiefVerdict =
+                verifyChief(node)
 
             override suspend fun resume(node: com.androidharness.app.agent.ChiefNode, feedback: String): String =
                 launchChiefTask(node, "${node.prompt}\n\nChief review feedback:\n$feedback")

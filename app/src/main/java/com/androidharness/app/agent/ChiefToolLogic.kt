@@ -6,6 +6,7 @@ data class SpawnRequest(val node: ChiefNode, val prompt: String)
 /** Narrow seam so the tool contract can be tested without coroutine/UI plumbing. */
 interface ChiefDelegate {
     suspend fun spawn(request: SpawnRequest): String
+    suspend fun verify(node: ChiefNode): ChiefVerdict
     suspend fun resume(node: ChiefNode, feedback: String): String
     suspend fun waitFor(delegateId: String, timeoutSeconds: Int): String?
     suspend fun stop(delegateId: String)
@@ -77,6 +78,10 @@ class ChiefToolLogic(
                 if (node.evidence.isNotBlank()) {
                     append("  ".repeat(depth)).append("Evidence: ").append(node.evidence).append('\n')
                 }
+                node.verification?.let { v ->
+                    append("  ".repeat(depth)).append("Verification: ")
+                        .append(if (v.pass) "PASS" else "FAIL").append(" · ").append(v.reason).append('\n')
+                }
                 if (node.report.isNotBlank()) {
                     append("  ".repeat(depth)).append("Report: ").append(node.report).append('\n')
                 }
@@ -99,11 +104,12 @@ class ChiefToolLogic(
         evidence: String = "",
     ): String {
         val before = tree.get(nodeId) ?: error("Unknown chief node $nodeId")
-        if (approved && before.acceptance.isNotEmpty() && evidence.isBlank()) {
-            error("Approval requires evidence for ${before.acceptance.size} acceptance criterion/criteria")
+        if (approved && before.acceptance.isNotEmpty() && before.verification?.pass != true) {
+            error("Approval requires a PASS verdict from chief_verify for ${before.acceptance.size} acceptance criterion/criteria")
         }
         val node = tree.review(nodeId, approved, feedback)
         if (approved && evidence.isNotBlank()) tree.setEvidence(nodeId, evidence)
+        if (!approved) tree.clearVerification(nodeId)
         if (!approved && node.status == ChiefStatus.RUNNING && feedback.isNotBlank() && before.delegateId != null) {
             tree.setDelegate(nodeId, delegate.resume(before, feedback))
         }
@@ -126,6 +132,14 @@ class ChiefToolLogic(
         tree.stop(nodeId)
         persist()
         return "Stopped ${targets.size} node(s)"
+    }
+
+    suspend fun verify(nodeId: String): ChiefVerdict {
+        val node = tree.get(nodeId) ?: error("Unknown chief node $nodeId")
+        val verdict = delegate.verify(node)
+        tree.setVerification(nodeId, verdict)
+        persist()
+        return verdict
     }
 
     /** Called by the engine when a delegated run finishes. */

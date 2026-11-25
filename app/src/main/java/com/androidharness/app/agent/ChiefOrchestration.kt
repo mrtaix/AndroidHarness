@@ -37,6 +37,7 @@ data class ChiefNode(
     val delegateId: String? = null,
     val role: ChiefRole = ChiefRole.WORKER,
     val evidence: String = "",
+    val verification: ChiefVerdict? = null,
 )
 
 /**
@@ -138,6 +139,14 @@ class ChiefTree(
 
     fun setEvidence(id: String, evidence: String): ChiefNode = synchronized(this) {
         change(id) { it.copy(evidence = evidence) }
+    }
+
+    fun setVerification(id: String, verdict: ChiefVerdict): ChiefNode = synchronized(this) {
+        change(id) { it.copy(verification = verdict) }
+    }
+
+    fun clearVerification(id: String): ChiefNode = synchronized(this) {
+        change(id) { it.copy(verification = null) }
     }
 
     fun merge(id: String): ChiefNode = synchronized(this) {

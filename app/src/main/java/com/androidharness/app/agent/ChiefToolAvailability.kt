@@ -6,7 +6,7 @@ object ChiefToolAvailability {
 
     val ALL = setOf(
         "chief_plan", "chief_assign", "chief_status", "chief_wait",
-        "chief_review", "chief_merge", "chief_stop",
+        "chief_verify", "chief_review", "chief_merge", "chief_stop",
     )
 
     fun toolNames(enabled: Boolean, depth: Int): Set<String> = when {

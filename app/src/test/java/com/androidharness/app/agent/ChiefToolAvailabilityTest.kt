@@ -10,7 +10,7 @@ class ChiefToolAvailabilityTest {
     }
 
     @Test fun `flag on exposes seven tools at root`() {
-        assertEquals(7, ChiefToolAvailability.toolNames(enabled = true, depth = 0).size)
+        assertEquals(8, ChiefToolAvailability.toolNames(enabled = true, depth = 0).size)
     }
 
     @Test fun `depth three keeps only status`() {

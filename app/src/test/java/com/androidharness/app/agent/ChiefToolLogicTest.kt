@@ -11,6 +11,7 @@ class ChiefToolLogicTest {
         val stops = mutableListOf<String>()
         val waits = mutableListOf<Pair<String, Int>>()
         val resumes = mutableListOf<Pair<String, String>>()
+        var verdict = ChiefVerdict(true, "ok")
 
         override suspend fun spawn(request: SpawnRequest): String {
             spawns += request
@@ -21,6 +22,8 @@ class ChiefToolLogicTest {
             waits += delegateId to timeoutSeconds
             return "result from $delegateId"
         }
+
+        override suspend fun verify(node: ChiefNode): ChiefVerdict = verdict
 
         override suspend fun resume(node: ChiefNode, feedback: String): String {
             resumes += node.id to feedback
@@ -95,24 +98,42 @@ class ChiefToolLogicTest {
         assertTrue(text.contains("  worker"))
     }
 
-    @Test fun `approve with acceptance requires evidence`() = runBlocking {
+    @Test fun `approve with acceptance requires a PASS verification`() = runBlocking {
         val (tree, _, logic) = setup()
         val root = tree.all().first().id
         val node = logic.assign(root, "worker", "do work", listOf("result must be 7"), listOf("src/w"))
         tree.complete(node, "SAI")
-        val err = runCatching { logic.review(node, approved = true) }.exceptionOrNull()
-        assertTrue(err?.message.orEmpty().contains("evidence"))
+        val err = runCatching { logic.review(node, approved = true, evidence = "claims it matches") }.exceptionOrNull()
+        assertTrue(err?.message.orEmpty().contains("chief_verify"))
         assertEquals(ChiefStatus.REVIEW, tree.get(node)?.status)
     }
 
-    @Test fun `approve stores verification evidence`() = runBlocking {
-        val (tree, _, logic) = setup()
+    @Test fun `verify stores verdict and allows approval only on PASS`() = runBlocking {
+        val (tree, delegate, logic) = setup()
+        val root = tree.all().first().id
+        val node = logic.assign(root, "worker", "do work", listOf("result must be 7"), listOf("src/w"))
+        tree.complete(node, "SAI")
+        delegate.verdict = ChiefVerdict(false, "SAI is not 7")
+        assertEquals(false, logic.verify(node).pass)
+        assertEquals(ChiefStatus.REVIEW, tree.get(node)?.status)
+        assertNotNull(runCatching { logic.review(node, approved = true) }.exceptionOrNull())
+        delegate.verdict = ChiefVerdict(true, "7 confirmed")
+        logic.verify(node)
+        logic.review(node, approved = true)
+        assertEquals(ChiefStatus.APPROVED, tree.get(node)?.status)
+        assertEquals("7 confirmed", tree.get(node)?.verification?.reason)
+        assertTrue(logic.status(node).contains("Verification: PASS"))
+    }
+
+    @Test fun `reject clears verification before resume`() = runBlocking {
+        val (tree, delegate, logic) = setup()
         val root = tree.all().first().id
         val node = logic.assign(root, "worker", "do work", listOf("result must be 7"), listOf("src/w"))
         tree.complete(node, "7")
-        logic.review(node, approved = true, evidence = "wait output = 7, checked against criterion")
-        assertEquals("wait output = 7, checked against criterion", tree.get(node)?.evidence)
-        assertTrue(logic.status(node).contains("Evidence:"))
+        logic.verify(node)
+        tree.complete(node, "7 again")
+        logic.review(node, approved = false, feedback = "try again")
+        assertNull(tree.get(node)?.verification)
     }
 
     @Test fun `chief_review reject resumes the same node with feedback`() = runBlocking {

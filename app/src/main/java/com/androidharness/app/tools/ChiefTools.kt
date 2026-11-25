@@ -57,6 +57,17 @@ fun chiefTools(logic: ChiefToolLogic): List<Tool> {
             readOnly = true,
         ) { args -> logic.wait(args.str("node_id"), args.int("timeout_seconds", 15)) },
         chiefTool(
+            name = "chief_verify",
+            description = "Ask the model to check a completed node's report against its acceptance criteria. Returns PASS or FAIL with a reason; approval of a node with criteria requires PASS.",
+            schema = Schema.obj(mapOf(
+                "node_id" to Schema.string("Chief node id with a finished report."),
+            ), listOf("node_id")),
+            readOnly = false,
+        ) { args ->
+            val verdict = logic.verify(args.str("node_id"))
+            "Chief verification: ${if (verdict.pass) "PASS" else "FAIL"}\n${verdict.reason}"
+        },
+        chiefTool(
             name = "chief_review",
             description = "Approve or reject a completed node. Rejection resumes the same node with feedback; it never spawns a new one.",
             schema = Schema.obj(mapOf(

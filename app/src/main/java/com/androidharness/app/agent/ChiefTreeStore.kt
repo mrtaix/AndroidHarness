@@ -6,6 +6,7 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
@@ -51,6 +52,14 @@ class ChiefTreeStore(private val file: File) {
                         node.delegateId?.let { put("delegateId", it) }
                         put("role", node.role.name)
                         put("evidence", node.evidence)
+                        node.verification?.let { v ->
+                            putJsonObject("verification") {
+                                put("pass", v.pass)
+                                put("reason", v.reason)
+                                put("at", v.at)
+                                put("model", v.model)
+                            }
+                        }
                     }
                 }
             }
@@ -90,6 +99,14 @@ class ChiefTreeStore(private val file: File) {
                 role = runCatching { ChiefRole.valueOf(node.str("role", "WORKER")) }
                     .getOrDefault(ChiefRole.WORKER),
                 evidence = node.str("evidence"),
+                verification = (node["verification"] as? kotlinx.serialization.json.JsonObject)?.let { v ->
+                    ChiefVerdict(
+                        pass = v["pass"]?.jsonPrimitive?.booleanOrNull ?: false,
+                        reason = v.str("reason"),
+                        at = v["at"]?.jsonPrimitive?.longOrNull ?: 0L,
+                        model = v.str("model"),
+                    )
+                },
             )
         }
         val snapshot = ChiefSnapshot(nodes, root.int("sequence"))
