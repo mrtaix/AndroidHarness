@@ -133,6 +133,27 @@ internal object StreamRetrier {
         }
     }
 
+    private val stallPhrase = Regex("Stream stalled - no data received for (.+?) \\(timed out\\)", RegexOption.IGNORE_CASE)
+
+    /**
+     * Plain wording for a stall, for people who read the raw text as the agent "waiting" and
+     * the app giving up on it. Says whose reply went quiet (the main model, a subagent's, or a
+     * named provider in a fallback chain) and that tool time never counts. Other text is kept.
+     */
+    fun describeStall(reason: String, forStatusLine: Boolean = false): String {
+        val match = stallPhrase.find(reason) ?: return reason
+        val lead = reason.substring(0, match.range.first).trim().removeSuffix(":").trim()
+        val who = when {
+            lead.equals("subagent", ignoreCase = true) -> "The subagent's model"
+            lead.isNotEmpty() -> lead
+            else -> "The model"
+        }
+        val silent = match.groupValues[1]
+        return if (forStatusLine) "$who sent nothing for $silent. Slow model? Raise the stall timeout in Settings."
+        else "$who sent nothing for $silent mid-reply, so the connection looked dead. " +
+            "Running tools, commands and subagents never counts toward this."
+    }
+
     /** True for a pause caused by [stallGuard], so the paused card can offer a longer wait. */
     fun isStallFailure(reason: String?): Boolean =
         reason != null && (reason.contains("stalled - no data received", ignoreCase = true) ||
@@ -230,6 +251,8 @@ internal object StreamRetrier {
             onAttemptStart()
             var failure: String? = null
             var failureCode: Int? = null
+            var failureKind: String? = null
+            var retryAfterSeconds: Long? = null
             var retryAllowed = true
             var cause: Throwable? = null
             try {
@@ -238,6 +261,8 @@ internal object StreamRetrier {
                         is StreamEvent.Failure -> {
                             failure = event.message
                             failureCode = event.code
+                            failureKind = event.errorCode
+                            retryAfterSeconds = event.retryAfterSeconds
                             retryAllowed = event.retryable != false
                         }
                         else -> handleEvent(event)
@@ -256,8 +281,9 @@ internal object StreamRetrier {
                 failure = e.message ?: e.javaClass.simpleName
             }
 
+            val freeRate = failureKind == com.androidharness.app.llm.HarnessFreeLimit.RATE_CODE
             val retryable = allowRetries && retryAllowed && failure != null &&
-                attempt < RetryPolicy.MAX_RETRIES &&
+                attempt < (if (freeRate) RetryPolicy.FREE_RATE_RETRIES else RetryPolicy.MAX_RETRIES) &&
                 !hasOutput() &&
                 RetryPolicy.isRetryable(cause, failure, failureCode)
             if (!retryable) {
@@ -266,8 +292,9 @@ internal object StreamRetrier {
             }
 
             attempt++
-            val delayMs = RetryPolicy.delayMs(attempt)
-            emitEvent(AgentEvent.Retrying(attempt, delayMs, retryReason(failure)))
+            val delayMs = if (freeRate) RetryPolicy.freeRateDelayMs(attempt, retryAfterSeconds) else RetryPolicy.delayMs(attempt)
+            // The free-limit notice also says "Try again in N seconds"; the status line already counts down.
+            emitEvent(AgentEvent.Retrying(attempt, delayMs, retryReason(if (freeRate) failure.orEmpty().lineSequence().first() else failure)))
             sleep(delayMs)
         }
     }

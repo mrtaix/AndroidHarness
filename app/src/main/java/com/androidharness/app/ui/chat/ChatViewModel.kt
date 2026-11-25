@@ -106,6 +106,8 @@ data class ChatUiState(
     val runningCalls: List<ToolCallData> = emptyList(),
     val codeDrafts: Map<String, com.androidharness.app.agent.LiveCodeDraft> = emptyMap(),
     val streamStallTimeoutSeconds: Int = com.androidharness.app.agent.StreamRetrier.DEFAULT_STALL_TIMEOUT_SECONDS,
+    /** Models that cannot see images get their text instead, so pictures are not blocked. */
+    val readImageText: Boolean = true,
     val packageProgress: Map<String, com.androidharness.app.data.env.PackageInstallStatus> = emptyMap(),
     val showLiveCode: Boolean = true,
     val showTodoList: Boolean = true,
@@ -129,9 +131,13 @@ data class ChatUiState(
     val attachments: List<String> = emptyList(), // display names of picked images
     val fileAttachments: List<FileAttachment> = emptyList(),
     val attachmentImports: List<AttachmentImport> = emptyList(),
+    /** The sent message open in the editor sheet, or null. */
+    val editDraft: MessageEditDraft? = null,
     val maxContextTokens: Int = 1_000_000,
     /** "providerId|model" to the window its server named when it rejected a request as too long. */
     val learnedContextLimits: Map<String, Int> = emptyMap(),
+    /** Self-hosted servers' reported per-request windows, keyed by [com.androidharness.app.llm.ServerContext.keyFor]. */
+    val serverContextTokens: Map<String, Long> = emptyMap(),
     val autoCompactTokens: Int = 0,
     /** App-wide resume prompt; blank means the built-in text. A chat's own prompt lives on its task record. */
     val resumePrompt: String = "",
@@ -211,8 +217,10 @@ data class ChatUiState(
     val voiceAutoSendTimeoutMs: Int = 2000,
     /** One-shot toast text for mode switches ("Planning mode: …"); consumed by the screen. */
     val modeToast: String? = null,
+    /** Non-null while the /goal sheet is open; the text fills its goal field when no goal is set. */
+    val goalSheetDraft: String? = null,
     /** Workspace .harness/mcp.json server names awaiting user approval before a run. */
-    val pendingWorkspaceMcp: List<String>? = null,
+    val pendingWorkspaceMcp: List<com.androidharness.app.tools.mcp.TrustPrompt>? = null,
     /** Fetched model catalogs per provider id. */
     val catalogs: Map<String, List<com.androidharness.app.llm.ModelEntry>> = emptyMap(),
     /** Precomputed human-readable activity line (computed in the ViewModel, never in composition). */
@@ -342,6 +350,8 @@ class ChatViewModel(
 
     private var pendingAttachments = mutableListOf<ImageRef>()
     private val pendingFileAttachments = mutableListOf<FileAttachment>()
+    /** Photos imported while editing a message; deleted again if the edit is abandoned. */
+    private val editAddedImages = mutableSetOf<String>()
     /** Workspace key the @-mention file list was built for (empty until loaded). */
     private var mentionCacheKey: String? = null
     private var steering = false
@@ -353,8 +363,13 @@ class ChatViewModel(
     private var pendingConfigFingerprint: String? = null
     private var startingRun = false
 
-    /** User approved the workspace .harness/mcp.json: remember it and run. */
-    fun approveWorkspaceMcp() {
+    /**
+     * User answered the workspace tools dialog: ticked items are allowed, the rest
+     * are remembered as declined until they change, or [trustAll] trusts the whole
+     * workspace from now on. Then the run starts.
+     */
+    fun approveWorkspaceMcp(allowed: Set<String>, trustAll: Boolean) {
+        val asked = _state.value.pendingWorkspaceMcp.orEmpty().map { it.item.key }.toSet()
         val text = pendingRunText
         val replacement = pendingReplacement
         pendingReplacement = null
@@ -369,7 +384,11 @@ class ChatViewModel(
                     check(c.mcp.approvalFingerprint(workspace, snapshot) == pendingConfigFingerprint) {
                         "Project tools changed while approval was open. Send your message again to review them."
                     }
-                    c.mcp.approveWorkspace(workspace, snapshot)
+                    if (trustAll) c.mcp.setTrustMode(workspace, com.androidharness.app.tools.mcp.WorkspaceTrustMode.TRUST_ALL, snapshot)
+                    else {
+                        if (allowed.isNotEmpty()) c.mcp.approveWorkspace(workspace, snapshot, allowed)
+                        (asked - allowed).takeIf { it.isNotEmpty() }?.let { c.mcp.declineWorkspace(workspace, snapshot, it) }
+                    }
                 }
             }
             pendingMcpWorkspace = null
@@ -378,7 +397,7 @@ class ChatViewModel(
         }
     }
 
-    /** User declined: run without the workspace servers (they stay blocked). */
+    /** "Not now": run without the workspace tools this once; they ask again next time. */
     fun denyWorkspaceMcp() {
         val text = pendingRunText
         val replacement = pendingReplacement
@@ -430,6 +449,12 @@ class ChatViewModel(
                     ?.let { it.copy(model = state.effectiveModel ?: it.model) }
             }.distinctUntilChanged().collect { selected ->
                 if (selected != null) launch { c.providers.refreshCatalog(selected.id, automatic = true) }
+                if (selected != null) launch { probeServerContext(selected) }
+            }
+        }
+        viewModelScope.launch {
+            com.androidharness.app.llm.ServerContext.known.collect { known ->
+                _state.update { it.copy(serverContextTokens = known) }
             }
         }
         viewModelScope.launch {
@@ -479,7 +504,7 @@ class ChatViewModel(
         viewModelScope.launch {
             c.settings.settings.collect {
                 _state.update { st -> st.copy(showLiveCode = it.showLiveCode, showTodoList = it.showTodoList,
-                    streamStallTimeoutSeconds = it.streamStallTimeoutSeconds) }
+                    streamStallTimeoutSeconds = it.streamStallTimeoutSeconds, readImageText = it.readImageText) }
             }
         }
         viewModelScope.launch {
@@ -846,7 +871,10 @@ class ChatViewModel(
 
     /** True when the composer can consume the draft, including local commands and queued messages. */
     /** [steering] is the pick from holding send while the agent works; null follows Settings. */
-    fun send(rawText: String, steering: SteeringMode? = null): Boolean {
+    fun send(typedText: String, steering: SteeringMode? = null): Boolean {
+        // "fix the build /goal" works like "/goal fix the build". Chat mode only knows /btw.
+        val moved = SlashCommands.moveTrailingCommand(typedText)
+        val rawText = if (!_state.value.conversation.isChat || SlashCommands.isSideQuestion(moved)) moved else typedText
         // Answered aside on the live context; never queued, injected or saved.
         if (SlashCommands.isSideQuestion(rawText)) return askAside(rawText.trim().removeRange(0, SlashCommands.SIDE_COMMAND.length))
         if (compactionJob?.isActive == true) {
@@ -889,7 +917,7 @@ class ChatViewModel(
                     val override = sessionId?.let { c.runManager.controls.flow(it).value.autoCompactTokens }
                     val configured = override ?: _state.value.autoCompactTokens
                     val threshold = com.androidharness.app.agent.AutoCompaction.threshold(configured,
-                        _state.value.maxContextTokens, _state.value.maxOutputTokens)
+                        com.androidharness.app.ui.chat.components.codeContextLimit(_state.value), _state.value.maxOutputTokens)
                     _state.update { it.copy(error = null, modeToast = c.appContext.getString(R.string.auto_compact_status,
                         java.text.NumberFormat.getIntegerInstance().format(threshold))) }
                     return true
@@ -908,7 +936,7 @@ class ChatViewModel(
                         }
                         val configured = tokens ?: c.settings.settings.first().autoCompactTokens
                         val threshold = com.androidharness.app.agent.AutoCompaction.threshold(configured,
-                            _state.value.maxContextTokens, _state.value.maxOutputTokens)
+                            com.androidharness.app.ui.chat.components.codeContextLimit(_state.value), _state.value.maxOutputTokens)
                         _state.update { it.copy(error = null, modeToast = c.appContext.getString(
                             if (inherit) R.string.auto_compact_reset else R.string.auto_compact_saved,
                             java.text.NumberFormat.getIntegerInstance().format(threshold))) }
@@ -930,6 +958,7 @@ class ChatViewModel(
                 return true
             }
             SlashCommands.Kind.BTW -> return askAside(resolved.sideQuestion.orEmpty())
+            SlashCommands.Kind.GOAL -> return handleGoal(resolved.goalArgument.orEmpty())
             SlashCommands.Kind.UNKNOWN -> {
                 _state.update { it.copy(error = resolved.error) }
                 return false
@@ -1019,6 +1048,124 @@ class ChatViewModel(
             reader.join(2_000)
             synchronized(output) { output.toString(Charsets.UTF_8.name()) }.trimEnd()
         } finally { if (process.isAlive) process.destroyForcibly() }
+    }
+
+    /** /goal opens the goal sheet, filled with any text typed after it; /goal clear clears at once. */
+    private fun handleGoal(argument: String): Boolean {
+        when (val command = com.androidharness.app.agent.GoalJudge.command(argument)) {
+            com.androidharness.app.agent.GoalJudge.Command.Status -> openGoalSheet("")
+            com.androidharness.app.agent.GoalJudge.Command.Clear -> clearGoal()
+            is com.androidharness.app.agent.GoalJudge.Command.Set -> openGoalSheet(command.text)
+        }
+        return true
+    }
+
+    fun openGoalSheet(draft: String = "") = _state.update { it.copy(goalSheetDraft = draft) }
+
+    fun dismissGoalSheet() = _state.update { it.copy(goalSheetDraft = null) }
+
+    /** What the goal sheet's setup form hands over when the user starts a goal. */
+    data class GoalDraft(
+        val text: String,
+        val turnLimit: Int,
+        val checkCommand: String,
+        val limits: com.androidharness.app.agent.TaskLimits,
+        val notifyEachCheck: Boolean,
+        val keepImproving: Boolean = false,
+        val improveFocus: List<String> = emptyList(),
+        val improveQueue: List<String> = emptyList(),
+    )
+
+    /** Saves the goal with its options and budget, then sends the kickoff as the next turn. */
+    fun startGoal(draft: GoalDraft) {
+        val text = draft.text.trim().take(com.androidharness.app.agent.GoalJudge.MAX_GOAL_CHARS)
+        if (text.isEmpty()) return
+        _state.update { it.copy(goalSheetDraft = null) }
+        viewModelScope.launch {
+            try {
+                val sid = ensureSession(text.take(48))
+                val goal = com.androidharness.app.agent.GoalState(
+                    text = text,
+                    turnLimit = draft.turnLimit.coerceIn(1, com.androidharness.app.agent.GoalJudge.MAX_TURN_LIMIT),
+                    checkCommand = draft.checkCommand.trim().takeIf { it.isNotEmpty() },
+                    notifyEachCheck = draft.notifyEachCheck,
+                    keepImproving = draft.keepImproving,
+                    improveFocus = draft.improveFocus,
+                    improveQueue = draft.improveQueue,
+                )
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    c.runManager.controls.update(sid) { it.copy(goal = goal, limits = draft.limits) }
+                }
+                if (dispatchAgentText(com.androidharness.app.agent.GoalJudge.kickoff(text, goal.checkCommand)))
+                    _state.update { it.copy(error = null, modeToast = c.appContext.getString(R.string.goal_set, goal.turnLimit)) }
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+            catch (e: Exception) { _state.update { it.copy(error = e.message) } }
+        }
+    }
+
+    private fun updateGoal(change: (com.androidharness.app.agent.GoalState) -> com.androidharness.app.agent.GoalState?, after: (com.androidharness.app.agent.GoalState?) -> Unit = {}) {
+        val sid = sessionId ?: return
+        viewModelScope.launch {
+            try {
+                val saved = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    c.runManager.controls.update(sid) { record -> record.goal?.let { record.copy(goal = change(it)) } ?: record }
+                }
+                after(saved.goal)
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+            catch (e: Exception) { _state.update { it.copy(error = e.message) } }
+        }
+    }
+
+    /** The current turn finishes; no check or new goal turn follows until the goal is resumed. */
+    fun pauseGoal() = updateGoal({ it.copy(status = com.androidharness.app.agent.GoalState.Status.PAUSED) })
+
+    /**
+     * Resumes a paused, blocked or stopped goal, optionally with [extraTurns] more, and
+     * starts a turn toward it so the loop picks up again after that turn.
+     */
+    fun resumeGoal(extraTurns: Int = 0) {
+        val sid = sessionId ?: return
+        // The resumed turn counts toward the goal, unless one is already running and gets checked first.
+        val starts = !c.runManager.isRunning(sid)
+        var step: String? = null
+        updateGoal({ goal ->
+            val reached = goal.status == com.androidharness.app.agent.GoalState.Status.MET
+            goal.copy(status = com.androidharness.app.agent.GoalState.Status.ACTIVE,
+                turnLimit = (goal.turnLimit + extraTurns).coerceIn(1, com.androidharness.app.agent.GoalJudge.MAX_TURN_LIMIT),
+                turns = if (starts) goal.turns + 1 else goal.turns,
+                // Going on from a reached goal means improving it.
+                keepImproving = goal.keepImproving || reached,
+                reachedAtTurn = goal.reachedAtTurn ?: if (reached) goal.turnsUsed else null)
+                .let { resumed ->
+                    // An improving goal takes the next item of the user's own list, if any.
+                    step = resumed.improveQueue.firstOrNull()?.takeIf { starts && resumed.improving }
+                    if (step == null) resumed else resumed.copy(improveQueue = resumed.improveQueue.drop(1))
+                }
+        }) { goal ->
+            if (goal != null && starts) dispatchAgentText(com.androidharness.app.agent.GoalJudge.resume(goal.text, improving = goal.improving, next = step))
+        }
+    }
+
+    /** Chats whose goal check is running; an active goal outside these and outside a run has stopped. */
+    val goalCheckSessionIds: kotlinx.coroutines.flow.StateFlow<Set<String>> get() = c.runManager.goalCheckSessionIds
+
+    /** Changes what the improvement passes focus on and the user's own list, without starting anything. */
+    fun setGoalImprovements(focus: List<String>, queue: List<String>) = updateGoal({
+        it.copy(improveFocus = focus, improveQueue = queue)
+    })
+
+    /** Raises the turn limit of a goal that is still running, without starting anything. */
+    fun extendGoal(extraTurns: Int) = updateGoal({
+        it.copy(turnLimit = (it.turnLimit + extraTurns).coerceIn(1, com.androidharness.app.agent.GoalJudge.MAX_TURN_LIMIT))
+    })
+
+    fun clearGoal() {
+        val sid = sessionId
+        if (sid == null || c.runManager.controls.flow(sid).value.goal == null) {
+            _state.update { it.copy(error = null, modeToast = c.appContext.getString(R.string.goal_none)) }
+            return
+        }
+        updateGoal({ null }) { _state.update { it.copy(error = null, goalSheetDraft = null, modeToast = c.appContext.getString(R.string.goal_cleared)) } }
     }
 
     private fun dispatchAgentText(agentText: String, steering: SteeringMode? = null): Boolean {
@@ -1136,6 +1283,28 @@ class ChatViewModel(
             try { resumeTaskNow(sid) }
             catch (e: Exception) { _state.update { it.copy(error = e.message) } }
             finally { steering = false }
+        }
+    }
+
+    private var rateLimitResume: kotlinx.coroutines.Job? = null
+
+    /**
+     * Resumes a task stopped by a temporary free-model limit once the gateway's
+     * suggested wait has passed. The paused card stays up meanwhile, so the
+     * user can still resume, dismiss or switch models sooner.
+     */
+    fun resumeAfterRateLimit(retryAfterSeconds: Long?) {
+        val sid = sessionId ?: return
+        rateLimitResume?.cancel()
+        val seconds = (retryAfterSeconds ?: DEFAULT_RATE_LIMIT_WAIT_SECONDS).coerceIn(1, MAX_RATE_LIMIT_WAIT_SECONDS)
+        _state.update { it.copy(modeToast = c.appContext.resources.getQuantityString(
+            R.plurals.harness_free_resuming_in, seconds.toInt(), seconds.toInt())) }
+        rateLimitResume = viewModelScope.launch {
+            kotlinx.coroutines.delay(seconds * 1_000)
+            val record = c.runManager.controls.flow(sid).value
+            // The user may have resumed, dismissed or moved on while we waited.
+            if (sessionId == sid && !c.runManager.isRunning(sid) && record.resumable &&
+                record.status in setOf("paused", "interrupted")) resumeInterruptedTask()
         }
     }
 
@@ -1315,6 +1484,8 @@ class ChatViewModel(
 
     override fun onCleared() {
         _live.value?.close()
+        editAddedImages.forEach { c.images.delete(it) }
+        editAddedImages.clear()
         super.onCleared()
     }
 
@@ -1330,6 +1501,18 @@ class ChatViewModel(
         sideJob?.cancel()
         sideGeneration++
         _sideThread.update { it?.let { thread -> SideThreadUi(thread.sessionId, visible = thread.visible) } }
+    }
+
+    /** Reads a self-hosted server's window so the context ring matches what a run budgets against. */
+    private suspend fun probeServerContext(provider: ProviderConfig) {
+        if (com.androidharness.app.llm.ServerContext.keyFor(provider) == null) return
+        try {
+            val key = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                provider.effectiveApiKey(c.providers.apiKey(provider.id))
+            }
+            com.androidharness.app.llm.ServerContext.tokens(provider, key)
+        } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+        catch (_: Exception) { }
     }
 
     private suspend fun coldAsideContext(sid: String): com.androidharness.app.agent.SideContext {
@@ -1360,32 +1543,127 @@ class ChatViewModel(
 
     fun attachImage(uri: Uri) = importAttachment(uri, imageOnly = true)
 
-    fun removeAttachmentImport(id: String) {
-        _state.update { it.copy(attachmentImports = it.attachmentImports.filterNot { pending -> pending.id == id }) }
+    fun removeAttachmentImport(id: String) = updateImports(AttachTarget.COMPOSER) { list -> list.filterNot { it.id == id } }
+
+    /** Where an import lands: the composer's next message, or the message being edited. */
+    private enum class AttachTarget { COMPOSER, EDIT }
+
+    private fun importsOf(target: AttachTarget, state: ChatUiState = _state.value) =
+        if (target == AttachTarget.COMPOSER) state.attachmentImports else state.editDraft?.imports.orEmpty()
+
+    private fun updateImports(target: AttachTarget, transform: (List<AttachmentImport>) -> List<AttachmentImport>) =
+        _state.update { s ->
+            if (target == AttachTarget.COMPOSER) s.copy(attachmentImports = transform(s.attachmentImports))
+            else s.editDraft?.let { d -> s.copy(editDraft = d.copy(imports = transform(d.imports))) } ?: s
+        }
+
+    private fun updateEditDraft(transform: (MessageEditDraft) -> MessageEditDraft) =
+        _state.update { s -> s.editDraft?.let { s.copy(editDraft = transform(it)) } ?: s }
+
+    // ------------------------------------------------------------------
+    // Editing a sent message: its text, photos and files, resent from there.
+    // ------------------------------------------------------------------
+
+    fun beginEdit(message: ChatMessage) {
+        if (message.role != Role.USER || message.id == null) return
+        if (_state.value.editDraft != null) cancelEdit()
+        val (text, files) = FileAttachments.splitForEdit(com.androidharness.app.core.response.UserMessageContent.visibleText(message.text))
+        _state.update { it.copy(editDraft = MessageEditDraft(message, text, message.images, files)) }
+    }
+
+    fun setEditText(text: String) = updateEditDraft { it.copy(text = text) }
+
+    fun attachEditImage(uri: Uri) = importAttachment(uri, imageOnly = true, target = AttachTarget.EDIT)
+
+    fun attachEditFile(uri: Uri) = importAttachment(uri, target = AttachTarget.EDIT)
+
+    fun removeEditImage(index: Int) {
+        val removed = _state.value.editDraft?.images?.getOrNull(index) ?: return
+        updateEditDraft { it.copy(images = it.images.filterIndexed { i, _ -> i != index }) }
+        if (editAddedImages.remove(removed.name)) {
+            c.images.delete(removed.name)
+            removed.workspacePath?.let(::deleteWorkspaceCopy)
+        }
+    }
+
+    /** [index] counts kept files first, then added ones, matching [MessageEditDraft.trayFiles]. */
+    fun removeEditFile(index: Int) {
+        val draft = _state.value.editDraft ?: return
+        if (index < draft.keptFiles.size) {
+            // The original copy stays in the workspace: earlier turns may still point at it.
+            updateEditDraft { it.copy(keptFiles = it.keptFiles.filterIndexed { i, _ -> i != index }) }
+            return
+        }
+        val added = index - draft.keptFiles.size
+        val removed = draft.addedFiles.getOrNull(added) ?: return
+        updateEditDraft { it.copy(addedFiles = it.addedFiles.filterIndexed { i, _ -> i != added }) }
+        removed.workspacePath?.let(::deleteWorkspaceCopy)
+    }
+
+    fun removeEditImport(id: String) = updateImports(AttachTarget.EDIT) { list -> list.filterNot { it.id == id } }
+
+    /** Why the edit cannot be resent yet, or null when it can. */
+    fun editBlockReason(): String? {
+        val state = _state.value
+        val draft = state.editDraft ?: return null
+        if (draft.imports.isNotEmpty()) return c.appContext.getString(R.string.chat_attachment_resolve)
+        if (state.conversation.isChat && draft.images.isNotEmpty() && state.imageInputSupport() == false && !state.readImageText)
+            return c.appContext.getString(R.string.chat_attachment_model_unsupported)
+        return null
+    }
+
+    /** The message and text the confirm step resends, or null while the edit cannot go out. */
+    fun editResendRequest(): Pair<ChatMessage, String>? {
+        val draft = _state.value.editDraft ?: return null
+        if (!draft.hasContent || editBlockReason() != null) return null
+        val text = com.androidharness.app.core.response.UserMessageContent.edit(draft.visibleMessage(), draft.message.text)
+        return draft.message.copy(images = draft.images) to text
+    }
+
+    /** Resends the edit. The draft stays open if the run could not start, so nothing picked is lost. */
+    fun resendEdit(message: ChatMessage, text: String) {
+        if (!editAndResend(message, text)) return
+        editAddedImages.clear()
+        _state.update { it.copy(editDraft = null) }
+    }
+
+    /** Closes the editor and removes whatever was picked during it. */
+    fun cancelEdit() {
+        val draft = _state.value.editDraft ?: return
+        _state.update { it.copy(editDraft = null) }
+        draft.images.filter { it.name in editAddedImages }.mapNotNull { it.workspacePath }.forEach(::deleteWorkspaceCopy)
+        editAddedImages.forEach { c.images.delete(it) }
+        editAddedImages.clear()
+        draft.addedFiles.mapNotNull { it.workspacePath }.forEach(::deleteWorkspaceCopy)
+    }
+
+    private fun deleteWorkspaceCopy(path: String) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) { runCatching { chatWorkspace().resolve(path).delete() } }
     }
 
     fun attachmentBlockReason(): String? {
         val state = _state.value
         if (state.attachmentImports.isNotEmpty()) return c.appContext.getString(R.string.chat_attachment_resolve)
-        if (state.conversation.isChat && state.attachments.isNotEmpty() && state.imageInputSupport() == false)
+        if (state.conversation.isChat && state.attachments.isNotEmpty() && state.imageInputSupport() == false && !state.readImageText)
             return c.appContext.getString(R.string.chat_attachment_model_unsupported)
         return null
     }
 
     private class AttachmentProblem(val status: AttachmentImportStatus, message: String) : Exception(message)
 
-    private fun importAttachment(uri: Uri, imageOnly: Boolean = false, mimeHint: String? = null) {
+    private fun importAttachment(uri: Uri, imageOnly: Boolean = false, mimeHint: String? = null, target: AttachTarget = AttachTarget.COMPOSER) {
         val id = java.util.UUID.randomUUID().toString()
         val snapshot = _state.value
-        _state.update { it.copy(attachmentImports = it.attachmentImports + AttachmentImport(id, uri.lastPathSegment?.substringAfterLast('/').orEmpty())) }
-        fun active() = _state.value.attachmentImports.any { it.id == id }
+        if (target == AttachTarget.EDIT && snapshot.editDraft == null) return
+        updateImports(target) { it + AttachmentImport(id, uri.lastPathSegment?.substringAfterLast('/').orEmpty()) }
+        fun active() = importsOf(target).any { it.id == id }
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
                 val resolver = c.appContext.contentResolver
                 val name = queryDisplayName(resolver, uri) ?: uri.lastPathSegment?.substringAfterLast('/') ?: "Attachment"
                 val mime = resolver.getType(uri)?.takeUnless { it.contains('*') }
                     ?: mimeHint?.takeUnless { it.contains('*') } ?: "application/octet-stream"
-                _state.update { it.copy(attachmentImports = it.attachmentImports.map { item -> if (item.id == id) item.copy(name = name) else item }) }
+                updateImports(target) { list -> list.map { item -> if (item.id == id) item.copy(name = name) else item } }
                 val size = querySize(resolver, uri)
                 if (imageOnly || mime.startsWith("image/")) {
                     if (size != null && size > FileAttachments.IMAGE_BYTE_LIMIT) throw AttachmentProblem(
@@ -1395,12 +1673,26 @@ class ChatViewModel(
                             com.androidharness.app.data.ConversationConfig.decode(it.conversationJson).isChat
                         } ?: snapshot.conversation.isChat
                     val stored = c.images.import(uri, keepOriginal = keepOriginal) ?: throw IllegalStateException(c.appContext.getString(R.string.ui_could_not_load_that_image))
-                    val image = c.images.metadata(ImageRef(stored.file.name, stored.mime, caption = name.take(200), origin = "user_upload"))
+                    // Code mode also keeps the untouched original in the workspace, so shell tools
+                    // (tesseract, python) can open it without the user saving it by hand.
+                    val workspacePath = if (keepOriginal) null else try {
+                        writeAttachmentToWorkspace(resolver, uri, imageFileName(name, mime), id, target).first
+                    } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+                    catch (_: Exception) { null }
+                    val image = c.images.metadata(ImageRef(stored.file.name, stored.mime, caption = name.take(200), origin = "user_upload",
+                        workspacePath = workspacePath))
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main.immediate) {
-                        if (active()) {
+                        if (!active()) {
+                            c.images.delete(stored.file.name)
+                            workspacePath?.let(::deleteWorkspaceCopy)
+                        }
+                        else if (target == AttachTarget.EDIT) {
+                            editAddedImages += stored.file.name
+                            updateEditDraft { it.copy(images = it.images + image) }
+                        } else {
                             pendingAttachments += image
                             _state.update { it.copy(attachments = it.attachments + stored.file.name) }
-                        } else c.images.delete(stored.file.name)
+                        }
                     }
                 } else {
                     val pdf = FileAttachments.isPdf(name, mime)
@@ -1416,20 +1708,20 @@ class ChatViewModel(
                             if (active()) {
                                 val sizeLabel = FileAttachments.humanBytes(size ?: extracted.length.toLong()) +
                                     (pdfExtract?.let { ", " + if (it.pageCount == 1) "1 page" else c.appContext.getString(R.string.ui_pages, it.pageCount.toString()) } ?: "")
-                                addFileAttachment(FileAttachment(name, mime, sizeLabel, extracted, null))
+                                addFileAttachment(FileAttachment(name, mime, sizeLabel, extracted, null), target)
                             }
                         }
                     } else if (_state.value.conversation.isChat) {
                         throw AttachmentProblem(AttachmentImportStatus.UNSUPPORTED,
                             c.appContext.getString(if (pdf) R.string.chat_attachment_pdf_unreadable else R.string.chat_file_requires_code))
-                    } else copyAttachmentToWorkspace(resolver, uri, name, mime, size, id)
+                    } else copyAttachmentToWorkspace(resolver, uri, name, mime, size, id, target)
                 }
-                removeAttachmentImport(id)
+                updateImports(target) { list -> list.filterNot { it.id == id } }
             } catch (e: kotlinx.coroutines.CancellationException) { throw e }
             catch (e: Exception) {
-                _state.update { it.copy(attachmentImports = it.attachmentImports.map { item ->
+                updateImports(target) { list -> list.map { item ->
                     if (item.id == id) item.copy(status = (e as? AttachmentProblem)?.status ?: AttachmentImportStatus.FAILED, detail = e.message) else item
-                }) }
+                } }
             }
         }
     }
@@ -1440,6 +1732,7 @@ class ChatViewModel(
         if (removed != null) {
             pendingAttachments.removeAt(index)
             c.images.delete(removed.name)
+            removed.workspacePath?.let(::deleteWorkspaceCopy)
         }
         _state.update { it.copy(attachments = it.attachments.toMutableList().apply { removeAt(index) }) }
     }
@@ -1512,7 +1805,11 @@ class ChatViewModel(
         }
     }
 
-    private fun addFileAttachment(file: FileAttachment) {
+    private fun addFileAttachment(file: FileAttachment, target: AttachTarget = AttachTarget.COMPOSER) {
+        if (target == AttachTarget.EDIT) {
+            updateEditDraft { it.copy(addedFiles = it.addedFiles + file) }
+            return
+        }
         pendingFileAttachments += file
         _state.update { it.copy(fileAttachments = it.fileAttachments + file) }
     }
@@ -1524,7 +1821,31 @@ class ChatViewModel(
         mime: String,
         size: Long?,
         importId: String,
+        target: AttachTarget,
     ) {
+        val (path, copied) = writeAttachmentToWorkspace(resolver, uri, name, importId, target)
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main.immediate) {
+            if (importsOf(target).any { it.id == importId }) {
+                addFileAttachment(FileAttachment(name, mime, FileAttachments.humanBytes(size ?: copied), null, path), target)
+            } else deleteWorkspaceCopy(path)
+        }
+    }
+
+    /** A file name for an image copy that keeps a usable extension even when the picker gave none. */
+    private fun imageFileName(name: String, mime: String): String {
+        if (name.substringAfterLast('.', "").isNotEmpty()) return name
+        val ext = android.webkit.MimeTypeMap.getSingleton().getExtensionFromMimeType(mime) ?: "jpg"
+        return "$name.$ext"
+    }
+
+    /** Streams [uri] into .harness/attachments and returns its workspace-relative path and size. */
+    private suspend fun writeAttachmentToWorkspace(
+        resolver: android.content.ContentResolver,
+        uri: Uri,
+        name: String,
+        importId: String,
+        target: AttachTarget,
+    ): Pair<String, Long> {
         val fs = chatWorkspace()
         val dir = fs.resolve(".harness/attachments")
         dir.mkdirs()
@@ -1539,17 +1860,13 @@ class ChatViewModel(
                 node.writeFrom(object : java.io.FilterInputStream(input) {
                     override fun read(b: ByteArray, off: Int, len: Int): Int {
                         // Removing the chip mid-copy stops a large transfer instead of finishing it first.
-                        if (_state.value.attachmentImports.none { it.id == importId }) throw java.io.IOException("Attachment removed")
+                        if (importsOf(target).none { it.id == importId }) throw java.io.IOException("Attachment removed")
                         return super.read(b, off, len).also { if (it > 0) copied += it }
                     }
                     override fun read(): Int = super.read().also { if (it >= 0) copied++ }
                 })
             }
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main.immediate) {
-                if (_state.value.attachmentImports.any { it.id == importId }) {
-                    addFileAttachment(FileAttachment(name, mime, FileAttachments.humanBytes(size ?: copied), null, ".harness/attachments/$unique"))
-                } else node.delete()
-            }
+            return ".harness/attachments/$unique" to copied
         } catch (e: Exception) { runCatching { node.delete() }; throw e }
     }
 
@@ -1710,14 +2027,15 @@ class ChatViewModel(
                             com.androidharness.app.llm.HarnessProvider.pins + (roleModel to learned.name)
                     }
                 }
-                // Security gate (battery D1): a workspace .harness/mcp.json never
-                // spawns commands until this exact file content was approved. The
-                // dialog offers approve (and continue) or run without those servers.
+                // Security gate (battery D1): a workspace server or plugin never runs
+                // until the user allowed it at its current content, unless the
+                // workspace's trust mode says otherwise. The dialog lists only what is
+                // new or changed.
                 if (workspaceMcpGate && !s0.conversation.isChat) {
                     val unapproved = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                         val snapshot = c.configuration.load(runWorkspace)
                         pendingConfigFingerprint = c.mcp.approvalFingerprint(runWorkspace, snapshot)
-                        c.mcp.unapprovedWorkspaceServers(runWorkspace, snapshot)
+                        c.mcp.trustPrompts(runWorkspace, snapshot)
                     }
                     if (unapproved.isNotEmpty()) {
                         if (s0.autoApproveAll) {
@@ -1731,7 +2049,7 @@ class ChatViewModel(
                             pendingRunText = payload
                             pendingReplacement = replacement
                             pendingMcpWorkspace = runWorkspace
-                            _state.update { it.copy(pendingWorkspaceMcp = unapproved.map { s -> s.name }) }
+                            _state.update { it.copy(pendingWorkspaceMcp = unapproved) }
                             return@launch
                         }
                     }
@@ -2257,9 +2575,10 @@ class ChatViewModel(
      * as a fresh run. The UI warns before calling this.
      */
     fun editAndResend(message: ChatMessage, newText: String, retryModel: com.androidharness.app.data.ModelShortcut? = null,
-        searchDepth: com.androidharness.app.data.SearchDepth? = null) {
-        if (sessionId == null || message.id == null || message.role != Role.USER || newText.isBlank()) return
-        startRun(newText, replacement = message, retryModel = retryModel, searchDepth = searchDepth)
+        searchDepth: com.androidharness.app.data.SearchDepth? = null): Boolean {
+        // A photo-only message is resent with blank text, as it was first sent.
+        if (sessionId == null || message.id == null || message.role != Role.USER || newText.isBlank() && message.images.isEmpty()) return false
+        return startRun(newText, replacement = message, retryModel = retryModel, searchDepth = searchDepth)
     }
 
     /** Answers the latest question again with Deep search, kept as a new answer version; the saved depth is unchanged. */
@@ -2595,6 +2914,9 @@ class ChatViewModel(
         /** Largest file or shell output a slash command puts into its message. */
         private const val COMMAND_FILE_BYTES = 4 * 1024 * 1024
         private const val COMMAND_TIMEOUT_SECONDS = 120L
+        /** Wait after a temporary free-model limit when the gateway names none. */
+        private const val DEFAULT_RATE_LIMIT_WAIT_SECONDS = 15L
+        private const val MAX_RATE_LIMIT_WAIT_SECONDS = 120L
 
         fun factory(container: AppContainer, sessionId: String?, kind: com.androidharness.app.data.ConversationKind = com.androidharness.app.data.ConversationKind.CODE) = viewModelFactory {
             initializer { ChatViewModel(container, sessionId, kind) }

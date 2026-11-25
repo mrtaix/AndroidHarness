@@ -629,7 +629,7 @@ private fun TableBlock(
     val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
     var copied by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     val density = LocalDensity.current
     val measurer = rememberTextMeasurer()
     val bodyStyle = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp)
@@ -728,8 +728,8 @@ private fun TableBlock(
 }
 
 @Composable
-private fun answerBodyStyle(): TextStyle = MaterialTheme.typography.bodyLarge.let {
-    it.copy(lineHeight = it.fontSize * 1.6f)
+internal fun answerBodyStyle(): TextStyle = MaterialTheme.typography.bodyLarge.let {
+    it.copy(lineHeight = it.fontSize * com.androidharness.app.ui.theme.LocalChatLayout.current.lineSpacing)
 }
 
 /** Paragraph text with tap-to-open links (annotations set by [styledText]). */
@@ -854,7 +854,7 @@ private fun CodeBlock(code: String, language: String, copySource: (() -> String)
     val uiContext = androidx.compose.ui.platform.LocalContext.current
     val scheme = MaterialTheme.colorScheme
     var copied by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val clipboard = LocalClipboardManager.current
 

@@ -53,6 +53,14 @@
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
+        <!-- Lets setup tell whether this phone has an "All files access" page before offering it. -->
+        <intent>
+            <action android:name="android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION" />
+            <data android:scheme="package" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.MANAGE_ALL_FILES_ACCESS_PERMISSION" />
+        </intent>
         <!-- Android 11+ package visibility: discover installed TTS engines/voices. -->
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
@@ -69,6 +77,11 @@
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+    <!-- Android 13+ replaced the read permission above with these. Optional at setup. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
 
     <application
         android:name=".HarnessApp"
@@ -150,6 +163,20 @@
             android:exported="true"
             android:multiprocess="false" />
 
+        <!-- Lists the app workspace in the system file picker and file managers.
+             MANAGE_DOCUMENTS is held only by the system, so other apps reach it
+             only through a folder or file the user picks. -->
+        <provider
+            android:name=".workspace.WorkspaceDocumentsProvider"
+            android:authorities="${applicationId}.workspace.documents"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS">
+            <intent-filter>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+            </intent-filter>
+        </provider>
+
         <!-- Shares staged update APKs with the system package installer. -->
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -196,6 +223,31 @@
             </intent-filter>
         </receiver>
         <service android:name="androidx.work.impl.foreground.SystemForegroundService" android:foregroundServiceType="dataSync" tools:node="merge" />
+
+        <!-- Digital assistant app: a floating chat over the current app with the screen as context. -->
+        <service
+            android:name=".assistant.HarnessAssistantService"
+            android:label="@string/assistant_service_label"
+            android:permission="android.permission.BIND_VOICE_INTERACTION"
+            android:exported="true">
+            <meta-data android:name="android.voice_interaction" android:resource="@xml/harness_assistant" />
+            <intent-filter>
+                <action android:name="android.service.voice.VoiceInteractionService" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".assistant.HarnessAssistantSessionService"
+            android:permission="android.permission.BIND_VOICE_INTERACTION"
+            android:exported="true" />
+        <!-- Android requires an assistant to name a recognizer; this one declines politely. -->
+        <service
+            android:name=".assistant.HarnessRecognitionService"
+            android:label="@string/assistant_service_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

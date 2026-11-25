@@ -161,7 +161,8 @@ class ChatExperienceDeviceTest {
                 "http://localhost", "fixture"), "", c.sessions.messages(chat), { PermissionMode.FULL_ACCESS }, mutableSetOf("read_file", "shell"),
                 FileFs(root), RequestOptions(), 100_000, AgentMode.ACT, pinnedInstructions = "CODE_ONLY_PINNED",
                 conversation = ConversationConfig(ConversationKind.CHAT)).toList()
-            assertEquals(ChatExperience.tools, advertised.toSet())
+            // read_screen only shows up in chats started from the assistant panel.
+            assertEquals(ChatExperience.tools - "read_screen", advertised.toSet())
             assertTrue(prompt.startsWith(ChatExperience.SYSTEM_PROMPT))
             assertTrue(prompt.contains("Current local date: ${java.time.LocalDate.now()}"))
             assertFalse(prompt.contains(root.path)); assertFalse(prompt.contains("CODE_ONLY_PINNED"))
@@ -888,14 +889,26 @@ class ChatExperienceDeviceTest {
                         val state by vm.state.collectAsState()
                         androidx.compose.material3.Surface(Modifier.fillMaxSize()) {
                             Column(Modifier.fillMaxSize().statusBarsPadding().padding(16.dp)) {
-                                com.androidharness.app.ui.chat.components.ChatAttachmentReadiness(state, vm::removeAttachment, vm::removeFileAttachment, vm::removeAttachmentImport)
+                                com.androidharness.app.ui.chat.components.ComposerAttachmentTray(
+                                    images = state.attachments,
+                                    files = state.fileAttachments,
+                                    imports = state.attachmentImports,
+                                    imageDir = c.images.imagesDir,
+                                    imageSupport = true,
+                                    onRemoveImage = vm::removeAttachment,
+                                    onRemoveFile = vm::removeFileAttachment,
+                                    onRemoveImport = vm::removeAttachmentImport,
+                                    onOpenImage = { _, _ -> },
+                                )
                             }
                         }
                     } }
                 }
                 waitFor { vm.state.value.conversation.isChat }
                 vm.attachFile(uri(ready)); waitFor { vm.state.value.fileAttachments.any { it.name == ready.name } && vm.state.value.attachmentImports.isEmpty() }
-                await(FileAttachments.humanBytes(ready.length()) + " · Ready")
+                // The tray shows a ready file as its name and size; only failures get a status line.
+                await(ready.name)
+                await(vm.state.value.fileAttachments.single().sizeLabel)
                 vm.attachFile(uri(binary)); waitFor { vm.state.value.attachmentImports.any { it.status == AttachmentImportStatus.UNSUPPORTED } }
                 assertFalse(vm.send("Do not send an unsupported attachment"))
                 val binaryText = File(root, "binary.txt").apply { writeBytes(byteArrayOf(0, 1, 2, 3)) }
@@ -944,7 +957,7 @@ class ChatExperienceDeviceTest {
             assertEquals(saved.text, GenerationMetadata.decode(GenerationMetadata.encode(message.generation)).suppliedMemories.single().text)
             c.settings.setMemoryEnabled(false)
             val absent = mutableListOf<com.androidharness.app.data.db.MemoryEntity>()
-            assertNull(repo.promptBlock(null) { absent += it })
+            assertNull(repo.promptBlock(null, onUsed = { absent += it }))
             assertTrue(absent.isEmpty())
         } finally { c.settings.setMemoryEnabled(prefs.memoryEnabled); db.close(); root.deleteRecursively() }
     }

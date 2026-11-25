@@ -91,10 +91,14 @@ internal fun ComposerAttachmentTray(
     imports: List<AttachmentImport>,
     imageDir: File,
     imageSupport: Boolean?,
+    /** A model that cannot see images gets the text read from them instead of being blocked. */
+    imagesAsText: Boolean = false,
     onRemoveImage: (Int) -> Unit,
     onRemoveFile: (Int) -> Unit,
     onRemoveImport: (String) -> Unit,
     onOpenImage: (List<ImageRef>, Int) -> Unit,
+    /** Side inset of the tiles and hint, to line up with the surface the tray sits in. */
+    horizontalPadding: androidx.compose.ui.unit.Dp = 12.dp,
 ) {
     val items = remember(images, files, imports) {
         buildList {
@@ -110,9 +114,10 @@ internal fun ComposerAttachmentTray(
     LaunchedEffect(items.size) { if (items.isNotEmpty()) listState.animateScrollToItem(items.lastIndex) }
 
     val scheme = MaterialTheme.colorScheme
-    val photoBlocked = images.isNotEmpty() && imageSupport == false
+    val photoBlocked = images.isNotEmpty() && imageSupport == false && !imagesAsText
     val hint = when {
         photoBlocked -> stringResource(R.string.chat_attachment_model_unsupported)
+        images.isNotEmpty() && imageSupport == false -> stringResource(R.string.chat_attachment_read_as_text)
         images.isNotEmpty() && imageSupport == null -> stringResource(R.string.chat_attachment_image_unconfirmed_hint)
         else -> null
     }
@@ -120,7 +125,7 @@ internal fun ComposerAttachmentTray(
     Column(Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 2.dp)) {
         LazyRow(
             state = listState,
-            contentPadding = PaddingValues(horizontal = 12.dp),
+            contentPadding = PaddingValues(horizontal = horizontalPadding),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth().height(TileHeight + 8.dp),
             verticalAlignment = Alignment.Bottom,
@@ -151,7 +156,7 @@ internal fun ComposerAttachmentTray(
                 color = if (photoBlocked) scheme.error else scheme.onSurfaceVariant,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp),
+                modifier = Modifier.padding(start = horizontalPadding + 4.dp, end = horizontalPadding + 4.dp, top = 4.dp),
             )
         }
     }
@@ -295,17 +300,5 @@ private fun WideTile(
             }
         }
         RemoveBadge(onRemove, Modifier.align(Alignment.TopEnd))
-    }
-}
-
-/** The photos of a message being edited, each removable before the resend. */
-@Composable
-internal fun EditMessagePhotos(images: List<ImageRef>, dir: File, onRemove: (ImageRef) -> Unit) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().height(TileHeight + 8.dp)) {
-        items(images, key = { it.name }) { ref ->
-            Box(Modifier.animateItem()) {
-                PhotoTile(File(dir, ref.name), blocked = false, onOpen = {}, onRemove = { onRemove(ref) })
-            }
-        }
     }
 }

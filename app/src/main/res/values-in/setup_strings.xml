@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_welcome_title">"Selamat datang di AndroidHarness"</string>
+    <string name="setup_welcome_body">"Agen coding Anda, langsung di ponsel. Mari kita atur."</string>
+    <string name="setup_start_fresh">"Mulai baru"</string>
+    <string name="setup_start_fresh_body">"Siapkan AndroidHarness yang benar-benar baru"</string>
+    <string name="setup_restore">"Pulihkan AndroidHarness"</string>
+    <string name="setup_restore_body">"Kembalikan chat dan setelan Anda dari berkas cadangan"</string>
+
+    <string name="setup_storage_title">"Izinkan akses berkas"</string>
+    <string name="setup_storage_body">"Opsional. Tanpanya, AndroidHarness bekerja di folder sendiri dan bertanya saat tugas membutuhkan berkas Anda."</string>
+    <string name="setup_storage_all_files">"Akses semua berkas"</string>
+    <string name="setup_storage_all_files_body">"Baca dan edit folder mana pun seperti yang diharapkan terminal dan alat berkas. Terbaik untuk coding."</string>
+    <string name="setup_storage_legacy">"Izin penyimpanan"</string>
+    <string name="setup_storage_legacy_body">"Baca dan edit berkas dan folder di ponsel Anda."</string>
+    <string name="setup_storage_media">"Foto dan media"</string>
+    <string name="setup_storage_read">"Baca penyimpanan"</string>
+    <string name="setup_storage_media_body">"Baca foto, video, dan musik Anda."</string>
+    <string name="setup_storage_read_body">"Baca foto, video, musik, dan berkas bersama lainnya."</string>
+    <string name="setup_storage_unavailable">"Ponsel ini tidak memiliki setelan akses semua berkas, jadi proyek berada di folder aplikasi sendiri."</string>
+    <string name="setup_storage_skip">"Lewati untuk sekarang"</string>
+    <string name="setup_storage_granted">"Akses berkas aktif"</string>
+    <string name="setup_allow_access">"Izinkan akses"</string>
+
+    <string name="setup_restore_title">"Pulihkan data Anda"</string>
+    <string name="setup_restore_subtitle">"Pilih berkas cadangan dari ponsel lama Anda. Pulihkan satu, keduanya, atau tidak sama sekali."</string>
+    <string name="setup_restore_chats">"Chat"</string>
+    <string name="setup_restore_chats_body">"Berkas .harnessbackup berisi chat, gambar, statistik penggunaan, memori, dan cuplikan"</string>
+    <string name="setup_restore_settings">"Setelan dan penyedia"</string>
+    <string name="setup_restore_settings_body">"Berkas .hbackup yang dilindungi kata sandi berisi penyedia, kunci API, dan preferensi Anda"</string>
+    <string name="setup_restore_choose">"Pilih berkas"</string>
+    <string name="setup_restore_another">"Pulihkan lainnya"</string>
+    <string name="setup_restore_settings_done">"Setelan Anda sudah kembali"</string>
+
+    <string name="setup_powerups_title">"Ekstra"</string>
+    <string name="setup_powerups_subtitle">"Semua opsional. Anda bisa mengaktifkan salah satunya nanti di Setelan."</string>
+
+    <string name="setup_ready_title">"Semua siap"</string>
+    <string name="setup_ready_body">"Inilah yang siap digunakan."</string>
+    <string name="setup_ready_storage">"Akses berkas"</string>
+    <string name="setup_ready_notifications">"Notifikasi"</string>
+    <string name="setup_ready_shizuku">"Shizuku"</string>
+    <string name="setup_ready_linux">"Alat Linux"</string>
+    <string name="setup_ready_battery">"Proses latar belakang"</string>
+    <string name="setup_ready_media">"Foto dan media"</string>
+    <string name="setup_ready_settings">"Setelan dipulihkan"</string>
+
+    <string name="setup_continue">"Lanjutkan"</string>
+    <string name="setup_skip">"Lewati"</string>
+    <string name="setup_back">"Kembali"</string>
+    <string name="setup_step_count">"Langkah %1$d dari %2$d"</string>
+
+    <plurals name="setup_restored_chats">
+        <item quantity="other">"%1$d chat dipulihkan"</item>
+    </plurals>
+</resources>

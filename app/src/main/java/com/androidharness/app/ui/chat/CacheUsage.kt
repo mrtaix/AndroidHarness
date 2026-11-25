@@ -127,7 +127,7 @@ internal fun CacheUsageFooter(rows: List<UsageEventEntity>, running: Boolean = f
     val uiContext = androidx.compose.ui.platform.LocalContext.current
     val speedLabel = turnPerformanceLabel(null, speed?.copy(firstTokenMs = null))
     if (rows.isEmpty() && speedLabel.isBlank()) return
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     val summary = remember(rows) { cacheUsageSummary(rows) }
     val indicator = remember(rows, running) { cacheIndicatorSummary(rows, running) }
     val prices = remember(rows) { rows.map(::cachePricesFor) }
@@ -241,8 +241,7 @@ internal fun CacheUsageFooter(rows: List<UsageEventEntity>, running: Boolean = f
                     val meter = remember { Animatable(0f) }
                     val target = ((summary.rate ?: 0.0) / 100.0).toFloat()
                     LaunchedEffect(target) { meter.animateTo(target, spring(dampingRatio = 0.75f, stiffness = 90f)) }
-                    com.androidharness.app.ui.common.AppLinearProgressIndicator(
-                        { meter.value }, Modifier.fillMaxWidth(),
+                    com.androidharness.app.ui.common.AppLinearProgressIndicator(progress = { meter.value }, modifier = Modifier.fillMaxWidth(),
                         color = if (summary.cached > 0) successColor else scheme.error, trackColor = scheme.surfaceContainerHighest)
                     if (running) Text(uiContext.getString(R.string.ui_last_completed_request, (indicator.label).toString()),
                         style = MaterialTheme.typography.labelSmall, color = scheme.onSurfaceVariant)

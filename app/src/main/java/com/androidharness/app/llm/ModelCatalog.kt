@@ -1,5 +1,6 @@
 package com.androidharness.app.llm
 
+import com.androidharness.app.agent.CustomReasoning
 import com.androidharness.app.llm.jsonArrayOrAbsent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -166,11 +167,14 @@ object ModelCatalog {
                     val id = (obj["id"] as? JsonPrimitive)?.takeIf { it.isString }
                         ?.contentOrNull?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
                     val effort = obj["effort"] as? JsonObject
+                    val reasoningObj = obj["reasoning"] as? JsonObject
                     val efforts = reportedEfforts(effort?.get("supported_levels")
+                        ?: reasoningObj?.get("supported_efforts")
                         ?: obj["supported_reasoning_efforts"] ?: obj["supported_reasoning_levels"])
-                    val defaultEffort = ((effort?.get("default_level") ?: obj["default_reasoning_effort"]
-                        ?: obj["default_reasoning_level"]) as? JsonPrimitive)?.takeIf { it.isString }
-                        ?.content?.trim()?.lowercase(java.util.Locale.ROOT)?.takeIf { it in efforts.orEmpty() }
+                    val defaultEffort = ((effort?.get("default_level") ?: reasoningObj?.get("default_effort")
+                        ?: obj["default_reasoning_effort"] ?: obj["default_reasoning_level"]) as? JsonPrimitive)
+                        ?.takeIf { it.isString }?.content?.trim()?.lowercase(java.util.Locale.ROOT)
+                        ?.takeIf { it in efforts.orEmpty() }
                     // OpenRouter-style capability reporting; absent elsewhere.
                     val reasoning = (obj["reasoning"] as? JsonPrimitive)?.booleanOrNull
                         ?: (obj["capabilities"]?.jsonObjectOrAbsent()?.get("reasoning") as? JsonPrimitive)?.booleanOrNull
@@ -211,8 +215,11 @@ object ModelCatalog {
                 ?.takeIf { it.isString }?.content?.trim() ?: return null
             if (name.isBlank() || name.length > 32 || name.any(Char::isISOControl)) return null
             name.lowercase(java.util.Locale.ROOT)
-        }
-        return names.distinct()
+        }.distinct()
+        // OpenRouter lists supported_efforts from highest to lowest. When every name is a
+        // known level, order them lowest to highest; custom names keep the provider's order.
+        val levels = names.map { CustomReasoning.native(it) ?: return names }
+        return names.indices.sortedBy { levels[it].rank }.map(names::get)
     }
 
     internal fun reportedTools(obj: JsonObject): Boolean? {

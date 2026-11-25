@@ -307,6 +307,8 @@ class RunManager(
     )
     private val mainRunningSessionIds = MutableStateFlow<Set<String>>(emptySet())
     val runningSessionIds = MutableStateFlow<Set<String>>(emptySet())
+    /** Chats whose goal check is running between two goal turns, so the UI does not call the goal stopped. */
+    val goalCheckSessionIds = MutableStateFlow<Set<String>>(emptySet())
     init {
         // Turning subagents off also stops any that are running, so the switch means what it says.
         appScope.launch {
@@ -482,6 +484,8 @@ class RunManager(
         allowModelFallback: Boolean = true,
         subagentContinuation: Boolean = false,
         searchDepthOverride: com.androidharness.app.data.SearchDepth? = null,
+        /** A turn the goal loop started: usage and the task list carry on, so limits cover the whole goal. */
+        goalContinuation: Boolean = false,
     ): String {
         check(canRun()) { context.getString(com.androidharness.app.R.string.background_run_blocked) }
         val sid = sessionId ?: sessions.createSession(
@@ -540,7 +544,9 @@ class RunManager(
             if (conversation.isChat) {
                 val rows = sessions.messages(sid)
                 val question = rows.lastOrNull { it.role == Role.USER }
-                if (question?.id == replacementMessageId && question.text == text) {
+                // Only an unchanged question keeps its old answer as a version; new photos make it a different question.
+                if (question?.id == replacementMessageId && question.text == text &&
+                    question.images.map { it.name } == imageRefs.map { it.name }) {
                     sessions.archiveChatAnswer(sid, replacementMessageId)
                 }
             }
@@ -564,9 +570,9 @@ class RunManager(
             automationRunId = if (resume) it.automationRunId else automationRunId,
             completed = false,
             images = if (resume) it.images else imageRefs,
-            usedTokens = if (resume || subagentContinuation) it.usedTokens else 0,
-            usedCost = if (resume || subagentContinuation) it.usedCost else 0.0,
-            elapsedMs = if (resume || subagentContinuation) it.elapsedMs else 0,
+            usedTokens = if (resume || subagentContinuation || goalContinuation) it.usedTokens else 0,
+            usedCost = if (resume || subagentContinuation || goalContinuation) it.usedCost else 0.0,
+            elapsedMs = if (resume || subagentContinuation || goalContinuation) it.elapsedMs else 0,
             autoContinueAttempts = if (resume) it.autoContinueAttempts else 0,
         ) }
         val budget = TaskBudget(record.limits, record.usedTokens, record.usedCost, record.elapsedMs)
@@ -580,7 +586,7 @@ class RunManager(
         val live = stateOf(sid)
         // A fresh user prompt starts a fresh task list; the store is
         // session-owned so nothing leaks across chats.
-        if (!resume && !subagentContinuation && !conversation.isChat) todoStore.beginRun(sid)
+        if (!resume && !subagentContinuation && !goalContinuation && !conversation.isChat) todoStore.beginRun(sid)
         val recoveryMessages = if (resume) sessions.messages(sid).filter { it.turnId == turnId } else emptyList()
         RunRecovery.missingResults(sessions.messages(sid)).forEach { sessions.addMessage(sid, it, turnId) }
         val initialId = record.initialPromptId.ifEmpty { "$turnId-user" }
@@ -674,9 +680,12 @@ class RunManager(
                     }
                 }
                 val repoMapOn = runCatching { settings.settings.first().repoMapEnabled }.getOrDefault(true)
-                val projectConfiguration = if (conversation.isChat) com.androidharness.app.config.HarnessConfig() else
+                val loadedConfiguration = if (conversation.isChat) com.androidharness.app.config.HarnessConfig() else
                     kotlinx.coroutines.withContext(Dispatchers.IO) { mcp?.configuration(runWorkspace) ?: engine.configuration(runWorkspace) }
-                val projectToolsApproved = conversation.isChat || mcp?.isWorkspaceApproved(runWorkspace, projectConfiguration) == true
+                // Only the plugins and plugin tools this workspace trusts reach the run; activeTools checks servers itself.
+                val projectConfiguration = if (conversation.isChat || mcp == null) loadedConfiguration else
+                    kotlinx.coroutines.withContext(Dispatchers.IO) { mcp.approvedConfiguration(runWorkspace, loadedConfiguration) }
+                val projectToolsApproved = conversation.isChat || mcp != null
                 engine.run(
                     sessionId = sid,
                     turnId = turnId,
@@ -708,7 +717,7 @@ class RunManager(
                     maxIterations = maxIterations,
                     // Connected MCP servers ride into this run; a failing
                     // server must never block the run itself.
-                    extraTools = if (conversation.isChat || runWorkspace is ChatWorkspaceFs) emptyList() else mcp?.activeTools(runWorkspace, projectConfiguration, settings.settings.first().permissionMode, "$sid:$turnId", settings.settings.first().autoApproveAll).orEmpty(),
+                    extraTools = if (conversation.isChat || runWorkspace is ChatWorkspaceFs) emptyList() else mcp?.activeTools(runWorkspace, loadedConfiguration, settings.settings.first().permissionMode, "$sid:$turnId", settings.settings.first().autoApproveAll).orEmpty(),
                     projectConfiguration = projectConfiguration,
                     pluginsApproved = projectToolsApproved,
                     resolveSubagentModel = modelResolver::resolve,
@@ -807,11 +816,15 @@ class RunManager(
                     deltaBuffers.remove(sid)
                 }
                 try {
-                    val result = if (notifyOnFinish) notifyFinished(sid, if (completed) live.value.error else
+                    // A goal that will be checked notifies once it is met or stops, not after every turn.
+                    val goalPending = completed && mode != AgentMode.PLAN && record.automationRunId == null &&
+                        !hasActiveSubagents(sid) && controls.flow(sid).value.let { it.goal?.checking == true && it.queue.isEmpty() }
+                    val result = if (notifyOnFinish && !goalPending) notifyFinished(sid, if (completed) live.value.error else
                         controls.flow(sid).value.reason ?: "Task paused") else null
                     end = RunFollowUps.End(sid, runId,
-                        finishedNotification = completed && (!notifyOnFinish || result?.ok == true),
-                        recoverableInterruption = !completed && !cancelled && recoverableInterruption)
+                        finishedNotification = completed && (!notifyOnFinish || goalPending || result?.ok == true),
+                        recoverableInterruption = !completed && !cancelled && recoverableInterruption,
+                        checkGoal = goalPending)
 
                 } finally { releaseKeepalive() }
                 }
@@ -827,10 +840,13 @@ class RunManager(
                 // A send accepted while busy must reach durable storage before deciding what follows.
                 synchronized(lock) { queueWrites[sid]?.toList() }.orEmpty().forEach { it.join() }
                 if (ended.recoverableInterruption) delay(RetryPolicy.delayMs(controls.flow(sid).value.autoContinueAttempts + 1))
+                var checkGoal = false
                 kotlinx.coroutines.withContext(Dispatchers.IO) { workspaceGuard.withLock {
                     dropDeliveredSteering(sid)
                     when (val action = followUps.next(ended)) {
                         null -> Unit
+                        // Judged outside the lock, so a slow check never holds up other chats.
+                        RunFollowUps.Action.CheckGoal -> checkGoal = true
                         else -> try {
                             val saved = controls.flow(sid).value
                             val continuing = action is RunFollowUps.Action.Continue
@@ -850,6 +866,13 @@ class RunManager(
                         }
                     }
                 } }
+                if (checkGoal) continueGoal(sid, ended.runId, turnId, runConfig, apiKey, contextLimit, notifyOnFinish) { prompt ->
+                    startRunLocked(sid, prompt, emptyList(), controls.flow(sid).value.provider ?: runConfig, apiKey,
+                        settings.settings.first().permissionMode, mode, maxOutputTokens,
+                        maxContextTokens, thinking, maxIterations, workspaceOverride = runWorkspace,
+                        notifyOnFinish = notifyOnFinish, followUpRunId = ended.runId,
+                        allowModelFallback = controls.flow(sid).value.allowModelFallback, goalContinuation = true)
+                }
             }
             synchronized(lock) { followUpJobs[sid] = successor }
             successor.invokeOnCompletion { synchronized(lock) { if (followUpJobs[sid] === successor) followUpJobs.remove(sid) } }
@@ -1078,7 +1101,7 @@ class RunManager(
             is AgentEvent.Retrying -> {
                 val seconds = (event.delayMs / 1000.0).let { if (it < 1) "<1" else "%.0f".format(it) }
                 live.update {
-                    it.copy(retryStatus = "Retrying in ${seconds}s (attempt ${event.attempt}): ${event.reason}", codeDrafts = emptyMap())
+                    it.copy(retryStatus = "Retrying in ${seconds}s (attempt ${event.attempt}): ${StreamRetrier.describeStall(event.reason, forStatusLine = true)}", codeDrafts = emptyMap())
                 }
             }
 
@@ -1734,6 +1757,167 @@ class RunManager(
     fun releaseKeepalive() = keepalive.release()
     fun acquireBackgroundKeepalive() = keepalive.acquire(activeTask = false)
     fun releaseBackgroundKeepalive() = keepalive.release(activeTask = false)
+
+    /**
+     * Checks the chat's goal after a finished turn and either starts the next goal turn
+     * or records why the loop stopped. [start] runs under the workspace lock and only
+     * while [runId] is still this chat's current run, so a stop or a new message wins.
+     */
+    private suspend fun continueGoal(
+        sid: String,
+        runId: String,
+        turnId: String,
+        config: ProviderConfig,
+        apiKey: String,
+        maxContextTokens: Int,
+        notify: Boolean,
+        start: suspend (String) -> Unit,
+    ) {
+        goalCheckSessionIds.update { it + sid }
+        try { checkAndContinueGoal(sid, runId, turnId, config, apiKey, maxContextTokens, notify, start) }
+        finally { goalCheckSessionIds.update { it - sid } }
+    }
+
+    private suspend fun checkAndContinueGoal(
+        sid: String,
+        runId: String,
+        turnId: String,
+        config: ProviderConfig,
+        apiKey: String,
+        maxContextTokens: Int,
+        notify: Boolean,
+        start: suspend (String) -> Unit,
+    ) {
+        val goal = controls.flow(sid).value.goal?.takeIf { it.checking } ?: return followUps.stop(sid)
+        acquireKeepalive()
+        val verdict = try {
+            Result.success(judgeGoal(sid, turnId, goal, config, apiKey, maxContextTokens))
+        } catch (ce: CancellationException) { throw ce }
+        catch (e: Exception) { Result.failure(e) }
+        finally { releaseKeepalive() }
+        kotlinx.coroutines.withContext(Dispatchers.IO) { workspaceGuard.withLock {
+            if (!followUps.isCurrent(sid, runId)) return@withLock
+            val latest = controls.flow(sid).value.goal
+            if (latest == null || latest.setAt != goal.setAt) return@withLock followUps.stop(sid)
+            // Every check lands in the goal's history, even one that finishes after a pause.
+            // Keep improving spends every turn it was given: "reached" becomes another improvement
+            // pass, and the turn limit or budget ends it. Without it, "improve" counts as reached.
+            val outcome = verdict.getOrNull()?.outcome?.let { GoalJudge.effectiveOutcome(it, latest.keepImproving) }
+            val reached = outcome == GoalVerdict.Outcome.MET || outcome == GoalVerdict.Outcome.IMPROVE
+            val current = verdict.fold(
+                { latest.withCheck(GoalCheck(latest.turnsUsed, GoalCheck.Outcome.valueOf(outcome!!.name), it.reason, it.next, changed = it.changed), it.parts) },
+                { latest.withCheck(GoalCheck(latest.turnsUsed, GoalCheck.Outcome.FAILED, it.message ?: "no verdict"), emptyList()) },
+            ).let { if (reached && it.reachedAtTurn == null) it.copy(reachedAtTurn = latest.turnsUsed) else it }
+            if (!current.checking) {
+                controls.update(sid) { it.copy(goal = if (outcome == GoalVerdict.Outcome.MET)
+                    current.copy(status = GoalState.Status.MET, lastReason = verdict.getOrNull()?.reason) else current) }
+                return@withLock followUps.stop(sid)
+            }
+            fun finish(status: GoalState.Status, reason: String, summary: String, ok: Boolean) {
+                controls.update(sid) { it.copy(goal = current.copy(status = status, lastReason = reason)) }
+                followUps.stop(sid)
+                if (notify) appScope.launch { notifyGoal(sid, ok, summary) }
+            }
+            val judged = verdict.getOrElse { e ->
+                val reason = "Goal check failed: ${e.message ?: "no verdict"}. Send a message to try again."
+                stateOf(sid).update { it.copy(error = reason) }
+                return@withLock finish(GoalState.Status.ACTIVE, reason, reason, ok = false)
+            }.copy(outcome = outcome!!)
+            // A reached goal that was improving ends as reached, whatever stops it.
+            fun finishImproved(reason: String) {
+                val passes = current.turnsUsed - (current.reachedAtTurn ?: current.turnsUsed)
+                finish(GoalState.Status.MET, reason, if (passes > 0) "Goal reached, then improved over $passes more turns: $reason"
+                    else "Goal reached: $reason", ok = true)
+            }
+            when (judged.outcome) {
+                GoalVerdict.Outcome.MET -> finish(GoalState.Status.MET, judged.reason, "Goal reached: ${judged.reason}", ok = true)
+                GoalVerdict.Outcome.BLOCKED -> finish(GoalState.Status.BLOCKED, judged.reason, "Goal needs you: ${judged.reason}", ok = false)
+                GoalVerdict.Outcome.CONTINUE, GoalVerdict.Outcome.IMPROVE -> {
+                    if (current.turnsUsed >= current.turnLimit) return@withLock if (current.reachedAtTurn != null) finishImproved(judged.reason)
+                        else finish(GoalState.Status.LIMIT, judged.reason, "Goal stopped after ${current.turnLimit} turns: ${judged.reason}", ok = false)
+                    val saved = controls.flow(sid).value
+                    try {
+                        TaskBudget(saved.limits, saved.usedTokens, saved.usedCost, saved.elapsedMs).check()
+                        // The user's own improvement list comes before the check's suggestion, one per pass.
+                        val queued = current.improveQueue.firstOrNull().takeIf { judged.outcome == GoalVerdict.Outcome.IMPROVE }
+                        val step = if (queued == null) judged else judged.copy(next = queued)
+                        val next = current.copy(status = GoalState.Status.ACTIVE, turns = current.turns + 1, lastReason = judged.reason,
+                            improveQueue = if (queued == null) current.improveQueue else current.improveQueue.drop(1),
+                            history = if (queued == null) current.history else current.history.dropLast(1) + current.history.last().copy(next = queued))
+                        controls.update(sid) { it.copy(goal = next) }
+                        if (notify && current.notifyEachCheck) appScope.launch {
+                            notifyGoal(sid, true, "Goal check ${current.turnsUsed} of ${current.turnLimit}: ${judged.reason}")
+                        }
+                        start(GoalJudge.continuation(next, step))
+                    } catch (ce: CancellationException) { throw ce }
+                    catch (e: Exception) {
+                        if (current.reachedAtTurn != null) return@withLock finishImproved("Budget used up: ${e.message}")
+                        val reason = "Goal paused: ${e.message}"
+                        controls.update(sid) { it.copy(status = "paused", reason = reason) }
+                        stateOf(sid).update { it.copy(error = reason) }
+                        finish(GoalState.Status.ACTIVE, reason, reason, ok = false)
+                    }
+                }
+            }
+        } }
+    }
+
+    /**
+     * One goal check. It reuses the turn's warm request when this process still has
+     * it, so the provider serves the context from cache, and otherwise reads a
+     * bounded transcript. Tools are refused; usage counts toward the chat.
+     */
+    private suspend fun judgeGoal(
+        sid: String,
+        turnId: String,
+        goal: GoalState,
+        config: ProviderConfig,
+        apiKey: String,
+        maxContextTokens: Int,
+    ): GoalVerdict = kotlinx.coroutines.withContext(Dispatchers.IO) {
+        val history = sessions.messages(sid)
+        val prompt = GoalJudge.prompt(goal.text, VerificationEvidence.collect(history), goal.checkCommand, goal.parts,
+            keepImproving = goal.keepImproving && goal.turnsUsed < goal.turnLimit, focus = goal.improveFocus)
+        val warm = engine.sideContexts[sid]?.takeIf { it.warm && it.turnId == turnId }
+        val (side, request) = if (warm != null) {
+            warm to (GoalJudge.warmMessages(warm.messages, history.filter { it.turnId == turnId }) +
+                ChatMessage(role = Role.USER, text = prompt))
+        } else {
+            val cold = coldSideContext(sid, config, apiKey, maxContextTokens).copy(systemPrompt = GoalJudge.COLD_SYSTEM_PROMPT)
+            val transcript = cold.messages.single()
+            cold to listOf(transcript.copy(text = transcript.text + "\n\n" + prompt))
+        }
+        val usageTurn = GoalJudge.TURN_PREFIX + UUID.randomUUID()
+        val fallback = com.androidharness.app.llm.FallbackRun(side.config) {
+            val chat = controls.flow(sid).value
+            com.androidharness.app.llm.effectiveFallback(settings.settings.first().fallbackPolicy, chat.fallbackMode, chat.fallbackOverride)
+        }
+        var reply = ""
+        var failure: String? = null
+        kotlinx.coroutines.withContext(fallback) {
+            engine.streamAside(side, request, allows = { false }, refusal = { GoalJudge.TOOL_REFUSAL }).collect { event ->
+                when (event) {
+                    is SideEvent.AssistantCommitted -> if (event.message.text.isNotBlank()) reply = event.message.text
+                    is SideEvent.Usage -> with(event.usage) {
+                        sessions.addUsage(sid, inputTokens.toLong(), outputTokens.toLong(), cachedInputTokens.toLong(), cacheWriteTokens.toLong())
+                        sessions.recordUsage(sid, providerName, model, inputTokens.toLong(), outputTokens.toLong(),
+                            cachedInputTokens.toLong(), cacheWriteTokens.toLong(), turnId = usageTurn,
+                            cacheReported = cacheReported, cachePrices = cachePrices)
+                        controls.update(sid) { it.copy(usedTokens = it.usedTokens + inputTokens + outputTokens) }
+                    }
+                    is SideEvent.Failed -> failure = event.message
+                    is SideEvent.Finished -> if (reply.isBlank()) failure = event.reason ?: failure
+                    else -> Unit
+                }
+            }
+        }
+        GoalJudge.parse(reply) ?: error(failure ?: "the check gave no verdict")
+    }
+
+    private suspend fun notifyGoal(sessionId: String, ok: Boolean, summary: String) {
+        val title = runCatching { sessions.session(sessionId)?.title }.getOrNull() ?: "Chat"
+        RuntimeNotifier.notifyResult(RunResultNotification(sessionId = sessionId, title = title, ok = ok, summary = summary.take(160)))
+    }
 
     private suspend fun notifyFinished(sessionId: String, error: String?): RunResultNotification {
         val title = runCatching { sessions.session(sessionId)?.title }.getOrNull() ?: "Chat"

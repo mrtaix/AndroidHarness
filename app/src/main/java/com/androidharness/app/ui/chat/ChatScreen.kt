@@ -64,6 +64,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -164,7 +165,6 @@ import com.androidharness.app.ui.chat.components.SlashSuggestions
 import com.androidharness.app.ui.chat.components.SubagentCard
 import com.androidharness.app.ui.chat.components.SubagentPagerCard
 import com.androidharness.app.ui.chat.components.ThinkingBlock
-import com.androidharness.app.ui.chat.components.TodoCard
 import com.androidharness.app.ui.chat.components.ToolCallCard
 import com.androidharness.app.ui.chat.components.ToolGroupCard
 import com.androidharness.app.ui.chat.components.TurnActivityCard
@@ -367,10 +367,6 @@ private fun ChatScreenContent(
         webPreviewUrl = target ?: viewModel.container.browser.getActiveUrl()?.takeUnless { it == "about:blank" }
         showWebPreview = true
     }
-    // browser_screenshot asks for the preview when it is hidden, so a screenshot never needs a tap.
-    LaunchedEffect(viewModel.container.browser) {
-        viewModel.container.browser.previewRequests.collect { if (!showWebPreview) watchBrowser(null) }
-    }
     val browserTargets = remember(state.messages) { BrowserToolActivity.targets(state.messages) }
     val latestBrowserActivity = remember(state.messages, state.runningCalls, state.pendingApproval, browserTargets) {
         val call = state.runningCalls.lastOrNull { BrowserToolActivity.isBrowserTool(it.name) }
@@ -386,6 +382,10 @@ private fun ChatScreenContent(
     // user last typed. composerText mirrors value.text for the readers.
     var composerValue by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
     val composerText = composerValue.text
+    // The "/" menu follows the word under the cursor, so a command works anywhere in the message.
+    val slashMenu = remember(composerValue.text, composerValue.selection) {
+        SlashCommands.menuQuery(composerValue.text, composerValue.selection.end)
+    }
     var draftRestored by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(state.conversationReady) {
         if (state.conversationReady && !draftRestored) {
@@ -486,24 +486,11 @@ private fun ChatScreenContent(
         }
     }
 
-    if (state.pendingWorkspaceMcp != null) {
-        AlertDialog(
-            onDismissRequest = { viewModel.denyWorkspaceMcp() },
-            title = { Text(uiContext.getString(R.string.ui_allow_workspace_mcp_servers)) },
-            text = {
-                val names = state.pendingWorkspaceMcp?.joinToString(", ").orEmpty()
-                Text(
-                    uiContext.getString(R.string.ui_this_workspace_ships_a_harness_mcp_json, (names).toString()) +
-                        uiContext.getString(R.string.ui_its_servers_can_run_local_commands_and) +
-                        uiContext.getString(R.string.ui_only_approve_configs_you_trust),
-                )
-            },
-            confirmButton = {
-                Button(onClick = { viewModel.approveWorkspaceMcp() }) { Text(uiContext.getString(R.string.ui_approve)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { viewModel.denyWorkspaceMcp() }) { Text(uiContext.getString(R.string.ui_run_without_them)) }
-            },
+    state.pendingWorkspaceMcp?.let { prompts ->
+        WorkspaceTrustDialog(
+            prompts = prompts,
+            onContinue = { allowed, trustAll -> viewModel.approveWorkspaceMcp(allowed, trustAll) },
+            onNotNow = { viewModel.denyWorkspaceMcp() },
         )
     }
 
@@ -577,7 +564,8 @@ private fun ChatScreenContent(
     val quoteComposerFocus = com.androidharness.app.ui.LocalComposerFocus.current
     val clipboard = LocalClipboardManager.current
     var actionsMessage by remember { mutableStateOf<ChatMessage?>(null) }
-    var editingMessage by remember { mutableStateOf<ChatMessage?>(null) }
+    // True when the pending confirm resends the editor sheet's draft rather than a plain retry.
+    var confirmFromDraft by remember { mutableStateOf(false) }
     // Set while the retry choice (same model or another) is open; runs the chosen retry.
     var retryRequest by remember { mutableStateOf<((com.androidharness.app.data.ModelShortcut?) -> Unit)?>(null) }
     var confirmingEdit by remember { mutableStateOf<Pair<ChatMessage, String>?>(null) }
@@ -963,6 +951,32 @@ private fun ChatScreenContent(
     liveSession?.let { session ->
         LiveModeOverlay(session, onClose = viewModel::closeLive)
     }
+    // An active goal with no turn and no check running has stopped, for example after the app
+    // was closed or crashed or the run was stopped. A short wait skips the gap between a turn and its check.
+    val goalChecks by viewModel.goalCheckSessionIds.collectAsStateWithLifecycle()
+    val goalIdle = state.taskControl.goal?.status == com.androidharness.app.agent.GoalState.Status.ACTIVE &&
+        !state.busy && state.sessionId !in goalChecks
+    var goalStalled by remember { mutableStateOf(false) }
+    LaunchedEffect(goalIdle, state.sessionId) {
+        goalStalled = false
+        if (goalIdle) { kotlinx.coroutines.delay(2_500); goalStalled = true }
+    }
+    state.goalSheetDraft?.let { draft ->
+        com.androidharness.app.ui.chat.components.GoalSheet(
+            goal = state.taskControl.goal,
+            draft = draft,
+            limits = state.taskControl.limits,
+            running = state.busy,
+            stalled = goalStalled,
+            onStart = viewModel::startGoal,
+            onPause = viewModel::pauseGoal,
+            onResume = viewModel::resumeGoal,
+            onExtend = viewModel::extendGoal,
+            onImprovements = viewModel::setGoalImprovements,
+            onClear = viewModel::clearGoal,
+            onDismiss = viewModel::dismissGoalSheet,
+        )
+    }
     val sideThread by viewModel.sideThread.collectAsStateWithLifecycle()
     sideThread?.takeIf { it.visible && it.sessionId == state.sessionId }?.let { thread ->
         com.androidharness.app.ui.chat.components.SideQuestionSheet(
@@ -1007,12 +1021,13 @@ private fun ChatScreenContent(
                         actionsMessage = null
                     }) { Text(uiContext.getString(R.string.ui_copy)) }
                     TextButton(onClick = {
-                        editingMessage = msg
+                        viewModel.beginEdit(msg)
                         actionsMessage = null
                     }) { Text(uiContext.getString(R.string.settings_action_edit)) }
                     TextButton(
                         onClick = {
                             actionsMessage = null
+                            confirmFromDraft = false
                             confirmingEdit = msg to msg.text
                         },
                         enabled = !state.busy,
@@ -1031,46 +1046,34 @@ private fun ChatScreenContent(
         )
     }
 
-    // Prefilled editor for a user message.
-    editingMessage?.let { msg ->
-        var text by remember(msg) { mutableStateOf(UserMessageContent.visibleText(msg.text)) }
-        // The message's photos ride along with the edit; removing one here drops it from the resend.
-        var keptImages by remember(msg) { mutableStateOf(msg.images) }
-        AlertDialog(
-            onDismissRequest = { editingMessage = null },
-            title = { Text(uiContext.getString(R.string.ui_edit_message)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (keptImages.isNotEmpty()) com.androidharness.app.ui.chat.components.EditMessagePhotos(
-                        images = keptImages,
-                        dir = viewModel.container.images.imagesDir,
-                        onRemove = { ref -> keptImages = keptImages - ref },
-                    )
-                    OutlinedTextField(
-                        value = text,
-                        onValueChange = { text = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 3,
-                    )
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (text.isNotBlank()) {
-                        confirmingEdit = msg.copy(images = keptImages) to UserMessageContent.edit(text, msg.text)
-                        editingMessage = null
-                    }
-                }) { Text(uiContext.getString(R.string.settings_action_continue)) }
-            },
-            dismissButton = { TextButton(onClick = { editingMessage = null }) { Text(uiContext.getString(R.string.settings_action_cancel)) } },
+    // Editor sheet for a sent message: text, photos and files. It steps aside
+    // while the confirm dialog is up and comes back if that is cancelled.
+    state.editDraft?.takeIf { confirmingEdit == null }?.let { draft ->
+        com.androidharness.app.ui.chat.components.EditMessageSheet(
+            draft = draft,
+            imageDir = viewModel.container.images.imagesDir,
+            imageSupport = if (state.conversation.isChat) state.imageInputSupport() else true,
+            imagesAsText = state.readImageText,
+            canResend = !state.busy && viewModel.editResendRequest() != null,
+            onTextChange = viewModel::setEditText,
+            onPickImages = { uris -> uris.forEach(viewModel::attachEditImage) },
+            onPickFiles = { uris -> uris.forEach(viewModel::attachEditFile) },
+            onRemoveImage = viewModel::removeEditImage,
+            onRemoveFile = viewModel::removeEditFile,
+            onRemoveImport = viewModel::removeEditImport,
+            onOpenImage = { refs, index -> imagePreview = refs to index },
+            onResend = { viewModel.editResendRequest()?.let { request -> confirmFromDraft = true; confirmingEdit = request } },
+            onCancel = viewModel::cancelEdit,
         )
     }
 
     // Editing a message rewinds files and truncates the chat, warn first.
     confirmingEdit?.let { (msg, newText) ->
+        // Same text with changed photos is still an edit, not a retry.
+        val retry = newText == msg.text && (!confirmFromDraft || msg.images == state.editDraft?.message?.images)
         AlertDialog(
             onDismissRequest = { confirmingEdit = null },
-            title = { Text(if (newText == msg.text) uiContext.getString(R.string.ui_retry_this_message) else uiContext.getString(R.string.ui_edit_this_message)) },
+            title = { Text(if (retry) uiContext.getString(R.string.ui_retry_this_message) else uiContext.getString(R.string.ui_edit_this_message)) },
             text = {
                 Text(
                     uiContext.getString(R.string.ui_everything_after_this_message_will_be_deleted) +
@@ -1080,9 +1083,9 @@ private fun ChatScreenContent(
             },
             confirmButton = {
                 Button(onClick = {
-                    viewModel.editAndResend(msg, newText)
+                    if (confirmFromDraft) viewModel.resendEdit(msg, newText) else viewModel.editAndResend(msg, newText)
                     confirmingEdit = null
-                }) { Text(if (newText == msg.text) uiContext.getString(R.string.ui_retry) else uiContext.getString(R.string.ui_edit_resend)) }
+                }) { Text(if (retry) uiContext.getString(R.string.ui_retry) else uiContext.getString(R.string.ui_edit_resend)) }
             },
             dismissButton = { TextButton(onClick = { confirmingEdit = null }) { Text(uiContext.getString(R.string.settings_action_cancel)) } },
         )
@@ -1310,6 +1313,7 @@ private fun ChatScreenContent(
             addProviderInitially = false
             activeProviderManagerTarget = state.modelSelectionTarget
         },
+        onWaitAndResume = viewModel::resumeAfterRateLimit,
     )
 
     val selectSection by androidx.compose.runtime.rememberUpdatedState(onSelectSection)
@@ -1765,9 +1769,12 @@ private fun ChatScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(if (floatingGlass) PaddingValues(bottom = padding.calculateBottomPadding()) else padding)
+                // The keyboard height already covers the navigation bar, so imePadding below must not add it again (#127).
+                .consumeWindowInsets(padding)
                 .background(if (com.androidharness.app.ui.theme.LocalHarnessCanvasVisible.current) androidx.compose.ui.graphics.Color.Transparent else MaterialTheme.colorScheme.surface),
             contentAlignment = Alignment.TopCenter,
         ) {
+            val chatLayout = com.androidharness.app.ui.theme.LocalChatLayout.current
             Column(
                 modifier = Modifier
                     .then(if (desktopLayout) Modifier.widthIn(max = 880.dp) else Modifier)
@@ -1951,12 +1958,13 @@ private fun ChatScreenContent(
                                 .motionBlur(listState)
                                 .nestedScroll(userScrollObserver),
                             contentPadding = PaddingValues(
-                                start = 18.dp, top = 24.dp + (if (floatingGlass) padding.calculateTopPadding() else 0.dp), end = 18.dp,
-                                bottom = 24.dp + (if (floatingGlass) with(density) { glassComposerHeight.toDp() } else 0.dp),
+                                start = chatLayout.sideMargin.dp, top = 24.dp * chatLayout.density.scale + (if (floatingGlass) padding.calculateTopPadding() else 0.dp),
+                                end = chatLayout.sideMargin.dp,
+                                bottom = 24.dp * chatLayout.density.scale + (if (floatingGlass) with(density) { glassComposerHeight.toDp() } else 0.dp),
                             ),
                             // Top-anchored: a sent question stays put while the
                             // answer grows below; short chats no longer sit at the bottom.
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp * chatLayout.density.scale),
                             // A new conversation has nothing to scroll; its empty state scrolls itself if it must.
                             userScrollEnabled = !(state.messages.isEmpty() && state.streamingText == null && !state.isLoadingOlderMessages),
                         ) {
@@ -2113,6 +2121,7 @@ private fun ChatScreenContent(
                                         viewModel.container.pendingSettingsScroll.value = settingsTarget(page, anchor)
                                         onOpenSettings()
                                     },
+                                    onOpenSections = onOpenSettings,
                                 )
                             }
                         }
@@ -2120,6 +2129,13 @@ private fun ChatScreenContent(
                             Role.USER -> if (com.androidharness.app.agent.LiveTranscript.isTranscript(message)) {
                                 indexedItem(key = "message-$messageKey-live", contentType = ChatListContentType.User) {
                                     LiveTranscriptCard(messageKey, message.text)
+                                }
+                            } else if (com.androidharness.app.agent.GoalJudge.checkpoint(message.text) != null ||
+                                com.androidharness.app.agent.GoalJudge.isResume(message.text)) {
+                                // Goal-loop turns read as one slim row, so a long goal does not flood the chat.
+                                if (message.turnId != null && message.turnId == latestUserTurnId) latestTurnStarted = true
+                                indexedItem(key = "message-$messageKey-goal", contentType = ChatListContentType.User) {
+                                    com.androidharness.app.ui.chat.components.GoalCheckpointRow(message.text)
                                 }
                             } else {
                                 if (message.turnId != null && message.turnId == latestUserTurnId) latestTurnStarted = true
@@ -2139,11 +2155,13 @@ private fun ChatScreenContent(
                                         alpha = (0.3f + 0.7f * p).coerceIn(0f, 1f)
                                     }) {
                                         Column(horizontalAlignment = Alignment.End) {
+                                            val goalText = remember(message.text) { com.androidharness.app.agent.GoalJudge.kickoffGoal(message.text) }
                                             val (visibleText, fileChips) = FileAttachments.splitForDisplay(
-                                                slashSkillInstruction(UserMessageContent.visibleText(message.text))
+                                                goalText ?: slashSkillInstruction(UserMessageContent.visibleText(message.text))
                                                     ?.ifBlank { "/${slashInvokedSkillName(UserMessageContent.visibleText(message.text))}" }
                                                     ?: UserMessageContent.visibleText(message.text),
                                             )
+                                            if (goalText != null) com.androidharness.app.ui.chat.components.GoalBadge()
                                             slashInvokedSkillName(UserMessageContent.visibleText(message.text))?.let { skillName ->
                                                 SkillUsedBadge(skillName)
                                             }
@@ -2161,7 +2179,7 @@ private fun ChatScreenContent(
                                             AnimatedVisibility(state.conversation.isChat && message.turnId == latestUserTurnId && !state.busy,
                                                 enter = fadeIn(fastEffectsSpec()) + scaleIn(initialScale = 0.8f, animationSpec = fastEffectsSpec()),
                                                 exit = fadeOut(fastEffectsSpec())) {
-                                                com.androidharness.app.ui.common.FilledTonalIconButton(onClick = { editingMessage = message },
+                                                com.androidharness.app.ui.common.FilledTonalIconButton(onClick = { viewModel.beginEdit(message) },
                                                     modifier = Modifier.padding(top = 4.dp).size(34.dp),
                                                     colors = androidx.compose.material3.IconButtonDefaults.filledTonalIconButtonColors(
                                                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -2793,10 +2811,13 @@ private fun ChatScreenContent(
                 } else if (!state.conversation.isChat) {
                     SlashSuggestions(
                         state = state,
-                        query = composerText,
+                        menu = slashMenu,
                         expanded = slashExpanded && attachedSkill == null,
-                        onPick = { cmd, kind ->
-                            when (val action = SlashCommands.pickAction(cmd, composerText, kind)) {
+                        onPick = { entry ->
+                            // Words typed before or after the "/" word go with the command.
+                            val rest = (slashMenu as? SlashCommands.MenuQuery.Typing)
+                                ?.let { SlashCommands.textAround(composerText, it.start, it.end) }.orEmpty()
+                            when (val action = SlashCommands.pick(entry.command, rest, entry.kind)) {
                                 is SlashCommands.Pick.AttachSkill -> {
                                     attachedSkill = action.name
                                     setComposerText(action.leftover)
@@ -2808,7 +2829,7 @@ private fun ChatScreenContent(
                                 }
                                 is SlashCommands.Pick.Send -> {
                                     viewModel.send(action.text)
-                                    setComposerText("")
+                                    setComposerText(action.keep)
                                     attachedSkill = null
                                     slashExpanded = false
                                 }
@@ -2816,7 +2837,7 @@ private fun ChatScreenContent(
                         },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 8.dp),
+                            .padding(bottom = 3.dp),
                     )
                 }
                 val fabBottomPadding by animateDpAsState(
@@ -2870,16 +2891,20 @@ private fun ChatScreenContent(
                     state.sessionId, viewModel.container.runManager, onOpenSubagent,
                     composerText = composerText)
 
-                if (!state.conversation.isChat && state.showTodoList && state.todos.isNotEmpty()) {
-                    TodoCard(state.todos)
+                if (!state.conversation.isChat && state.showTodoList) {
+                    com.androidharness.app.ui.chat.components.FloatingTaskDock(state.sessionId, state.todos)
                 }
 
-                if (!state.conversation.isChat && state.busy) {
+                // While the "/" or "@" menu is open it sits right on the composer; the strip
+                // of run details below the chat steps aside instead of showing between them.
+                val suggestionsOpen = !state.conversation.isChat && attachedSkill == null &&
+                    ((slashExpanded && slashMenu != null) || MentionToken.parse(composerText) != null)
+                if (!state.conversation.isChat && state.busy && !suggestionsOpen) {
                     Box(Modifier.padding(horizontal = 12.dp)) {
                         CacheUsageFooter(state.turnCacheUsage[state.currentTurnId].orEmpty(), running = true)
                     }
                 }
-                RunTipHost(
+                if (!suggestionsOpen) RunTipHost(
                     busy = state.busy,
                     isChat = state.conversation.isChat,
                     settings = globalSettings,
@@ -2890,7 +2915,11 @@ private fun ChatScreenContent(
                     },
                     onTurnOff = { scope.launch { viewModel.container.settings.setRunTipsEnabled(false) } },
                 )
-                MessageQueueCard(
+                state.taskControl.goal?.takeIf { !suggestionsOpen }?.let { goal ->
+                    com.androidharness.app.ui.chat.components.GoalProgressPill(goal, running = state.busy,
+                        onClick = { viewModel.openGoalSheet() }, stalled = goalStalled, onResume = { viewModel.resumeGoal() })
+                }
+                if (!suggestionsOpen) MessageQueueCard(
                     queue = state.taskControl.queue,
                     onEdit = viewModel::editQueued, onMove = viewModel::moveQueued,
                     onSendNow = viewModel::sendQueuedNow,
@@ -2973,6 +3002,7 @@ private fun ChatScreenContent(
                             imageDir = viewModel.container.images.imagesDir,
                             // Code models fall back gracefully, so only Chat warns about image support.
                             imageSupport = if (state.conversation.isChat) state.imageInputSupport() else true,
+                            imagesAsText = state.readImageText,
                             onRemoveImage = viewModel::removeAttachment,
                             onRemoveFile = viewModel::removeFileAttachment,
                             onRemoveImport = viewModel::removeAttachmentImport,
@@ -2985,7 +3015,7 @@ private fun ChatScreenContent(
                     attachedSkill = attachedSkill,
                     onValueChange = { input ->
                         composerValue = input
-                        slashExpanded = !state.conversation.isChat && attachedSkill == null && input.text.startsWith("/")
+                        slashExpanded = !state.conversation.isChat && attachedSkill == null
                     },
                     onClearSkill = { attachedSkill = null },
                     onSend = { sendComposer(null) },
@@ -3266,7 +3296,7 @@ private fun FileEditsCard(
             path to Pair(group.sumOf { it.added }, group.sumOf { it.removed })
         }
     }
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
 
     com.androidharness.app.ui.chat.components.CodeCard(
         onClick = { expanded = !expanded }, expanded = expanded, modifier = modifier,

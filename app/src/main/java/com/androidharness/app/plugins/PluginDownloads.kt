@@ -203,7 +203,7 @@ class PluginDownloads(
     /** Any npm package can be checked; plugin, skill and MCP keywords rank first. */
     suspend fun searchNpm(query: String, page: Int = 0): List<PluginListing> {
         require(query.length <= 160)
-        val text = query.trim().ifBlank { "keywords:claude-code-plugin,claude-skill,agent-skills,mcp-server,androidharness-plugin" }
+        val text = query.trim().ifBlank { "keywords:claude-plugin" } // npm rejects text over 64 characters
         val url = npmRegistry.toHttpUrl().newBuilder().addPathSegments("-/v1/search")
             .addQueryParameter("text", text).addQueryParameter("size", "40").addQueryParameter("from", (page * 40).toString()).build()
         val data = metadata(url.toString())
@@ -231,6 +231,8 @@ class PluginDownloads(
     private val registryCursors = java.util.concurrent.ConcurrentHashMap<Pair<String, Int>, String>()
     suspend fun searchMcpRegistry(query: String, page: Int = 0): List<PluginListing> {
         require(query.length <= 160)
+        // The registry answers 422 for searches under 3 characters, so skip it until the query is long enough.
+        if (query.isNotBlank() && query.trim().length < 3) return emptyList()
         val cursor = if (page == 0) null else registryCursors[query.trim() to page] ?: return emptyList()
         val url = mcpRegistry.toHttpUrl().newBuilder().addPathSegments("v0/servers").addQueryParameter("limit", "40")
             .apply { if (query.isNotBlank()) addQueryParameter("search", query.trim()); cursor?.let { addQueryParameter("cursor", it) } }.build()

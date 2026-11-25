@@ -62,8 +62,8 @@ android {
         applicationId = "com.androidharness.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 40
-        versionName = "4.0"
+        versionCode = 41
+        versionName = "4.1"
         buildConfigField("String", "GITHUB_CLIENT_ID", "\"$githubClientId\"")
         buildConfigField("boolean", "PLAY_DISTRIBUTION", (distributionChannel == "play").toString())
         if (hasNdk) {
@@ -212,6 +212,7 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
 
     implementation(libs.core.ktx)
+    implementation(libs.mlkit.text.recognition)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.runtime.compose)

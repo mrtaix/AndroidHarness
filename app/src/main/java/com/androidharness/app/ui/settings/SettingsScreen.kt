@@ -54,6 +54,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Screenshot
+import androidx.compose.material.icons.rounded.DocumentScanner
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Fingerprint
 import androidx.compose.material.icons.rounded.AccountTree
@@ -115,6 +116,9 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.flow.map
 import androidx.compose.material3.Switch
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Button
+import androidx.compose.material.icons.rounded.Build
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -458,6 +462,27 @@ private fun SettingsScreenContent(
                             onOpenSettings = { openPage(it) }, onOpenDestination = onOpenLearnDestination,
                         ) }
                         SettingsPage.LANGUAGE -> LanguageSection()
+                        SettingsPage.ASSISTANT -> AssistantSetupSection(
+                            voiceFirst = settings.assistantVoiceFirst,
+                            onVoiceFirst = { value -> scope.launch { container.settings.setAssistantVoiceFirst(value) } },
+                            thinking = settings.assistantThinking,
+                            onThinking = { value -> scope.launch { container.settings.setAssistantThinking(value) } },
+                            speakReplies = settings.assistantSpeakReplies,
+                            onSpeakReplies = { value -> scope.launch { container.settings.setAssistantSpeakReplies(value) } },
+                            modelPicker = {
+                                ModelOverrideSection(
+                                    container = container,
+                                    settings = settings,
+                                    title = R.string.assistant_settings_model,
+                                    followLabel = R.string.assistant_settings_model_follow,
+                                    description = stringResource(R.string.assistant_settings_model_desc),
+                                    chooseLabel = R.string.assistant_settings_model_choose,
+                                    providerId = settings.assistantProviderId,
+                                    model = settings.assistantModel,
+                                    onSet = container.settings::setAssistantModel,
+                                )
+                            },
+                        )
                         SettingsPage.CHAT_OPTIONS -> ChatOptionsSection(
                             settings,
                             onStartScreen = { value -> scope.launch { container.settings.setStartScreen(value) } },
@@ -512,7 +537,17 @@ private fun SettingsScreenContent(
                                         title = stringResource(R.string.settings_anchor_manage_providers),
                                         subtitle = stringResource(R.string.settings_models_manage_subtitle),
                                         onClick = onOpenProviders,
+                                        divider = true,
                                         trailing = { Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null) },
+                                    )
+                                }
+                                SettingsAnchor(R.string.settings_read_image_text) {
+                                    SettingRow(
+                                        icon = Icons.Rounded.DocumentScanner,
+                                        title = stringResource(R.string.settings_read_image_text),
+                                        subtitle = stringResource(R.string.settings_read_image_text_desc),
+                                        onClick = { scope.launch { container.settings.setReadImageText(!settings.readImageText) } },
+                                        trailing = { Switch(checked = settings.readImageText, onCheckedChange = null) },
                                     )
                                 }
                             }
@@ -820,6 +855,7 @@ private fun TerminalSection(
         LinuxEnvironmentCard(container = container, envState = envState)
     }
     }
+    SettingsAnchor(R.string.build_tools_card_title) { AndroidBuildToolsRow(container, appShellOk) }
     SettingsDisclosure(Icons.Rounded.Shield, stringResource(R.string.settings_device_advanced), stringResource(R.string.settings_device_advanced_summary),
         anchors = setOf(R.string.settings_root_title)) {
         RootAccessSection(container)
@@ -2212,6 +2248,10 @@ private fun AppearanceSection(container: AppContainer, settings: AppSettings, sc
                     scope.launch { container.settings.setProgressBarStyle(it) }
                 }
             }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+            SettingsAnchor(R.string.chat_layout_title) {
+                ChatLayoutSection(settings.chatLayout, container.settings)
+            }
         }
     }
     SettingsAnchor(R.string.theme_canvas_title) {
@@ -2993,79 +3033,13 @@ private fun ExternalLinkIcon() {
 
 @Composable
 private fun ChatsBackupSection(container: AppContainer) {
-    val uiContext = androidx.compose.ui.platform.LocalContext.current
-    val scope = rememberCoroutineScope()
-    var busy by remember { mutableStateOf(false) }
-    var statusText by remember { mutableStateOf<String?>(null) }
-    var statusIsError by remember { mutableStateOf(false) }
-    var restorePreview by remember { mutableStateOf<com.androidharness.app.data.ChatImportPreview?>(null) }
-
-    val suggestedName = remember {
-        "androidharness-chats-" +
-            java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date()) +
-            ".json"
+    var sheet by remember { mutableStateOf<BackupSheetMode?>(null) }
+    val openBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) sheet = BackupSheetMode.Restore(uri)
     }
-
-    fun report(text: String, error: Boolean = false) {
-        statusText = text
-        statusIsError = error
-    }
-
-    val exportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/json"),
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        scope.launch {
-            busy = true
-            statusText = null
-            try {
-                val r = container.chatBackup.exportTo(uri)
-                report(uiContext.getString(R.string.ui_exported_chats_messages, (r.sessions).toString(), (r.messages).toString(), (r.memories).toString()))
-            } catch (e: ChatBackupException) {
-                report(e.message ?: uiContext.getString(R.string.ui_export_failed), error = true)
-            } catch (e: Exception) {
-                report(uiContext.getString(R.string.ui_export_failed_1230, (e.message ?: "unknown error").toString()), error = true)
-            } finally {
-                busy = false
-            }
-        }
-    }
-
-    val importLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        scope.launch {
-            busy = true
-            statusText = null
-            try {
-                val preview = container.chatBackup.prepareImport(uri)
-                if (preview.missingWorkspaces.isNotEmpty()) {
-                    restorePreview = preview
-                    return@launch
-                }
-                val r = container.chatBackup.importPrepared(preview, emptyMap())
-                report(
-                    uiContext.getString(R.string.ui_imported_chats_messages, (r.sessions).toString(), (r.messages).toString(), (r.memories).toString()) +
-                        if (r.skipped > 0) uiContext.getString(R.string.ui_already_present, (r.skipped).toString()) else ".",
-                )
-            } catch (e: ChatBackupException) {
-                report(e.message ?: uiContext.getString(R.string.ui_import_failed), error = true)
-            } catch (e: Exception) {
-                report(uiContext.getString(R.string.ui_import_failed_1234, (e.message ?: "unknown error").toString()), error = true)
-            } finally {
-                busy = false
-            }
-        }
-    }
-
-    restorePreview?.let { preview -> ChatRestoreDialog(container, preview,
-        onDismiss = { restorePreview = null }, onImported = { result ->
-            restorePreview = null
-            report(uiContext.getString(R.string.ui_imported_chats_messages_already_present, (result.sessions).toString(), (result.messages).toString(), (result.memories).toString(), (result.skipped).toString()))
-        }) }
+    sheet?.let { mode -> BackupRestoreSheet(container, mode, onDismiss = { sheet = null }) }
     SettingsPanel(Modifier.fillMaxWidth().settingsAnchor(R.string.settings_backup_chat_backup)) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     Icons.Rounded.Archive,
@@ -3075,36 +3049,85 @@ private fun ChatsBackupSection(container: AppContainer) {
                 )
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.settings_backup_chat_backup), style = MaterialTheme.typography.titleSmall)
+                    Text(stringResource(R.string.backup_title), style = MaterialTheme.typography.titleSmall)
                     Text(
-                        uiContext.getString(R.string.ui_save_all_chats_to_a_file_or) +
-                            uiContext.getString(R.string.ui_chats_and_messages_only_no_api_keys),
+                        stringResource(R.string.backup_card_body),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { exportLauncher.launch(suggestedName) }, enabled = !busy) {
-                    Text(stringResource(R.string.settings_action_export))
+                Button(onClick = { sheet = BackupSheetMode.Export }) {
+                    Text(stringResource(R.string.backup_action_back_up))
                 }
-                OutlinedButton(
-                    onClick = {
-                        importLauncher.launch(arrayOf("application/json", "application/octet-stream", "text/*"))
-                    },
-                    enabled = !busy,
-                ) {
-                    Text(stringResource(R.string.settings_action_import))
+                OutlinedButton(onClick = { openBackup.launch(arrayOf("*/*")) }) {
+                    Text(stringResource(R.string.backup_action_restore))
                 }
             }
-            if (busy) ThinLinearProgress(Modifier.fillMaxWidth())
-            statusText?.let {
-                Text(
-                    it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (statusIsError) MaterialTheme.colorScheme.error
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+        }
+    }
+}
+
+/** One-tap setup for on-device APK builds; the same install the agent's android_sdk_install card runs. */
+@Composable
+private fun AndroidBuildToolsRow(container: AppContainer, linuxReady: Boolean) {
+    val setup = remember(container) { com.androidharness.app.data.env.AndroidBuildToolsSetup(container.linuxEnv) }
+    val run by com.androidharness.app.data.env.AndroidBuildToolsSetup.run.collectAsStateWithLifecycle()
+    var gradle by rememberSaveable { mutableStateOf(false) }
+    // Re-read what's on disk whenever an install finishes or Linux changes state.
+    val status = remember(linuxReady, run, gradle) { setup.status(gradle = gradle || setup.gradleInstalled()) }
+    val includeGradle = gradle || setup.gradleInstalled()
+    val total = setup.packages(includeGradle).size + 1
+    val have = total - status.missing.size - (if (status.platform) 0 else 1)
+    val working = run is com.androidharness.app.data.env.AndroidBuildToolsSetup.Run.Working
+    val summary = when {
+        working -> stringResource(R.string.build_tools_settings_installing)
+        !linuxReady -> stringResource(R.string.build_tools_settings_summary_needs_linux)
+        status.ready -> stringResource(R.string.build_tools_settings_summary_ready)
+        have == 0 -> stringResource(R.string.build_tools_settings_summary_missing)
+        else -> stringResource(R.string.build_tools_settings_summary_partial, have, total)
+    }
+    SettingsDisclosure(Icons.Rounded.Build, stringResource(R.string.build_tools_card_title), summary,
+        anchors = setOf(R.string.build_tools_card_title), forceExpanded = working) {
+        SettingsPanel(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(stringResource(R.string.build_tools_settings_body), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val installed = status.missing.toSet()
+                com.androidharness.app.ui.chat.components.AndroidBuildToolsComponents(includeGradle,
+                    com.androidharness.app.data.env.AndroidSdkRepository.DEFAULT_API) { pkg ->
+                    if (pkg == "platform") status.platform else linuxReady && pkg !in installed
+                }
+                if (linuxReady && !setup.gradleInstalled()) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.build_tools_settings_include_gradle), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                        Switch(checked = gradle, onCheckedChange = { gradle = it }, enabled = !working)
+                    }
+                }
+                when (val r = run) {
+                    is com.androidharness.app.data.env.AndroidBuildToolsSetup.Run.Working -> {
+                        val fraction = r.totalBytes?.takeIf { it > 0 }?.let { (r.doneBytes.toFloat() / it).coerceIn(0f, 1f) }
+                        if (fraction != null) LinearProgressIndicator(progress = { fraction }, Modifier.fillMaxWidth())
+                        else LinearProgressIndicator(Modifier.fillMaxWidth())
+                        if (r.label.isNotBlank()) Text(r.label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    is com.androidharness.app.data.env.AndroidBuildToolsSetup.Run.Failed ->
+                        Text(stringResource(R.string.build_tools_settings_failed, r.message), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error)
+                    else -> Unit
+                }
+                when {
+                    !linuxReady -> Text(stringResource(R.string.build_tools_settings_needs_linux), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    status.ready && !gradle -> StatusText(stringResource(R.string.build_tools_settings_done), ok = true)
+                    else -> Button(onClick = { com.androidharness.app.data.env.AndroidBuildToolsSetup.startFromSettings(container.linuxEnv, includeGradle) },
+                        enabled = !working, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(if (have == 0) R.string.build_tools_install else R.string.build_tools_settings_reinstall))
+                    }
+                }
+                if (!status.ready || gradle) Text(stringResource(R.string.build_tools_download_note), style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

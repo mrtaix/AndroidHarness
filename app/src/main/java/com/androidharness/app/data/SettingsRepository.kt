@@ -49,7 +49,8 @@ data class AppSettings(
     /** Motion blur that follows fast vertical scrolling. Only drawn on Android 12+. */
     val motionBlurEnabled: Boolean = false,
     val motionBlurIntensity: Float = 0.5f,
-    val progressBarStyle: ProgressBarStyle = ProgressBarStyle.FLAT,
+    val progressBarStyle: ProgressBarStyle = ProgressBarStyle.SQUIGGLY,
+    val chatLayout: ChatLayoutStyle = ChatLayoutStyle(),
     val workspaceLayout: WorkspaceLayoutMode = WorkspaceLayoutMode.AUTO,
     val editorWordWrap: Boolean = false,
     val editorMatchCase: Boolean = false,
@@ -168,6 +169,15 @@ data class AppSettings(
     val voiceAutoSendShowInPlus: Boolean = true,
     /** Silence before auto-sending dictation, in milliseconds (1000..5000, 100ms steps). */
     val voiceAutoSendTimeoutMs: Int = 2000,
+    /** The assistant panel over other apps starts listening as soon as it opens. */
+    val assistantVoiceFirst: Boolean = false,
+    /** How hard the assistant panel thinks; each model maps it to its own levels or ignores it. */
+    val assistantThinking: ThinkingLevel = ThinkingLevel.LOW,
+    /** The assistant panel reads its answer aloud when the question was spoken. */
+    val assistantSpeakReplies: Boolean = true,
+    /** The assistant panel's own model; null follows the Chat model. */
+    val assistantProviderId: String? = null,
+    val assistantModel: String? = null,
     /** Experimental hands-free voice planning. Device-local, never restored from a backup. */
     val liveMode: LiveModeSettings = LiveModeSettings(),
     /** Legacy Code resume toggle kept for old backups; codeStart is authoritative. */
@@ -178,6 +188,8 @@ data class AppSettings(
     val chatKeepThinkingCollapsed: Boolean = true,
     /** Lets Chat set reminders that show as notifications. */
     val chatRemindersEnabled: Boolean = true,
+    /** Models that cannot see images get the text read from them on the device instead. */
+    val readImageText: Boolean = true,
     val chatSearchCodeChats: Boolean = true,
     val codeSearchChatChats: Boolean = true,
     /** AH Rumble: a haptic pulse whenever a Chat turn moves to a new step. */
@@ -380,6 +392,9 @@ class SettingsRepository(private val context: Context) {
         val MOTION_BLUR_ENABLED = booleanPreferencesKey("motion_blur_enabled")
         val MOTION_BLUR_INTENSITY = floatPreferencesKey("motion_blur_intensity")
         val PROGRESS_BAR_STYLE = stringPreferencesKey("progress_bar_style")
+        val CHAT_DENSITY = stringPreferencesKey("chat_density")
+        val CHAT_LINE_SPACING = floatPreferencesKey("chat_line_spacing")
+        val CHAT_SIDE_MARGIN = intPreferencesKey("chat_side_margin")
         val WORKSPACE_LAYOUT = stringPreferencesKey("workspace_layout")
         val EDITOR_WORD_WRAP = booleanPreferencesKey("editor_word_wrap")
         val EDITOR_MATCH_CASE = booleanPreferencesKey("editor_match_case")
@@ -443,6 +458,11 @@ class SettingsRepository(private val context: Context) {
         val TTS_ALWAYS_SPEAK = booleanPreferencesKey("tts_always_speak")
         val VOICE_PROMO_SEEN = booleanPreferencesKey("voice_promo_seen")
         val VOICE_AUTO_SEND = booleanPreferencesKey("voice_auto_send")
+        val ASSISTANT_VOICE_FIRST = booleanPreferencesKey("assistant_voice_first")
+        val ASSISTANT_THINKING = stringPreferencesKey("assistant_thinking")
+        val ASSISTANT_SPEAK_REPLIES = booleanPreferencesKey("assistant_speak_replies")
+        val ASSISTANT_PROVIDER = stringPreferencesKey("assistant_provider_id")
+        val ASSISTANT_MODEL = stringPreferencesKey("assistant_model")
         val VOICE_AUTO_SEND_SHOW_IN_PLUS = booleanPreferencesKey("voice_auto_send_show_in_plus")
         val VOICE_AUTO_SEND_TIMEOUT_SECONDS = intPreferencesKey("voice_auto_send_timeout_seconds")
         val VOICE_AUTO_SEND_TIMEOUT_MS = intPreferencesKey("voice_auto_send_timeout_ms")
@@ -451,6 +471,7 @@ class SettingsRepository(private val context: Context) {
         val START_SCREEN = stringPreferencesKey("start_screen")
         val CHAT_KEEP_THINKING_COLLAPSED = booleanPreferencesKey("chat_keep_thinking_collapsed")
         val CHAT_REMINDERS_ENABLED = booleanPreferencesKey("chat_reminders_enabled")
+        val READ_IMAGE_TEXT = booleanPreferencesKey("read_image_text")
         val RUMBLE_ENABLED = booleanPreferencesKey("rumble_enabled")
         val RUMBLE_STRENGTH = intPreferencesKey("rumble_strength")
         val RUMBLE_SMOOTHNESS = intPreferencesKey("rumble_smoothness")
@@ -535,7 +556,12 @@ class SettingsRepository(private val context: Context) {
             motionBlurEnabled = prefs[Keys.MOTION_BLUR_ENABLED] ?: false,
             motionBlurIntensity = (prefs[Keys.MOTION_BLUR_INTENSITY] ?: .5f).let { if (it.isFinite()) it.coerceIn(0f, 1f) else .5f },
             progressBarStyle = ProgressBarStyle.entries.firstOrNull { it.name == prefs[Keys.PROGRESS_BAR_STYLE] }
-                ?: ProgressBarStyle.FLAT,
+                ?: ProgressBarStyle.SQUIGGLY,
+            chatLayout = ChatLayoutStyle(
+                density = ChatDensity.entries.firstOrNull { it.name == prefs[Keys.CHAT_DENSITY] } ?: ChatDensity.DEFAULT,
+                lineSpacing = ChatLayoutStyle.clampLineSpacing(prefs[Keys.CHAT_LINE_SPACING]),
+                sideMargin = ChatLayoutStyle.clampSideMargin(prefs[Keys.CHAT_SIDE_MARGIN]),
+            ),
             workspaceLayout = WorkspaceLayoutMode.fromStored(prefs[Keys.WORKSPACE_LAYOUT])
                 ?: WorkspaceLayoutMode.AUTO,
             editorWordWrap = prefs[Keys.EDITOR_WORD_WRAP] ?: false,
@@ -607,6 +633,13 @@ class SettingsRepository(private val context: Context) {
             ttsAlwaysSpeak = prefs[Keys.TTS_ALWAYS_SPEAK] ?: false,
             voicePromoSeen = prefs[Keys.VOICE_PROMO_SEEN] ?: false,
             voiceAutoSend = prefs[Keys.VOICE_AUTO_SEND] ?: false,
+            assistantVoiceFirst = prefs[Keys.ASSISTANT_VOICE_FIRST] ?: false,
+            assistantThinking = prefs[Keys.ASSISTANT_THINKING]
+                ?.let { runCatching { ThinkingLevel.valueOf(it) }.getOrNull() }
+                ?: ThinkingLevel.LOW,
+            assistantSpeakReplies = prefs[Keys.ASSISTANT_SPEAK_REPLIES] ?: true,
+            assistantProviderId = prefs[Keys.ASSISTANT_PROVIDER],
+            assistantModel = prefs[Keys.ASSISTANT_MODEL],
             voiceAutoSendShowInPlus = prefs[Keys.VOICE_AUTO_SEND_SHOW_IN_PLUS] ?: true,
             voiceAutoSendTimeoutMs = (prefs[Keys.VOICE_AUTO_SEND_TIMEOUT_MS] ?: prefs[Keys.VOICE_AUTO_SEND_TIMEOUT_SECONDS]?.let { it * 1000 } ?: 2000).coerceIn(1000, 5000),
             liveMode = liveModeFrom(prefs[Keys.LIVE_MODE]),
@@ -617,6 +650,7 @@ class SettingsRepository(private val context: Context) {
             codeSearchChatChats = prefs[Keys.CODE_SEARCH_CHAT_CHATS] ?: true,
             chatKeepThinkingCollapsed = prefs[Keys.CHAT_KEEP_THINKING_COLLAPSED] ?: true,
             chatRemindersEnabled = prefs[Keys.CHAT_REMINDERS_ENABLED] ?: true,
+            readImageText = prefs[Keys.READ_IMAGE_TEXT] ?: true,
             rumbleEnabled = prefs[Keys.RUMBLE_ENABLED] ?: true,
             rumbleStrength = (prefs[Keys.RUMBLE_STRENGTH] ?: RUMBLE_DEFAULT_STRENGTH).coerceIn(0, 100),
             rumbleSmoothness = (prefs[Keys.RUMBLE_SMOOTHNESS] ?: RUMBLE_DEFAULT_SMOOTHNESS).coerceIn(0, 100),
@@ -693,6 +727,9 @@ class SettingsRepository(private val context: Context) {
             p[Keys.MOTION_BLUR_ENABLED] = s.motionBlurEnabled
             p[Keys.MOTION_BLUR_INTENSITY] = s.motionBlurIntensity.let { if (it.isFinite()) it.coerceIn(0f, 1f) else .5f }
             p[Keys.PROGRESS_BAR_STYLE] = s.progressBarStyle.name
+            p[Keys.CHAT_DENSITY] = s.chatLayout.density.name
+            p[Keys.CHAT_LINE_SPACING] = ChatLayoutStyle.clampLineSpacing(s.chatLayout.lineSpacing)
+            p[Keys.CHAT_SIDE_MARGIN] = ChatLayoutStyle.clampSideMargin(s.chatLayout.sideMargin)
             p[Keys.WORKSPACE_LAYOUT] = s.workspaceLayout.name
             p[Keys.EDITOR_WORD_WRAP] = s.editorWordWrap
             p[Keys.EDITOR_MATCH_CASE] = s.editorMatchCase
@@ -740,6 +777,9 @@ class SettingsRepository(private val context: Context) {
             p[Keys.TTS_SPEED] = s.ttsSpeed
             p[Keys.TTS_ALWAYS_SPEAK] = s.ttsAlwaysSpeak
             p[Keys.VOICE_AUTO_SEND] = s.voiceAutoSend
+            p[Keys.ASSISTANT_VOICE_FIRST] = s.assistantVoiceFirst
+            p[Keys.ASSISTANT_THINKING] = s.assistantThinking.name
+            p[Keys.ASSISTANT_SPEAK_REPLIES] = s.assistantSpeakReplies
             p[Keys.VOICE_AUTO_SEND_SHOW_IN_PLUS] = s.voiceAutoSendShowInPlus
             p[Keys.VOICE_AUTO_SEND_TIMEOUT_MS] = s.voiceAutoSendTimeoutMs.coerceIn(1000, 5000)
             p[Keys.VOICE_AUTO_SEND_TIMEOUT_SECONDS] = s.voiceAutoSendTimeoutMs.coerceIn(1000, 5000) / 1000
@@ -750,6 +790,7 @@ class SettingsRepository(private val context: Context) {
             p[Keys.CODE_SEARCH_CHAT_CHATS] = s.codeSearchChatChats
             p[Keys.CHAT_KEEP_THINKING_COLLAPSED] = s.chatKeepThinkingCollapsed
             p[Keys.CHAT_REMINDERS_ENABLED] = s.chatRemindersEnabled
+            p[Keys.READ_IMAGE_TEXT] = s.readImageText
             p[Keys.RUMBLE_ENABLED] = s.rumbleEnabled
             p[Keys.RUMBLE_STRENGTH] = s.rumbleStrength.coerceIn(0, 100)
             p[Keys.RUMBLE_SMOOTHNESS] = s.rumbleSmoothness.coerceIn(0, 100)
@@ -797,7 +838,8 @@ class SettingsRepository(private val context: Context) {
             listOf(Keys.ACTIVE_PROVIDER to s.activeProviderId, Keys.ACTIVE_MODEL to s.activeModel,
                 Keys.PLANNING_PROVIDER to s.planningProviderId, Keys.PLANNING_MODEL to s.planningModel,
                 Keys.EXECUTION_PROVIDER to s.executionProviderId, Keys.EXECUTION_MODEL to s.executionModel,
-                Keys.SUBAGENT_PROVIDER to s.subagentProviderId, Keys.SUBAGENT_MODEL to s.subagentModel
+                Keys.SUBAGENT_PROVIDER to s.subagentProviderId, Keys.SUBAGENT_MODEL to s.subagentModel,
+                Keys.ASSISTANT_PROVIDER to s.assistantProviderId, Keys.ASSISTANT_MODEL to s.assistantModel
             ).forEach { (key, value) -> if (value == null) p.remove(key) else p[key] = value }
         }
     }
@@ -951,6 +993,12 @@ class SettingsRepository(private val context: Context) {
         }
     }
 
+    /** Replaces all custom sections at once, as the agent's changes and their Undo do. Throws when [sections] break the limits. */
+    suspend fun setCustomSections(sections: List<CustomSettingsSection>) {
+        require(CustomSettingsSections.valid(sections)) { "Those sections break the limits." }
+        context.settingsStore.edit { prefs -> prefs[Keys.CUSTOM_SECTIONS] = CustomSettingsSections.encode(sections) }
+    }
+
     suspend fun saveCustomPalette(palette: CustomThemePalette) {
         require(palette.valid())
         context.settingsStore.edit { prefs ->
@@ -1013,6 +1061,14 @@ class SettingsRepository(private val context: Context) {
             if (canvas.adaptColors) {
                 prefs[Keys.DYNAMIC_COLOR] = false
             }
+        }
+    }
+
+    suspend fun setChatLayout(style: ChatLayoutStyle) {
+        context.settingsStore.edit {
+            it[Keys.CHAT_DENSITY] = style.density.name
+            it[Keys.CHAT_LINE_SPACING] = ChatLayoutStyle.clampLineSpacing(style.lineSpacing)
+            it[Keys.CHAT_SIDE_MARGIN] = ChatLayoutStyle.clampSideMargin(style.sideMargin)
         }
     }
 
@@ -1116,6 +1172,18 @@ class SettingsRepository(private val context: Context) {
         context.settingsStore.edit { it[Keys.VOICE_AUTO_SEND] = enabled }
     }
 
+    suspend fun setAssistantVoiceFirst(enabled: Boolean) {
+        context.settingsStore.edit { it[Keys.ASSISTANT_VOICE_FIRST] = enabled }
+    }
+
+    suspend fun setAssistantThinking(level: ThinkingLevel) {
+        context.settingsStore.edit { it[Keys.ASSISTANT_THINKING] = level.name }
+    }
+
+    suspend fun setAssistantSpeakReplies(enabled: Boolean) {
+        context.settingsStore.edit { it[Keys.ASSISTANT_SPEAK_REPLIES] = enabled }
+    }
+
     suspend fun setVoiceAutoSendShowInPlus(visible: Boolean) {
         context.settingsStore.edit { it[Keys.VOICE_AUTO_SEND_SHOW_IN_PLUS] = visible }
     }
@@ -1165,6 +1233,20 @@ class SettingsRepository(private val context: Context) {
             else prefs[Keys.EXECUTION_PROVIDER] = providerId
             if (model.isNullOrBlank()) prefs.remove(Keys.EXECUTION_MODEL)
             else prefs[Keys.EXECUTION_MODEL] = model
+        }
+    }
+
+    /** The assistant panel's model; a null provider goes back to following Chat. */
+    suspend fun setAssistantModel(providerId: String?, model: String?) {
+        context.settingsStore.edit { prefs ->
+            if (providerId.isNullOrBlank()) {
+                prefs.remove(Keys.ASSISTANT_PROVIDER)
+                prefs.remove(Keys.ASSISTANT_MODEL)
+            } else {
+                prefs[Keys.ASSISTANT_PROVIDER] = providerId
+                if (model.isNullOrBlank()) prefs.remove(Keys.ASSISTANT_MODEL)
+                else prefs[Keys.ASSISTANT_MODEL] = model
+            }
         }
     }
 
@@ -1224,7 +1306,8 @@ class SettingsRepository(private val context: Context) {
             listOf(Keys.ACTIVE_PROVIDER to Keys.ACTIVE_MODEL,
                 Keys.PLANNING_PROVIDER to Keys.PLANNING_MODEL,
                 Keys.EXECUTION_PROVIDER to Keys.EXECUTION_MODEL,
-                Keys.SUBAGENT_PROVIDER to Keys.SUBAGENT_MODEL).forEach { (providerKey, modelKey) ->
+                Keys.SUBAGENT_PROVIDER to Keys.SUBAGENT_MODEL,
+                Keys.ASSISTANT_PROVIDER to Keys.ASSISTANT_MODEL).forEach { (providerKey, modelKey) ->
                 val id = prefs[providerKey]
                 if (id != null && (com.androidharness.app.local.LocalModelCatalog.isLocal(id) || com.androidharness.app.chatgpt.ChatGptProtocol.isProvider(id)) && id !in availableIds) {
                     if (providerKey == Keys.ACTIVE_PROVIDER) {
@@ -1480,6 +1563,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setChatRemindersEnabled(value: Boolean) {
         context.settingsStore.edit { it[Keys.CHAT_REMINDERS_ENABLED] = value }
+    }
+
+    suspend fun setReadImageText(value: Boolean) {
+        context.settingsStore.edit { it[Keys.READ_IMAGE_TEXT] = value }
     }
 
     suspend fun setRumbleEnabled(value: Boolean) {
