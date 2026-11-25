@@ -152,7 +152,6 @@ internal fun toolLogoShape(call: com.androidharness.app.core.ToolCallData): Logo
 }
 
 /**
-/**
  * Live milestone progress. Completion comes only from explicit agent updates.
  * The header badge spins while work remains, a wavy bar tracks progress, and
  * each step carries its own small shape: cookie in progress, circle when done.
