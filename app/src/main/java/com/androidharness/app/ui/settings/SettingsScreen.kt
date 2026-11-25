@@ -581,6 +581,7 @@ private fun SettingsScreenContent(
                         }
                         SettingsPage.CODE_INTELLIGENCE -> CodeIntelligenceSection(container, workspace, currentProject)
                         SettingsPage.HTTP_CLIENT -> HttpClientSection()
+                        SettingsPage.MISSIONS -> com.androidharness.app.ui.mission.MissionScreen(container)
                         SettingsPage.ADVANCED_FEATURES -> AdvancedFeaturesSection(container, settings)
                         SettingsPage.CAVEMAN -> CavemanSection(container, settings)
                         SettingsPage.VOICE -> VoiceSpeechSection(container, settings, scope)

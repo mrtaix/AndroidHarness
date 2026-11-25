@@ -13,3 +13,4 @@ Pre-flight: Task 2 consumes Task 1's `MissionState`/`MissionRetryPolicy`; Task 3
 | 2 store | `MissionStore.kt`, `MissionStoreTest.kt` | RED unresolved ref; GREEN OK (18 tests total) | PASS | pending |
 | 3 manager | `MissionManager.kt`, `MissionManagerTest.kt`, `MissionModel.kt` + `MissionStore.kt` (nextRetryAtMs) | RED unresolved refs; GREEN OK (25 tests) | PASS | pending |
 | 4 bridge + issue | `MissionIssue.kt`, `MissionGoalBridge.kt`, `MissionBridgeTest.kt`, `HarnessApp.kt`, `ChatViewModel.kt` | RED unresolved refs; GREEN OK (31 tests) | PASS (CI pending for wiring) | pending |
+| 5 UI + boot | `MissionScreen.kt`, `SettingsNavigation.kt`, `SettingsHome.kt`, `SettingsScreen.kt`, `HarnessApp.kt`, strings | compile checked by CI; device test NOT RUN locally | NOT RUN | pending |

@@ -382,6 +382,12 @@
     <string name="chief_tree_approve" translatable="false">Approve</string>
     <string name="chief_tree_reject" translatable="false">Reject</string>
     <string name="chief_tree_stop" translatable="false">Stop</string>
+    <string name="missions_title" translatable="false">Overnight missions</string>
+    <string name="missions_desc" translatable="false">Long-running agent missions with retry, budgets and pull requests</string>
+    <string name="missions_empty" translatable="false">No missions yet</string>
+    <string name="missions_resume" translatable="false">Resume</string>
+    <string name="missions_pause" translatable="false">Pause</string>
+    <string name="missions_cancel" translatable="false">Cancel</string>
     <string name="subagents_background_description">Keep chatting while subagents explore in the background. Background tasks use read-only tools; two run at a time.</string>
     <string name="subagents_notify_completion">Notify on completion</string>
     <string name="subagents_notify_description">Get a notification with the result. Tap to open the subagent’s chat.</string>

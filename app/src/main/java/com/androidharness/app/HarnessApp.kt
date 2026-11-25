@@ -59,6 +59,8 @@ class HarnessApp : Application() {
         memoryScope.launch { container.settings.ensureRumbleCombo() }
         // A force stop clears every alarm without telling the app, so set them again on each start.
         memoryScope.launch { runCatching { container.reminders.rescheduleAll() } }
+        // Overnight missions survive process death; resume waiting ones on boot.
+        memoryScope.launch { runCatching { container.missionManager.resumeAll() } }
     }
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
@@ -516,6 +518,7 @@ class AppContainer(val appContext: Context) {
                 return Regex("url:\\s*(\\S+)").find(result.output)?.groupValues?.get(1)
             }
         },
+        notifier = { _, message -> com.androidharness.app.RuntimeNotifier.update("Mission: $message") },
     )
     val automation = com.androidharness.app.automation.AutomationManager(this)
     val reminders = com.androidharness.app.reminders.ReminderManager(appContext)

@@ -205,6 +205,12 @@ internal enum class SettingsPage(
         R.string.settings_group_integrations,
         "telegram bot remote control pairing notifications gateway",
     ),
+    MISSIONS(
+        R.string.missions_title,
+        R.string.missions_desc,
+        R.string.settings_group_integrations,
+        "mission overnight agent goal issue github pull request retry network resume budget",
+    ),
     WORKSPACE(
         R.string.settings_page_workspace_title,
         R.string.settings_page_workspace_desc,
@@ -455,6 +461,7 @@ internal fun settingsDeepLink(target: String): SettingsPage? = when (target) {
     "voice" -> SettingsPage.VOICE
     "live", "live-mode" -> SettingsPage.LIVE_MODE
     "telegram" -> SettingsPage.TELEGRAM
+    "missions" -> SettingsPage.MISSIONS
     "plugins", "plugin-manager" -> SettingsPage.PLUGINS
     "configuration", "config" -> SettingsPage.CONFIGURATION
     "agent" -> SettingsPage.AGENT
