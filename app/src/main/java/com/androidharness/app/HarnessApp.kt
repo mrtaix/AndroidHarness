@@ -1,5 +1,8 @@
 package com.androidharness.app
 
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+
 import android.app.Application
 import android.content.Context
 import android.webkit.WebView
@@ -476,6 +479,44 @@ class AppContainer(val appContext: Context) {
         canRun = runtimePolicy::canRun,
     )
     val githubRepositories = com.androidharness.app.github.GitHubWorkspaces(this)
+    val missionManager = com.androidharness.app.agent.MissionManager(
+        store = com.androidharness.app.agent.MissionStore(java.io.File(appContext.filesDir, "missions")),
+        starter = object : com.androidharness.app.agent.MissionRunStarter {
+            override suspend fun start(mission: com.androidharness.app.agent.MissionState, prompt: String): String {
+                val saved = settings.settings.first()
+                val all = kotlinx.coroutines.flow.first(providers.providers)
+                val provider = all.firstOrNull { it.id == saved.activeProviderId } ?: all.firstOrNull()
+                    ?: error("No model provider configured for this mission.")
+                val config = providers.resolveHarnessConfig(provider)
+                return runManager.startRun(
+                    sessionId = mission.sessionId,
+                    text = prompt,
+                    imageRefs = emptyList(),
+                    config = config,
+                    apiKey = providers.apiKey(provider.id).orEmpty(),
+                    permissionMode = saved.permissionMode,
+                    mode = com.androidharness.app.agent.AgentMode.ACT,
+                    maxOutputTokens = 32_768,
+                    maxContextTokens = 128_000,
+                    thinking = com.androidharness.app.agent.ThinkingLevel.OFF,
+                    maxIterations = 0,
+                )
+            }
+        },
+        sideEffects = object : com.androidharness.app.agent.MissionSideEffects {
+            override suspend fun onMet(mission: com.androidharness.app.agent.MissionState): String? {
+                val tool = com.androidharness.app.tools.GitHubCreatePullRequestTool(
+                    githubRepositories, { sid -> sessions.messages(sid) })
+                val args = buildJsonObject {
+                    put("title", "Mission: " + mission.goal.take(60))
+                    put("summary", "Automated mission ${mission.id}. Goal: ${mission.goal}")
+                }
+                val result = tool.execute(args, com.androidharness.app.tools.ToolContext(workspace, true, mission.sessionId))
+                if (!result.ok) return null
+                return Regex("url:\\s*(\\S+)").find(result.output)?.groupValues?.get(1)
+            }
+        },
+    )
     val automation = com.androidharness.app.automation.AutomationManager(this)
     val reminders = com.androidharness.app.reminders.ReminderManager(appContext)
     val clockAlarms = com.androidharness.app.reminders.ClockAlarms(appContext)

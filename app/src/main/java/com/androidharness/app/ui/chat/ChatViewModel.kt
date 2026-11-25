@@ -1103,6 +1103,34 @@ class ChatViewModel(
         }
     }
 
+    data class MissionDraft(
+        val text: String,
+        val source: com.androidharness.app.agent.MissionSource = com.androidharness.app.agent.MissionSource.TEXT,
+        val checkCommand: String = "",
+        val limits: com.androidharness.app.agent.MissionLimits = com.androidharness.app.agent.MissionLimits(),
+    )
+
+    /** Creates a persistent mission and lets the manager start its first run. */
+    fun startMission(draft: MissionDraft) {
+        viewModelScope.launch {
+            try {
+                val mission = c.missionManager.create(
+                    goal = draft.text.trim(),
+                    source = draft.source,
+                    checkCommand = draft.checkCommand.trim().takeIf { it.isNotEmpty() },
+                    limits = draft.limits,
+                )
+                sessionId = mission.sessionId
+                sessionIdFlow.value = mission.sessionId
+                _state.update {
+                    it.copy(sessionId = mission.sessionId, sessionTitle = draft.text.take(48),
+                        goalSheetDraft = null, error = null)
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e }
+            catch (e: Exception) { _state.update { it.copy(error = e.message) } }
+        }
+    }
+
     private fun updateGoal(change: (com.androidharness.app.agent.GoalState) -> com.androidharness.app.agent.GoalState?, after: (com.androidharness.app.agent.GoalState?) -> Unit = {}) {
         val sid = sessionId ?: return
         viewModelScope.launch {
