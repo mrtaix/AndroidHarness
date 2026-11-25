@@ -34,6 +34,16 @@ class ChiefVerdictTest {
         assertTrue(verdict.reason.isNotBlank())
     }
 
+    @Test fun `first line verdict wins over later mentions`() {
+        val verdict = ChiefVerdict.parse("PASS\nThe word FAIL appears only in the reason")
+        assertTrue(verdict.pass)
+    }
+
+    @Test fun `json pass false stays false when reason mentions PASS`() {
+        val verdict = ChiefVerdict.parse("{\"pass\": false, \"reason\": \"PASS appears in the quote\"}")
+        assertFalse(verdict.pass)
+    }
+
     @Test fun `unparseable output becomes FAIL instead of an error`() {
         val verdict = ChiefVerdict.parse("")
         assertFalse(verdict.pass)

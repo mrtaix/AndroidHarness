@@ -25,11 +25,17 @@ object ChiefScope {
             !raw.any { it.isWhitespace() }
     }
 
-    fun allows(scope: List<String>, path: String): Boolean {
+    /** Scoped workers never get a shell: path parsing cannot prove a command safe. */
+    fun deniesTool(scope: List<String>, tool: String): String? =
+        if (scope.isNotEmpty() && tool == "shell")
+            "Shell is disabled for scoped chief workers; use scoped file tools."
+        else null
+
+    fun allows(scope: List<String>, path: String, allowRoot: Boolean = true): Boolean {
         if (scope.isEmpty()) return true
         val raw = path.replace('\\', '/').trim()
-        // Listing the workspace root is harmless and keeps search tools usable.
-        if (raw.isEmpty() || raw == ".") return true
+        // Root is only safe for read-only listing/search tools.
+        if (raw.isEmpty() || raw == ".") return allowRoot
         if (ABSOLUTE.containsMatchIn(raw)) return false
         val parts = segments(raw)
         if (parts.isEmpty()) return false
@@ -40,19 +46,19 @@ object ChiefScope {
         }
     }
 
-    fun allows(scope: List<String>, args: JsonObject): Boolean {
+    fun allows(scope: List<String>, args: JsonObject, allowRoot: Boolean = true): Boolean {
         if (scope.isEmpty()) return true
         val keys = listOf("path", "file_path")
         if (keys.any { key ->
             val value = args[key]?.jsonPrimitive?.contentOrNull
-            value != null && !allows(scope, value)
+            value != null && !allows(scope, value, allowRoot)
         }) return false
         val command = args["command"]?.jsonPrimitive?.contentOrNull
-        if (command != null && commandPaths(command).any { !allows(scope, it) }) return false
+        if (command != null && commandPaths(command).any { !allows(scope, it, allowRoot) }) return false
         val paths = args["paths"]?.jsonArray ?: return true
         return paths.all { element ->
             val value = element.jsonPrimitive.contentOrNull
-            value == null || allows(scope, value)
+            value == null || allows(scope, value, allowRoot)
         }
     }
 

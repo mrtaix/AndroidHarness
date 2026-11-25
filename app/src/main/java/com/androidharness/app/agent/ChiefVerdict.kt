@@ -12,6 +12,7 @@ data class ChiefVerdict(
 ) {
     companion object {
         private val VERDICT = Regex("\\b(PASS|FAIL)\\b", RegexOption.IGNORE_CASE)
+        private val VERDICT_LINE = Regex("^\\s*(PASS|FAIL)\\b", RegexOption.IGNORE_CASE)
         private val JSON_PASS = Regex("\"pass\"\\s*:\\s*(true|false)", RegexOption.IGNORE_CASE)
         private val JSON_REASON = Regex("\"reason\"\\s*:\\s*\"([^\"]*)\"", RegexOption.IGNORE_CASE)
 
@@ -28,7 +29,9 @@ data class ChiefVerdict(
                     ?: "Verifier gave no reason"
                 return ChiefVerdict(pass, reason.take(300))
             }
-            val verdict = VERDICT.find(raw)
+            val firstLine = raw.trimStart('`').lineSequence().map { it.trim().trim('`', '"') }
+                .firstOrNull { it.isNotEmpty() }.orEmpty()
+            val verdict = VERDICT_LINE.find(firstLine) ?: VERDICT.find(raw)
                 ?: return ChiefVerdict(false, "Could not parse verdict: ${raw.take(200)}")
             val pass = verdict.groupValues[1].equals("PASS", ignoreCase = true)
             val rest = raw.removeRange(verdict.range)

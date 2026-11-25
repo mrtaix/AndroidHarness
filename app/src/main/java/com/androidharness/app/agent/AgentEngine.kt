@@ -1725,7 +1725,12 @@ class AgentEngine(
         catch (e: Exception) { return ToolResult(false, "Invalid tool arguments: ${e.message}") }
         val chiefScope = kotlin.coroutines.coroutineContext[com.androidharness.app.agent.ChiefScopeContext]?.paths
             ?: parsedArgs["chief_scope"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }.orEmpty()
-        if (chiefScope.isNotEmpty() && !com.androidharness.app.agent.ChiefScope.allows(chiefScope, parsedArgs)) {
+        com.androidharness.app.agent.ChiefScope.deniesTool(chiefScope, call.name)?.let {
+            return ToolResult(false, it)
+        }
+        if (chiefScope.isNotEmpty() && !com.androidharness.app.agent.ChiefScope.allows(
+                chiefScope, parsedArgs, allowRoot = tool.isReadOnly,
+            )) {
             return ToolResult(false, "Chief scope denies ${call.name}: path is outside $chiefScope")
         }
         val route = try { WorkspaceToolRouting.route(tool, parsedArgs, workspace, ToolContext(workspace, mode == PermissionMode.FULL_ACCESS && workspace !is ChatWorkspaceFs, sessionId))

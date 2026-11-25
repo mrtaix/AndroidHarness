@@ -20,7 +20,7 @@ class ChiefScopeTest {
         assertFalse(ChiefScope.allows(fileScope, ".harness/chief-scope-outside.txt"))
     }
 
-    @Test fun `absolute and root paths are denied under scope`() {
+    @Test fun `absolute paths denied but root allowed for read-only tools`() {
         assertFalse(ChiefScope.allows(fileScope, "/storage/emulated/0/HARNESS/AGENTS.md"))
         assertTrue(ChiefScope.allows(fileScope, "."))
         assertFalse(ChiefScope.allows(fileScope, "C:/work/AGENTS.md"))
@@ -32,7 +32,10 @@ class ChiefScopeTest {
         assertFalse(ChiefScope.allows(scope, "README.md"))
     }
 
-    @Test fun `root path is allowed so list_dir keeps working`() {
+    @Test fun `root path is allowed only when tool is read-only`() {
+        val rootArg = buildJsonObject { put("path", ".") }
+        assertTrue(ChiefScope.allows(fileScope, rootArg, allowRoot = true))
+        assertFalse(ChiefScope.allows(fileScope, rootArg, allowRoot = false))
         assertTrue(ChiefScope.allows(fileScope, "."))
         assertTrue(ChiefScope.allows(listOf("verify-pass"), "."))
     }
@@ -48,6 +51,13 @@ class ChiefScopeTest {
         assertFalse(ChiefScope.isValid(listOf("/absolute/path")))
         assertFalse(ChiefScope.isValid(listOf("")))
         assertFalse(ChiefScope.isValid(listOf(".")))
+    }
+
+    @Test fun `scoped workers are denied the shell tool entirely`() {
+        assertEquals("Shell is disabled for scoped chief workers; use scoped file tools.",
+            ChiefScope.deniesTool(listOf(".harness/x"), "shell"))
+        assertNull(ChiefScope.deniesTool(listOf(".harness/x"), "read_file"))
+        assertNull(ChiefScope.deniesTool(emptyList(), "shell"))
     }
 
     @Test fun `shell command path outside scope is denied`() {
