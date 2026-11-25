@@ -10,3 +10,4 @@ Ruling: no worktree — creating one would need stashing the user's uncommitted 
 
 Pre-flight: Task 2 consumes Task 1's `MissionState`/`MissionRetryPolicy`; Task 3 consumes Task 1 + Task 2; Task 4 consumes Task 3's manager; Task 5 consumes Task 4's manager API. No conflicting interfaces found; proceed in order.
 | 1 model + retry | `MissionModel.kt`, `MissionRetryPolicy.kt`, tests | RED unresolved refs; GREEN OK (13 tests); mutation network-loss retry caught | PASS | pending |
+| 2 store | `MissionStore.kt`, `MissionStoreTest.kt` | RED unresolved ref; GREEN OK (18 tests total) | PASS | pending |
