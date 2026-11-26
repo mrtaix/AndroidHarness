@@ -83,6 +83,7 @@ class ToolRegistry(private val tools: List<Tool>) {
             shellRouter: com.androidharness.app.data.env.ShellTierRouter,
             skills: com.androidharness.app.skills.SkillStore,
             linuxEnv: com.androidharness.app.data.env.LinuxEnvironmentManager,
+            buildHistory: com.androidharness.app.data.env.BuildHistoryStore? = null,
         ): AndroidBuildTool {
             val runner = object : BuildRunner {
                 override suspend fun run(command: String, cwd: java.io.File, env: Map<String, String>): BuildStepResult {
@@ -97,7 +98,19 @@ class ToolRegistry(private val tools: List<Tool>) {
             val scriptDir = java.io.File(linuxEnv.prefix, "var/android-build")
             val script = skills.materializeScript("android-build", "scripts/build-apk.sh", scriptDir)
                 ?: java.io.File("build-apk.sh") // skill missing: the core reports a clear build failure
-            return AndroidBuildTool(AndroidBuildCore(runner, scriptPath = script.absolutePath))
+            // Record every tool-driven build into the same history the UI reads.
+            val recordingCore = AndroidBuildCore(runner, scriptPath = script.absolutePath,
+                reportJson = { dir ->
+                    val text = if (dir.resolve("build/build-report.json").isFile)
+                        dir.resolve("build/build-report.json").readText() else null
+                    if (text != null) {
+                        com.androidharness.app.data.env.AndroidBuildReportParser.parse(text)?.let { report ->
+                            buildHistory?.record(report, dir.absolutePath)
+                        }
+                    }
+                    text
+                })
+            return AndroidBuildTool(recordingCore)
         }
 
         fun default(
@@ -128,6 +141,7 @@ class ToolRegistry(private val tools: List<Tool>) {
             plugins: com.androidharness.app.plugins.PluginManager? = null,
             terminals: (() -> com.androidharness.app.terminal.InteractiveTerminalManager)? = null,
             watch: (() -> com.androidharness.app.data.WatchService)? = null,
+            buildHistory: com.androidharness.app.data.env.BuildHistoryStore? = null,
         ): ToolRegistry {
             val baseTools = mutableListOf<Tool>(
                 ListDirTool(),
@@ -146,7 +160,7 @@ class ToolRegistry(private val tools: List<Tool>) {
                 ReadLogcatTool(shizuku, router = shellRouter),
                 PkgInstallTool(linuxEnv),
                 AndroidSdkInstallTool(linuxEnv),
-                androidBuildTool(shellRouter, skills, linuxEnv),
+                androidBuildTool(shellRouter, skills, linuxEnv, buildHistory),
                 PkgSearchTool(linuxEnv),
                 PkgListTool(linuxEnv),
                 BgListTool(bgStore),

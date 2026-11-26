@@ -73,7 +73,7 @@ class SettingsNavigationTest {
         assertEquals(SettingsPage.ASSISTANT, settingsDeepLink("assistant"))
         assertEquals(listOf(SettingsPage.MODELS, SettingsPage.CONNECTED_ACCOUNTS, SettingsPage.LOCAL_MODELS, SettingsPage.NINE_ROUTER),
             displayGroups.getValue(R.string.settings_group_ai_models).map { it.page })
-        assertEquals(listOf(SettingsPage.CHAT_OPTIONS, SettingsPage.ADVANCED_FEATURES, SettingsPage.CODING, SettingsPage.MEMORY, SettingsPage.VOICE, SettingsPage.LIVE_MODE),
+        assertEquals(listOf(SettingsPage.CHAT_OPTIONS, SettingsPage.ADVANCED_FEATURES, SettingsPage.CODING, SettingsPage.MEMORY, SettingsPage.VOICE, SettingsPage.LIVE_MODE, SettingsPage.BUILD_MANAGER),
             displayGroups.getValue(R.string.settings_group_your_assistant).map { it.page })
         assertEquals(listOf(SettingsPage.SEARCH, SettingsPage.MCP, SettingsPage.GITHUB, SettingsPage.TELEGRAM, SettingsPage.MISSIONS),
             displayGroups.getValue(R.string.settings_group_integrations).map { it.page })

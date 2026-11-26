@@ -211,6 +211,12 @@ internal enum class SettingsPage(
         R.string.settings_group_integrations,
         "mission overnight agent goal issue github pull request retry network resume budget",
     ),
+    BUILD_MANAGER(
+        R.string.build_mgr_title,
+        R.string.build_mgr_desc,
+        R.string.settings_group_coding,
+        "build apk android compile install history gradle aapt2 sign keystore",
+    ),
     WORKSPACE(
         R.string.settings_page_workspace_title,
         R.string.settings_page_workspace_desc,
@@ -325,7 +331,7 @@ internal val settingsHomePages = listOf(
     SettingsPage.ASSISTANT,
     SettingsPage.MODELS, SettingsPage.CONNECTED_ACCOUNTS, SettingsPage.LOCAL_MODELS, SettingsPage.NINE_ROUTER,
     SettingsPage.CHAT_OPTIONS, SettingsPage.ADVANCED_FEATURES, SettingsPage.CODING, SettingsPage.MEMORY, SettingsPage.VOICE, SettingsPage.LIVE_MODE,
-    SettingsPage.SEARCH, SettingsPage.MCP, SettingsPage.GITHUB, SettingsPage.TELEGRAM, SettingsPage.MISSIONS,
+    SettingsPage.SEARCH, SettingsPage.MCP, SettingsPage.GITHUB, SettingsPage.TELEGRAM, SettingsPage.MISSIONS, SettingsPage.BUILD_MANAGER,
     SettingsPage.APPEARANCE, SettingsPage.LANGUAGE, SettingsPage.RUMBLE,
     SettingsPage.PRIVACY, SettingsPage.BACKGROUND, SettingsPage.STORAGE,
     SettingsPage.BACKUP, SettingsPage.SYNC, SettingsPage.FTP_SERVER, SettingsPage.USAGE,
@@ -462,6 +468,7 @@ internal fun settingsDeepLink(target: String): SettingsPage? = when (target) {
     "live", "live-mode" -> SettingsPage.LIVE_MODE
     "telegram" -> SettingsPage.TELEGRAM
     "missions" -> SettingsPage.MISSIONS
+    "build" -> SettingsPage.BUILD_MANAGER
     "plugins", "plugin-manager" -> SettingsPage.PLUGINS
     "configuration", "config" -> SettingsPage.CONFIGURATION
     "agent" -> SettingsPage.AGENT

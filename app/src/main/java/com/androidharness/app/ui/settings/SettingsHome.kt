@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import com.androidharness.app.ui.common.FilledTonalButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Android
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.*
@@ -307,6 +308,7 @@ internal fun settingsIcon(page: SettingsPage): ImageVector = when (page) {
     SettingsPage.MCP -> Icons.Rounded.Extension
     SettingsPage.TELEGRAM -> Icons.AutoMirrored.Rounded.Send
     SettingsPage.MISSIONS -> Icons.Rounded.AccountTree
+    SettingsPage.BUILD_MANAGER -> Icons.Outlined.Android
     SettingsPage.WORKSPACE -> Icons.Rounded.Folder
     SettingsPage.BACKGROUND -> Icons.Rounded.Notifications
     SettingsPage.STORAGE -> Icons.Rounded.Storage

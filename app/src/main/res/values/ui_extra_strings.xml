@@ -400,6 +400,33 @@
     <string name="mission_status_partial" translatable="false">Dừng một phần</string>
     <string name="mission_status_done" translatable="false">Hoàn tất</string>
     <string name="mission_status_cancelled" translatable="false">Đã hủy</string>
+    <string name="build_mgr_title" translatable="false">Quản lý build Android</string>
+    <string name="build_mgr_desc" translatable="false">Build APK, cài đặt và xem lại lịch sử ngay trên máy</string>
+    <string name="build_mgr_toolchain" translatable="false">Công cụ biên dịch</string>
+    <string name="build_mgr_ready" translatable="false">Sẵn sàng</string>
+    <string name="build_mgr_missing" translatable="false">Chưa cài</string>
+    <string name="build_mgr_project" translatable="false">Thư mục dự án</string>
+    <string name="build_mgr_project_hint" translatable="false">Đường dẫn tương đối trong workspace</string>
+    <string name="build_mgr_route" translatable="false">Cách build</string>
+    <string name="build_mgr_route_auto" translatable="false">Tự nhận diện</string>
+    <string name="build_mgr_route_gradle" translatable="false">Gradle</string>
+    <string name="build_mgr_route_script" translatable="false">Nhanh (aapt2)</string>
+    <string name="build_mgr_install" translatable="false">Cài sau khi build</string>
+    <string name="build_mgr_open" translatable="false">Mở ứng dụng</string>
+    <string name="build_mgr_crash" translatable="false">Kiểm tra crash</string>
+    <string name="build_mgr_start" translatable="false">Bắt đầu build</string>
+    <string name="build_mgr_building" translatable="false">Đang build…</string>
+    <string name="build_mgr_history" translatable="false">Lịch sử build</string>
+    <string name="build_mgr_history_empty" translatable="false">Chưa có build nào. Bấm “Bắt đầu build” để tạo APK đầu tiên.</string>
+    <string name="build_mgr_clear" translatable="false">Xóa lịch sử</string>
+    <string name="build_mgr_reinstall" translatable="false">Cài lại</string>
+    <string name="build_mgr_installed" translatable="false">Đã cài</string>
+    <string name="build_mgr_launched" translatable="false">Đã mở</string>
+    <string name="build_mgr_cached" translatable="false">Dùng cache</string>
+    <string name="build_mgr_size" translatable="false">%1$d KiB</string>
+    <string name="build_mgr_result_ok" translatable="false">Build thành công · %1$s</string>
+    <string name="build_mgr_result_fail" translatable="false">Build thất bại: %1$s</string>
+    <string name="build_mgr_config_missing" translatable="false">Chưa có dự án. Nhập đường dẫn thư mục chứa AndroidManifest.xml hoặc build.gradle.kts.</string>
     <string name="subagents_background_description">Keep chatting while subagents explore in the background. Background tasks use read-only tools; two run at a time.</string>
     <string name="subagents_notify_completion">Notify on completion</string>
     <string name="subagents_notify_description">Get a notification with the result. Tap to open the subagent’s chat.</string>

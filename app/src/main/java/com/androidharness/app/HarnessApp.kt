@@ -361,6 +361,20 @@ class AppContainer(val appContext: Context) {
         },
     )
     val browser = com.androidharness.app.browser.BrowserController(appContext, images)
+    val buildHistory = com.androidharness.app.data.env.BuildHistoryStore(java.io.File(appContext.filesDir, "build-history.json"))
+    /** Shared build core for the settings UI; the tool has its own recording core. */
+    val buildManager: com.androidharness.app.agent.BuildManager by lazy {
+        val runner = object : com.androidharness.app.tools.BuildRunner {
+            override suspend fun run(command: String, cwd: java.io.File, env: Map<String, String>): com.androidharness.app.tools.BuildStepResult {
+                val r = shellRouter.run(command, cwd, 900_000, 400_000)
+                return com.androidharness.app.tools.BuildStepResult(if (r.timedOut) 124 else r.exitCode, r.rawOutput, r.rawStderr)
+            }
+        }
+        val script = skills.materializeScript("android-build", "scripts/build-apk.sh",
+            java.io.File(linuxEnv.prefix, "var/android-build")) ?: java.io.File("build-apk.sh")
+        com.androidharness.app.agent.BuildManager(buildHistory,
+            { com.androidharness.app.tools.AndroidBuildCore(runner, script.absolutePath) })
+    }
     val registry = ToolRegistry.default(
         fetchClient, todoStore, backgroundProcesses, linuxEnv, shizuku, shellRouter, skills, codeGraph,
         imageStore = images,
@@ -378,6 +392,7 @@ class AppContainer(val appContext: Context) {
         memory = memory,
         dhizuku = dhizuku,
         deviceAccess = deviceAccess,
+        buildHistory = buildHistory,
         // Declared below; resolved on each call, after construction.
         pullRequests = { githubRepositories },
         sessionMessages = { sessions.messages(it) },

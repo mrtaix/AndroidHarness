@@ -120,6 +120,11 @@
           "kind": "settings",
           "target": "MISSIONS",
           "label": "Open overnight missions"
+        },
+        {
+          "kind": "settings",
+          "target": "BUILD_MANAGER",
+          "label": "Open Android build manager"
         }
       ],
       "sources": [
