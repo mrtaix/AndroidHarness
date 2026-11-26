@@ -371,6 +371,22 @@ class SkillStore(
             }
     }
 
+    /**
+     * Materializes a support script (for example `scripts/build-apk.sh`) into
+     * [directory], so shell tools can invoke it with `sh`. Returns null when
+     * the named skill or file does not exist. Used by the on-device build tool.
+     */
+    fun materializeScript(skillName: String, relativePath: String, directory: File): File? {
+        val located = pickWinner(findAll(skillName)) ?: return null
+        val text = readSupportFile(located, relativePath)?.takeIf { !it.startsWith("File is ") } ?: return null
+        val out = File(directory, relativePath.substringAfterLast('/'))
+        runCatching {
+            if (!out.parentFile.isDirectory) out.parentFile.mkdirs()
+            out.writeText(text)
+        }.getOrNull() ?: return null
+        return out
+    }
+
     private fun readSupportFile(located: Located, filePath: String): String? {
         val cleaned = filePath.trim().replace('\\', '/').trimStart('/')
         if (cleaned.contains("..")) return null

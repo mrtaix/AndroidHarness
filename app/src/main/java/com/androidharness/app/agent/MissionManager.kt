@@ -8,6 +8,8 @@ interface MissionRunStarter {
 /** Side effects that must happen at most once when a mission reaches its finish line. */
 interface MissionSideEffects {
     suspend fun onMet(mission: MissionState): String?
+    /** Called once when a build chain produces an APK; default is a no-op. */
+    suspend fun onBuilt(mission: MissionState, apkPath: String?) {}
 }
 
 /** Registry of overnight missions. Pure enough to test with fakes. */
@@ -37,7 +39,15 @@ class MissionManager(
         )
         val started = mission.transition(MissionEvent.START)
         persist(started)
-        val sessionId = starter.start(started, "Goal: $goal")
+        // A build hint becomes instructions in the first prompt so the agent
+        // calls android_build with the right flags; no new runtime dependency.
+        val plan = MissionBuildChain.plan(checkCommand, ".")
+        val buildHint = if (plan == null) "" else buildString {
+            append("\n\nWhen done, call android_build(project=<workspace>, route=auto")
+            if (plan.install) append(", install=true, open=true, check_crash=true")
+            append(") and report the APK path and hash.")
+        }
+        val sessionId = starter.start(started, "Goal: $goal$buildHint")
         val withSession = started.copy(sessionId = sessionId)
         return persist(withSession)
     }

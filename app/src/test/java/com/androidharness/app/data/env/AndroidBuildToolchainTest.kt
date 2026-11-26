@@ -97,6 +97,25 @@ class AndroidBuildToolchainTest {
         }
     }
 
+    @Test fun `optional NDK CMake and Vulkan tools are detected`() = fixture { root ->
+        assertFalse(AndroidBuildToolchain.hasNdk(root))
+        write(root, "ndk/26.3.11579264/source.properties")
+        write(root, "bin/cmake")
+        write(root, "bin/glslc")
+        assertTrue(AndroidBuildToolchain.hasNdk(root))
+        val s = AndroidBuildToolchain.status(root, listOf("d8"), root.absolutePath)
+        assertTrue(s.contains("NDK present"))
+        assertTrue(s.contains("CMake present"))
+        assertTrue(s.contains("Vulkan present"))
+    }
+
+    @Test fun `optional tools are reported missing when absent`() {
+        val s = AndroidBuildToolchain.status(File("/nonexistent-ah-prefix"), emptyList(), "/x")
+        assertTrue(s.contains("NDK missing"))
+        assertTrue(s.contains("CMake missing"))
+        assertTrue(s.contains("Vulkan missing"))
+    }
+
     private fun write(root: File, path: String, text: String = "fixture") = File(root, path).apply { parentFile.mkdirs(); writeText(text) }
     private fun fixture(block: (File) -> Unit) {
         val root = Files.createTempDirectory("android-build-tools").toFile()

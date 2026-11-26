@@ -27,6 +27,12 @@ Build real APKs without a PC. Install the tools once with one approval card, bui
 - **A, no Gradle**: a plain Java and XML app, or a new app where the user does not need Kotlin, Compose or Maven libraries. Builds in seconds. Use it by default for "make me a small app".
 - **B, Gradle**: the project has `gradlew`, `build.gradle` or `build.gradle.kts`, or needs Kotlin, Compose, AndroidX or other dependencies. Slow and memory hungry. Read `references/gradle-on-device.md` before the first build.
 
+### Tool, not just shell
+The `android_build` tool runs the same steps with one call and a progress card: it auto-detects the route, reuses `build/build-report.json` on an unchanged cache, then optionally installs, launches and reads the crash log. Prefer it over hand-running `sh build-apk.sh` when available. It never accepts a keystore password; debug signing uses the script's own key, release uses a keystore path you supply.
+
+## Before you build: respect the repo's AGENTS.md
+If the project has an `AGENTS.md` (or `CLAUDE.md`), read it first and run whatever it mandates before building — commonly `make format`, `make lint`, `make test`. For an AndroidHarness library under `libs/`, all three are required before a pull request. Do not skip these because the build tool is fast. A green tool build is not proof the repo's checks passed.
+
 ## Route A: build without Gradle
 1. New project: copy the files under `templates/hello-java/` with `skill_view(name="android-build", file_path="templates/hello-java/<file>")` and `write_file`. Save `gitignore.txt` as `.gitignore`. Rename the package in the manifest and the Java path together. Check: `package` in the manifest matches the folder under `src/`.
 2. Once per project, copy `scripts/build-apk.sh` the same way into the project root.

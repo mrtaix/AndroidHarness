@@ -78,6 +78,28 @@ class ToolRegistry(private val tools: List<Tool>) {
         }
 
     companion object {
+        /** Binds the pure build chain to shell commands and the installed skill script. */
+        private fun androidBuildTool(
+            shellRouter: com.androidharness.app.data.env.ShellTierRouter,
+            skills: com.androidharness.app.skills.SkillStore,
+            linuxEnv: com.androidharness.app.data.env.LinuxEnvironmentManager,
+        ): AndroidBuildTool {
+            val runner = object : BuildRunner {
+                override suspend fun run(command: String, cwd: java.io.File, env: Map<String, String>): BuildStepResult {
+                    // Keystore passwords are never in env; the script owns the debug pass.
+                    val exports = env.filter { (k, _) -> k == "KEYSTORE" || k == "KS_ALIAS" || k == "PACKAGE" }
+                        .map { (k, v) -> "$k='$v'" }
+                    val full = if (exports.isEmpty()) command else exports.joinToString(" ") + " " + command
+                    val r = shellRouter.run(full, cwd, 900_000, 400_000)
+                    return BuildStepResult(if (r.timedOut) 124 else r.exitCode, r.rawOutput, r.rawStderr)
+                }
+            }
+            val scriptDir = java.io.File(linuxEnv.prefix, "var/android-build")
+            val script = skills.materializeScript("android-build", "scripts/build-apk.sh", scriptDir)
+                ?: java.io.File("build-apk.sh") // skill missing: the core reports a clear build failure
+            return AndroidBuildTool(AndroidBuildCore(runner, scriptPath = script.absolutePath))
+        }
+
         fun default(
             httpClient: okhttp3.OkHttpClient,
             todoStore: com.androidharness.app.agent.TodoStore,
@@ -124,6 +146,7 @@ class ToolRegistry(private val tools: List<Tool>) {
                 ReadLogcatTool(shizuku, router = shellRouter),
                 PkgInstallTool(linuxEnv),
                 AndroidSdkInstallTool(linuxEnv),
+                androidBuildTool(shellRouter, skills, linuxEnv),
                 PkgSearchTool(linuxEnv),
                 PkgListTool(linuxEnv),
                 BgListTool(bgStore),

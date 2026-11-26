@@ -528,6 +528,11 @@ class AppContainer(val appContext: Context) {
                 if (!result.ok) return null
                 return Regex("url:\\s*(\\S+)").find(result.output)?.groupValues?.get(1)
             }
+            override suspend fun onBuilt(mission: com.androidharness.app.agent.MissionState, apkPath: String?) {
+                if (apkPath == null) return
+                val current = missionManager.store.load(mission.id) ?: return
+                missionManager.store.save(current.copy(apkPath = apkPath))
+            }
         },
         notifier = { _, message -> com.androidharness.app.RuntimeNotifier.update("Mission: $message") },
     )

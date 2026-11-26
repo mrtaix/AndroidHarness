@@ -74,6 +74,21 @@ internal object AndroidBuildToolchain {
         }
     }.getOrDefault(false)
 
+    fun hasNdk(prefix: File): Boolean =
+        File(prefix, "ndk").listFiles().orEmpty().any { File(it, "source.properties").isFile }
+
+    private fun hasBinary(prefix: File, name: String): Boolean =
+        File(prefix, "bin/$name").isFile
+
+    /** One-line presence flags for optional native build tools. */
+    fun optionalTools(prefix: File): String {
+        val ndk = if (hasNdk(prefix)) "NDK present" else "NDK missing (android_sdk_install or pkg_install: ndk)"
+        val cmake = if (hasBinary(prefix, "cmake")) "CMake present" else "CMake missing (pkg_install: cmake)"
+        val vulkan = if (hasBinary(prefix, "glslc") || hasBinary(prefix, "glslangValidator"))
+            "Vulkan present" else "Vulkan missing (pkg_install: glslang)"
+        return "$ndk; $cmake; $vulkan."
+    }
+
     fun status(prefix: File, installed: Collection<String>, executionPrefix: String): String {
         val home = javaHome(prefix, executionPrefix)
         val dex = when {
@@ -82,6 +97,7 @@ internal object AndroidBuildToolchain {
             else -> "D8 compiler files present at $executionPrefix/share/java/d8.jar"
         }
         return "${home?.let { "Java home: $it" } ?: "Java not installed (pkg_search/pkg_install: openjdk-21)"}; $dex. " +
+            optionalTools(prefix) + " " +
             "Run java -version and d8 --version to verify execution. Android SDK/platform and project build compatibility are not checked by Linux environment readiness."
     }
 }

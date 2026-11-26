@@ -41,6 +41,8 @@ data class MissionState(
     val watchdogRetries: Int = 0,
     val lastReason: String? = null,
     val prUrl: String? = null,
+    /** APK produced by an optional build chain; recorded for later install/replay. */
+    val apkPath: String? = null,
     val checkCommand: String? = null,
     val checkpoint: MissionCheckpoint = MissionCheckpoint(),
     val limits: MissionLimits = MissionLimits(),
