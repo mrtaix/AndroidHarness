@@ -490,8 +490,9 @@ class AppContainer(val appContext: Context) {
         canRun = runtimePolicy::canRun,
     )
     val githubRepositories = com.androidharness.app.github.GitHubWorkspaces(this)
+    private val missionStore = com.androidharness.app.agent.MissionStore(java.io.File(appContext.filesDir, "missions"))
     val missionManager = com.androidharness.app.agent.MissionManager(
-        store = com.androidharness.app.agent.MissionStore(java.io.File(appContext.filesDir, "missions")),
+        store = missionStore,
         starter = object : com.androidharness.app.agent.MissionRunStarter {
             override suspend fun start(mission: com.androidharness.app.agent.MissionState, prompt: String): String {
                 val saved = settings.settings.first()
@@ -530,8 +531,8 @@ class AppContainer(val appContext: Context) {
             }
             override suspend fun onBuilt(mission: com.androidharness.app.agent.MissionState, apkPath: String?) {
                 if (apkPath == null) return
-                val current = missionManager.store.load(mission.id) ?: return
-                missionManager.store.save(current.copy(apkPath = apkPath))
+                val current = missionStore.load(mission.id) ?: return
+                missionStore.save(current.copy(apkPath = apkPath))
             }
         },
         notifier = { _, message -> com.androidharness.app.RuntimeNotifier.update("Mission: $message") },
