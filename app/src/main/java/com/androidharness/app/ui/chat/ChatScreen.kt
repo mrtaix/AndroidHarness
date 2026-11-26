@@ -969,6 +969,7 @@ private fun ChatScreenContent(
             running = state.busy,
             stalled = goalStalled,
             onStart = viewModel::startGoal,
+            onMissionStart = viewModel::startMission,
             onPause = viewModel::pauseGoal,
             onResume = viewModel::resumeGoal,
             onExtend = viewModel::extendGoal,

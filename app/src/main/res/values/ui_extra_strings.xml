@@ -375,19 +375,31 @@
     <string name="transfer_choose_workspace">Choose workspace</string>
     <string name="transfer_port">Port</string>
     <string name="subagents_allow_background">Allow background delegation</string>
-    <string name="chief_hierarchy_title" translatable="false">Chief agent hierarchy (experimental)</string>
-    <string name="chief_hierarchy_desc" translatable="false">Let a chief agent delegate to leads and workers, review their reports, then merge. Off by default.</string>
-    <string name="chief_tree_title" translatable="false">Chief agents</string>
-    <string name="chief_tree_empty" translatable="false">No chief nodes yet</string>
-    <string name="chief_tree_approve" translatable="false">Approve</string>
-    <string name="chief_tree_reject" translatable="false">Reject</string>
-    <string name="chief_tree_stop" translatable="false">Stop</string>
-    <string name="missions_title" translatable="false">Overnight missions</string>
-    <string name="missions_desc" translatable="false">Long-running agent missions with retry, budgets and pull requests</string>
-    <string name="missions_empty" translatable="false">No missions yet</string>
-    <string name="missions_resume" translatable="false">Resume</string>
-    <string name="missions_pause" translatable="false">Pause</string>
-    <string name="missions_cancel" translatable="false">Cancel</string>
+    <string name="chief_hierarchy_title" translatable="false">Phân cấp agent trưởng (thử nghiệm)</string>
+    <string name="chief_hierarchy_desc" translatable="false">Cho phép agent trưởng giao việc cho các trưởng nhóm và worker, duyệt báo cáo rồi hợp nhất. Mặc định tắt.</string>
+    <string name="chief_tree_title" translatable="false">Agent trưởng</string>
+    <string name="chief_tree_empty" translatable="false">Chưa có node trưởng</string>
+    <string name="chief_tree_approve" translatable="false">Duyệt</string>
+    <string name="chief_tree_reject" translatable="false">Từ chối</string>
+    <string name="chief_tree_stop" translatable="false">Dừng</string>
+    <string name="missions_title" translatable="false">Nhiệm vụ chạy đêm</string>
+    <string name="missions_desc" translatable="false">Agent chạy dài có tự retry, giới hạn chi phí và tạo pull request</string>
+    <string name="missions_empty" translatable="false">Chưa có nhiệm vụ nào</string>
+    <string name="missions_resume" translatable="false">Tiếp tục</string>
+    <string name="missions_pause" translatable="false">Tạm dừng</string>
+    <string name="missions_cancel" translatable="false">Hủy</string>
+    <string name="mission_mode_goal" translatable="false">Mục tiêu</string>
+    <string name="mission_mode_mission" translatable="false">Nhiệm vụ</string>
+    <string name="mission_start" translatable="false">Bắt đầu nhiệm vụ</string>
+    <string name="mission_progress" translatable="false">Lượt %1$d · thử lại %2$d</string>
+    <string name="mission_status_queued" translatable="false">Chờ</string>
+    <string name="mission_status_running" translatable="false">Đang chạy</string>
+    <string name="mission_status_waiting_network" translatable="false">Chờ mạng</string>
+    <string name="mission_status_waiting_retry" translatable="false">Chờ thử lại</string>
+    <string name="mission_status_needs_user" translatable="false">Cần bạn xử lý</string>
+    <string name="mission_status_partial" translatable="false">Dừng một phần</string>
+    <string name="mission_status_done" translatable="false">Hoàn tất</string>
+    <string name="mission_status_cancelled" translatable="false">Đã hủy</string>
     <string name="subagents_background_description">Keep chatting while subagents explore in the background. Background tasks use read-only tools; two run at a time.</string>
     <string name="subagents_notify_completion">Notify on completion</string>
     <string name="subagents_notify_description">Get a notification with the result. Tap to open the subagent’s chat.</string>

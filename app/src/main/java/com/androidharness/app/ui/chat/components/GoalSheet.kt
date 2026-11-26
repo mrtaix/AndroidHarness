@@ -296,6 +296,7 @@ fun GoalSheet(
     running: Boolean,
     stalled: Boolean,
     onStart: (ChatViewModel.GoalDraft) -> Unit,
+    onMissionStart: (ChatViewModel.MissionDraft) -> Unit,
     onPause: () -> Unit,
     onResume: (extraTurns: Int) -> Unit,
     onExtend: (extraTurns: Int) -> Unit,
@@ -319,6 +320,7 @@ fun GoalSheet(
                     initialKeepImproving = goal?.keepImproving ?: false,
                     initialFocus = goal?.improveFocus.orEmpty(),
                     initialList = goal?.improveQueue.orEmpty().joinToString("\n"),
+                    onMissionStart = onMissionStart,
                     limits = limits,
                     replacing = goal != null,
                     onStart = onStart,
@@ -343,9 +345,11 @@ private fun GoalSetup(
     limits: TaskLimits,
     replacing: Boolean,
     onStart: (ChatViewModel.GoalDraft) -> Unit,
+    onMissionStart: (ChatViewModel.MissionDraft) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val ui = LocalContext.current
+    var missionMode by rememberSaveable { mutableStateOf(false) }
     var text by rememberSaveable { mutableStateOf(initialText) }
     var turns by rememberSaveable { mutableIntStateOf(initialTurns) }
     var check by rememberSaveable { mutableStateOf(initialCheck) }
@@ -359,6 +363,12 @@ private fun GoalSetup(
 
     ExpressiveSheetHeader(ui.getString(R.string.goal_setup_title), ui.getString(R.string.goal_setup_subtitle),
         ui.getString(R.string.goal_close), onDismiss)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(selected = !missionMode, onClick = { missionMode = false },
+            label = { Text(ui.getString(R.string.mission_mode_goal)) })
+        FilterChip(selected = missionMode, onClick = { missionMode = true },
+            label = { Text(ui.getString(R.string.mission_mode_mission)) })
+    }
     OutlinedTextField(text, { text = it.take(GoalJudge.MAX_GOAL_CHARS) }, Modifier.fillMaxWidth(),
         label = { Text(ui.getString(R.string.goal_field_label)) },
         placeholder = { Text(ui.getString(R.string.goal_field_placeholder)) }, minLines = 2, maxLines = 6)
@@ -421,14 +431,29 @@ private fun GoalSetup(
         color = MaterialTheme.colorScheme.onSurfaceVariant)
     Button(
         onClick = {
-            onStart(ChatViewModel.GoalDraft(text, turns, check,
-                TaskLimits(tokens.toLongOrNull() ?: 0, cost.toDoubleOrNull()?.takeIf { it.isFinite() } ?: 0.0,
-                    (minutes.toLongOrNull() ?: 0).coerceIn(0, 525_600)), notify, keepImproving,
-                if (keepImproving) focus else emptyList(), if (keepImproving) GoalJudge.improvementList(improveList) else emptyList()))
+            if (missionMode) {
+                val parsed = runCatching { com.androidharness.app.agent.MissionIssue.parse(text.trim()) }.getOrNull()
+                onMissionStart(ChatViewModel.MissionDraft(
+                    text = text.trim(),
+                    source = if (parsed != null) com.androidharness.app.agent.MissionSource.ISSUE_URL
+                        else com.androidharness.app.agent.MissionSource.TEXT,
+                    checkCommand = check,
+                    limits = com.androidharness.app.agent.MissionLimits(
+                        turnLimit = turns.coerceIn(1, 100),
+                        maxCostUsd = cost.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0 } ?: 2.0,
+                        maxWallClockMs = (minutes.toLongOrNull() ?: 0).coerceIn(0, 525_600) * 60_000L,
+                    ),
+                ))
+            } else {
+                onStart(ChatViewModel.GoalDraft(text, turns, check,
+                    TaskLimits(tokens.toLongOrNull() ?: 0, cost.toDoubleOrNull()?.takeIf { it.isFinite() } ?: 0.0,
+                        (minutes.toLongOrNull() ?: 0).coerceIn(0, 525_600)), notify, keepImproving,
+                    if (keepImproving) focus else emptyList(), if (keepImproving) GoalJudge.improvementList(improveList) else emptyList()))
+            }
         },
         enabled = text.isNotBlank(),
         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-    ) { Text(ui.getString(R.string.goal_start)) }
+    ) { Text(ui.getString(if (missionMode) R.string.mission_start else R.string.goal_start)) }
 }
 
 @Composable

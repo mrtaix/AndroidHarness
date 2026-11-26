@@ -31,6 +31,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+private fun statusLabel(status: MissionStatus): Int = when (status) {
+    MissionStatus.QUEUED -> R.string.mission_status_queued
+    MissionStatus.RUNNING -> R.string.mission_status_running
+    MissionStatus.WAITING_NETWORK -> R.string.mission_status_waiting_network
+    MissionStatus.WAITING_RETRY -> R.string.mission_status_waiting_retry
+    MissionStatus.NEEDS_USER -> R.string.mission_status_needs_user
+    MissionStatus.PARTIAL -> R.string.mission_status_partial
+    MissionStatus.DONE -> R.string.mission_status_done
+    MissionStatus.CANCELLED -> R.string.mission_status_cancelled
+}
+
 /** Settings page for persistent overnight missions. No nested scroll: settings owns the scroller. */
 @Composable
 fun MissionScreen(container: AppContainer) {
@@ -56,7 +67,8 @@ fun MissionScreen(container: AppContainer) {
                 Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(mission.goal, style = MaterialTheme.typography.titleSmall, maxLines = 2,
                         overflow = TextOverflow.Ellipsis)
-                    Text("${mission.status.name} · turn ${mission.turns} · retry ${mission.retries}",
+                    Text(stringResource(statusLabel(mission.status)) + " · " +
+                        stringResource(R.string.mission_progress, mission.turns, mission.retries),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     LinearProgressIndicator(
