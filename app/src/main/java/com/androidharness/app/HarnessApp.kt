@@ -27,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import java.util.concurrent.atomic.AtomicBoolean
@@ -61,6 +62,14 @@ class HarnessApp : Application() {
         memoryScope.launch { runCatching { container.reminders.rescheduleAll() } }
         // Overnight missions survive process death; resume waiting ones on boot.
         memoryScope.launch { runCatching { container.missionManager.resumeAll() } }
+        memoryScope.launch {
+            while (true) {
+                runCatching {
+                    container.missionManager.tick(online = container.automation.network.state.value.connected)
+                }
+                delay(5_000)
+            }
+        }
     }
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)

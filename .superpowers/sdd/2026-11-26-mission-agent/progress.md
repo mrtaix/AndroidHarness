@@ -17,3 +17,5 @@ Pre-flight: Task 2 consumes Task 1's `MissionState`/`MissionRetryPolicy`; Task 3
 | CI run 45708639589 | `e7accb7c` | FAIL wiring: Flow.first qualified, PR publisher lambda, WorkspaceFs vs WorkspaceManager | FAIL -> fixed | - |
 | CI run 45711907272 | `3986c809` | FAIL 2 tests: LearnCatalog tutorial link + settings home list for MISSIONS | FAIL -> fixed | - |
 | CI run 45716010225 | `85f9cbe3` | FAIL 1 test: integrations group order; fixed expected list | FAIL -> fixed | - |
+| CI run 45718705753 | `67877118` | **success** (unit + debug + release) | PASS | installed |
+| Scheduler gap | `MissionManager.tick`, `HarnessApp` 5s loop | RED added tick test; GREEN OK (32 tests) | PASS | pending CI |

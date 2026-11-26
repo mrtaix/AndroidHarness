@@ -25,10 +25,9 @@ class MissionManagerTest {
         }
     }
 
-    private fun manager(): Pair<MissionManager, Starter> {
+    private fun manager(now: () -> Long = { 1_000L }): Pair<MissionManager, Starter> {
         val starter = Starter()
-        return MissionManager(MissionStore(tmp.root), starter, SideEffects(),
-            now = { 1_000L }) to starter
+        return MissionManager(MissionStore(tmp.root), starter, SideEffects(), now = now) to starter
     }
 
     @Test fun `create saves running mission and starts it`() = runBlocking {
@@ -91,6 +90,21 @@ class MissionManagerTest {
         manager.retryNow(created.id)
         manager.watchdog(created.id)
         assertEquals(MissionStatus.PARTIAL, manager.list().single().status)
+    }
+
+    @Test fun `tick retries due missions and restores network`() = runBlocking {
+        var clock = 1_000L
+        val (manager, starter) = manager({ clock })
+        val created = manager.create("fix login")
+        manager.handleFailure(created.id, 503, "server error", "ApiException")
+        assertEquals(MissionStatus.WAITING_RETRY, manager.list().single().status)
+        clock = 200_000L
+        manager.tick(online = true)
+        assertEquals(MissionStatus.RUNNING, manager.list().single().status)
+        assertEquals(2, starter.calls.size)
+        manager.networkLost(created.id)
+        manager.tick(online = true)
+        assertEquals(MissionStatus.RUNNING, manager.list().single().status)
     }
 
     @Test fun `resumeAll restarts interrupted missions`() = runBlocking {

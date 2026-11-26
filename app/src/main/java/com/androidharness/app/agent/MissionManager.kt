@@ -113,6 +113,18 @@ class MissionManager(
         persist(current.transition(MissionEvent.CANCEL))
     }
 
+    /** One scheduler tick: retry due missions and resume waiting ones when online. */
+    suspend fun tick(online: Boolean) {
+        val current = now()
+        list().forEach { mission ->
+            when {
+                mission.status == MissionStatus.WAITING_RETRY &&
+                    mission.nextRetryAtMs != null && current >= mission.nextRetryAtMs!! -> retryNow(mission.id)
+                mission.status == MissionStatus.WAITING_NETWORK && online -> networkRestored(mission.id)
+            }
+        }
+    }
+
     suspend fun resumeAll() {
         list().filter {
             it.status == MissionStatus.RUNNING || it.status == MissionStatus.WAITING_RETRY ||
