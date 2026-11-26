@@ -19,3 +19,8 @@ Pre-flight: Task 2 consumes Task 1's `MissionState`/`MissionRetryPolicy`; Task 3
 | CI run 45716010225 | `85f9cbe3` | FAIL 1 test: integrations group order; fixed expected list | FAIL -> fixed | - |
 | CI run 45718705753 | `67877118` | **success** (unit + debug + release) | PASS | installed |
 | Scheduler gap | `MissionManager.tick`, `HarnessApp` 5s loop | RED added tick test; GREEN OK (32 tests) | PASS | pending CI |
+| CI run 45726496599 / 45728473589 | `f5580d6a` | FAIL twice: flaky `GroqWhisperClientTest`, unrelated to mission change | FAIL (flake) | - |
+| CI run 45730548159 | `f5580d6a` | **success** (unit + debug + release) | PASS | final |
+| Install | artifact `15078285983`, digest `c7e6a22a…` | signed `9921c690…`, `pm install` Success, launch PID 15458, no FATAL after 16:42 | PASS | final |
+
+Known gaps: watchdog method exists but no heartbeat timer wired yet; issue URL parsing exists but no dedicated UI field yet; PR side effects use the existing PR tool, not a repo-level API call.
