@@ -80,8 +80,7 @@ fun BuildManagerScreen(container: AppContainer) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)) {
 
-        Text(stringResource(R.string.build_mgr_desc), style = MaterialTheme.typography.bodySmall,
-            color = scheme.onSurfaceVariant)
+        // The settings shell already renders the page intro (icon + description).
 
         // Toolchain status -------------------------------------------------
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
