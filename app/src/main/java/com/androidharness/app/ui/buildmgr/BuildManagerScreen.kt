@@ -127,11 +127,14 @@ fun BuildManagerScreen(container: AppContainer) {
                     Checkbox(checked = doCrash, onCheckedChange = { doCrash = it })
                     Text(stringResource(R.string.build_mgr_crash), style = MaterialTheme.typography.bodyMedium)
                 }
+                val okPrefix = stringResource(R.string.build_mgr_result_ok).substringBefore(" · ")
+                val startMsg = stringResource(R.string.build_mgr_start)
+                val buildingMsg = stringResource(R.string.build_mgr_building)
                 Button(onClick = {
                     if (project.isBlank() || running) return@Button
                     running = true; result = null
                     scope.launch {
-                        try {
+                        val msg = try {
                             val root = File(project.trim()).let { f ->
                                 if (f.isAbsolute) f else File(container.linuxEnv.shellFallbackRoot, f.path)
                             }
@@ -139,30 +142,29 @@ fun BuildManagerScreen(container: AppContainer) {
                                 container.buildManager.build(root, route,
                                     install = doInstall, open = doOpen && doInstall, crashCheck = doCrash)
                             }
-                            result = if (outcome.ok)
-                                stringResource(R.string.build_mgr_result_ok, outcome.report?.sha256?.take(8).orEmpty())
-                            else stringResource(R.string.build_mgr_result_fail, outcome.summary.take(160))
-                            refresh()
+                            if (outcome.ok) ctx.getString(R.string.build_mgr_result_ok, outcome.report?.sha256?.take(8).orEmpty())
+                            else ctx.getString(R.string.build_mgr_result_fail, outcome.summary.take(160))
                         } catch (e: Exception) {
-                            result = stringResource(R.string.build_mgr_result_fail, e.message ?: e::class.simpleName.orEmpty())
-                        } finally {
-                            running = false
+                            ctx.getString(R.string.build_mgr_result_fail, e.message ?: e::class.simpleName.orEmpty())
                         }
+                        result = msg
+                        refresh()
+                        running = false
                     }
                 }, enabled = !running && project.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
                     if (running) {
                         CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
                         Spacer(Modifier.size(8.dp))
-                        Text(stringResource(R.string.build_mgr_building))
+                        Text(buildingMsg)
                     } else {
                         Icon(Icons.Outlined.PlayArrow, null, Modifier.size(18.dp))
                         Spacer(Modifier.size(8.dp))
-                        Text(stringResource(R.string.build_mgr_start))
+                        Text(startMsg)
                     }
                 }
                 result?.let {
                     Text(it, style = MaterialTheme.typography.bodySmall,
-                        color = if (it.startsWith(ctx.getString(R.string.build_mgr_result_ok).substringBefore(' · '))) ok else scheme.error)
+                        color = if (it.startsWith(okPrefix)) ok else scheme.error)
                 }
             }
         }

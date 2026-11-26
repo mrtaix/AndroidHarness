@@ -1,9 +1,9 @@
 package com.androidharness.app.agent
 
-import com.androidharness.app.data.env.AndroidBuildOutcome
 import com.androidharness.app.data.env.BuildHistoryEntry
 import com.androidharness.app.data.env.BuildHistoryStore
 import com.androidharness.app.tools.AndroidBuildCore
+import com.androidharness.app.tools.AndroidBuildOutcome
 
 /** Application-scoped build runner shared by the tool and the settings UI. */
 class BuildManager(
